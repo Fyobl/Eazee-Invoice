@@ -154,6 +154,8 @@ The application is designed to be easily extensible with additional features lik
 - **Enhanced Delete Experience**: Replaced browser pop-ups with in-app confirmation dialogs for better user experience
 - **Dropdown Action Menus**: Converted action buttons to dropdown menus with descriptive text for quotes and invoices
 - **Toast Notifications**: Added success notifications that appear in bottom-right corner when items are deleted
+- **PDF Functionality**: Implemented complete PDF view and download system for quotes and invoices
+- **Professional PDFs**: Created professional PDF documents with company branding, proper formatting, and GBP currency
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
