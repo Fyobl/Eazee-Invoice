@@ -136,7 +136,9 @@ The application is designed to be easily extensible with additional features lik
   - Data now persists properly after server restarts
 - **Enhanced Authentication Persistence**: Improved Firebase Auth to maintain login state during development
   - Configured proper browserLocalPersistence for Firebase Auth
-  - Added localStorage backup for user data
+  - Added localStorage backup for user data and auth state
+  - Enhanced ProtectedRoute to handle server restarts gracefully
+  - Added timeout mechanism to prevent infinite loading states
   - Fixed decimal parsing issues in product displays and currency formatting
   - Improved product selection functionality in quotes and invoices
 

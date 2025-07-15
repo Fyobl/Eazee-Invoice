@@ -16,14 +16,38 @@ const app = initializeApp(firebaseConfig);
 // Initialize Auth with persistence
 export const auth = getAuth(app);
 
-// Ensure local persistence is set immediately
-(async () => {
+// Ensure local persistence is set immediately and wait for auth to be ready
+let authInitialized = false;
+
+const initializeAuth = async () => {
   try {
     await setPersistence(auth, browserLocalPersistence);
+    authInitialized = true;
   } catch (error) {
     console.error('Error setting auth persistence:', error);
   }
-})();
+};
+
+// Initialize auth persistence
+initializeAuth();
+
+// Export a function to check if auth is ready
+export const waitForAuthInit = () => {
+  return new Promise<void>((resolve) => {
+    if (authInitialized) {
+      resolve();
+    } else {
+      const checkInit = () => {
+        if (authInitialized) {
+          resolve();
+        } else {
+          setTimeout(checkInit, 50);
+        }
+      };
+      checkInit();
+    }
+  });
+};
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);

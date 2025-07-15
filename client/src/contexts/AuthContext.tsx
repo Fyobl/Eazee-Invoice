@@ -33,8 +33,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Try to restore user data from localStorage immediately
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
+      try {
+        const parsedData = JSON.parse(storedUserData);
+        setUserData(parsedData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('userData');
+      }
+    }
+
+    // Set a timeout to prevent infinite loading if Firebase Auth fails
+    const authTimeout = setTimeout(() => {
+      if (!currentUser && storedUserData) {
+        // If we still don't have a user after 5 seconds but have stored data,
+        // stop loading to prevent infinite loading state
+        setLoading(false);
+      }
+    }, 5000);
+
     // Wait for auth to initialize before setting up the listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(authTimeout);
       setCurrentUser(user);
       
       if (user) {
@@ -43,21 +65,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setUserData(data);
           // Store user data in localStorage as backup
           localStorage.setItem('userData', JSON.stringify(data));
+          localStorage.setItem('authUser', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName
+          }));
         } catch (error) {
           console.error('Error loading user data:', error);
-          setUserData(null);
-          localStorage.removeItem('userData');
+          // Keep the stored data if available, don't clear it immediately
+          if (!storedUserData) {
+            setUserData(null);
+          }
         }
       } else {
-        setUserData(null);
-        localStorage.removeItem('userData');
+        // Only clear data if auth explicitly says no user and we don't have stored data
+        if (!storedUserData) {
+          setUserData(null);
+          localStorage.removeItem('userData');
+          localStorage.removeItem('authUser');
+        }
       }
       
       setLoading(false);
     });
 
-    return unsubscribe;
-  }, []);
+    return () => {
+      unsubscribe();
+      clearTimeout(authTimeout);
+    };
+  }, [currentUser]);
 
   const hasAccess = userData ? (userData.isAdmin || userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;
