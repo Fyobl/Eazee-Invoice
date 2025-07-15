@@ -140,9 +140,9 @@ export const InvoiceForm = () => {
         date: new Date(data.date),
         dueDate: new Date(data.dueDate),
         items,
-        subtotal,
-        taxAmount,
-        total,
+        subtotal: subtotal.toFixed(2),
+        taxAmount: taxAmount.toFixed(2),
+        total: total.toFixed(2),
         status: data.status,
         notes: data.notes,
         isDeleted: false

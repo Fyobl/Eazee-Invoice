@@ -140,9 +140,9 @@ export const QuoteForm = () => {
         date: new Date(data.date),
         validUntil: new Date(data.validUntil),
         items,
-        subtotal,
-        taxAmount,
-        total,
+        subtotal: subtotal.toFixed(2),
+        taxAmount: taxAmount.toFixed(2),
+        total: total.toFixed(2),
         status: data.status,
         notes: data.notes,
         isDeleted: false

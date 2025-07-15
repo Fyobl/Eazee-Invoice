@@ -173,10 +173,25 @@ export async function setupRoutes(app: Express) {
 
   app.post('/api/invoices', async (req, res) => {
     try {
-      const [invoice] = await db.insert(invoices).values(req.body).returning();
+      console.log('Creating invoice with data:', JSON.stringify(req.body, null, 2));
+      
+      // Parse date strings to Date objects for PostgreSQL
+      // Remove any fields that shouldn't be in the insert
+      const { createdAt, updatedAt, ...bodyData } = req.body;
+      
+      const invoiceData = {
+        ...bodyData,
+        date: new Date(bodyData.date),
+        dueDate: new Date(bodyData.dueDate)
+      };
+      
+      const [invoice] = await db.insert(invoices).values(invoiceData).returning();
+      console.log('Invoice created successfully:', invoice);
       res.json(invoice);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create invoice' });
+      console.error('Error creating invoice:', error);
+      console.error('Error details:', (error as Error).message);
+      res.status(500).json({ error: 'Failed to create invoice', details: (error as Error).message });
     }
   });
 
@@ -226,10 +241,30 @@ export async function setupRoutes(app: Express) {
 
   app.post('/api/quotes', async (req, res) => {
     try {
-      const [quote] = await db.insert(quotes).values(req.body).returning();
+      console.log('Creating quote with data:', JSON.stringify(req.body, null, 2));
+      
+      // Parse date strings to Date objects for PostgreSQL
+      // Remove any fields that shouldn't be in the insert
+      const { createdAt, updatedAt, ...bodyData } = req.body;
+      
+      const quoteData = {
+        ...bodyData,
+        date: new Date(bodyData.date),
+        validUntil: new Date(bodyData.validUntil)
+      };
+      
+      console.log('Processed quote data:', JSON.stringify(quoteData, null, 2));
+      console.log('Date field type:', typeof quoteData.date, quoteData.date instanceof Date);
+      console.log('ValidUntil field type:', typeof quoteData.validUntil, quoteData.validUntil instanceof Date);
+      
+      const [quote] = await db.insert(quotes).values(quoteData).returning();
+      console.log('Quote created successfully:', quote);
       res.json(quote);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create quote' });
+      console.error('Error creating quote:', error);
+      console.error('Error details:', (error as Error).message);
+      console.error('Error stack:', (error as Error).stack);
+      res.status(500).json({ error: 'Failed to create quote', details: (error as Error).message });
     }
   });
 
