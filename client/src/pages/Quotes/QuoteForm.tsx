@@ -323,26 +323,25 @@ export const QuoteForm = () => {
                           step="0.1"
                         />
                       </div>
-                      <div className="flex items-end">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">Amount</label>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Amount</label>
+                        <div className="flex items-center gap-2">
                           <Input
                             value={formatCurrency(item.amount, 'GBP')}
                             readOnly
-                            className="bg-gray-50"
+                            className="bg-muted dark:bg-muted"
                           />
+                          {items.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeItem(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
-                        {items.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeItem(index)}
-                            className="ml-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </div>
                   ))}
