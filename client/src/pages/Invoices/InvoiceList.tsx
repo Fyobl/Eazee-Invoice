@@ -244,11 +244,9 @@ export const InvoiceList = () => {
                             View Invoice
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/invoices/${invoice.id}/edit`}>
-                              <div className="flex items-center">
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Invoice
-                              </div>
+                            <Link href={`/invoices/${invoice.id}/edit`} className="flex items-center">
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Invoice
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadPDF(invoice)}>

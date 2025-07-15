@@ -286,11 +286,9 @@ export const QuoteList = () => {
                             View Quote
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/quotes/${quote.id}/edit`}>
-                              <div className="flex items-center">
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Quote
-                              </div>
+                            <Link href={`/quotes/${quote.id}/edit`} className="flex items-center">
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Quote
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
