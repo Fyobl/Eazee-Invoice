@@ -11,10 +11,10 @@ export const Layout = ({ title, children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <div className="lg:ml-64 flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen">
         <Header title={title} onMenuClick={() => setSidebarOpen(true)} />
         
         <main className="flex-1 p-6">
