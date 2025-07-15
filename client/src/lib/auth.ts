@@ -11,14 +11,17 @@ import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } fro
 import { auth, db } from './firebase';
 import { User } from '@shared/schema';
 
-export const registerUser = async (email: string, password: string) => {
+export const registerUser = async (email: string, password: string, firstName: string, lastName: string, companyName: string) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   
   const userData: User = {
     uid: user.uid,
     email: user.email!,
-    displayName: user.displayName || '',
+    firstName,
+    lastName,
+    companyName,
+    displayName: `${firstName} ${lastName}`,
     trialStartDate: new Date(),
     isSubscriber: false,
     isSuspended: false,

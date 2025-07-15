@@ -18,6 +18,13 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase();
   };
 
+  const getDisplayName = () => {
+    if (userData?.firstName && userData?.lastName) {
+      return `${userData.firstName} ${userData.lastName}`;
+    }
+    return userData?.displayName || userData?.email || 'User';
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -54,11 +61,11 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           <div className="flex items-center space-x-2">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {getInitials(userData?.displayName || userData?.email || 'U')}
+                {getInitials(getDisplayName())}
               </AvatarFallback>
             </Avatar>
             <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-200">
-              {userData?.displayName || userData?.email}
+              Hi {userData?.firstName || userData?.displayName || userData?.email}
             </span>
           </div>
           

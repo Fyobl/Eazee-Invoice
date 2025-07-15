@@ -140,3 +140,6 @@ The application is designed to be easily extensible with additional features lik
 - **Authentication Persistence**: Fixed Firebase Auth persistence to prevent logout on page refresh using browserLocalPersistence
 - **Branding Update**: Renamed application from "InvoicePro" to "Eazee Invoice" throughout the interface
 - **Currency Symbol Cleanup**: Fixed remaining $ symbols to £ in PDF generator, Reports, and Admin panel components
+- **User Registration Enhancement**: Added firstName, lastName, and companyName fields to registration form
+- **Personalized UI**: Updated header and dashboard to display "Hi [First Name]" instead of email address
+- **Logout Functionality**: Added logout button to navigation header with proper Firebase auth integration

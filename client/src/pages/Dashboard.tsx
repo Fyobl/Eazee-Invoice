@@ -59,7 +59,7 @@ export const Dashboard = () => {
       <Card className="mb-6">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            Welcome back, {userData?.displayName || 'User'}!
+            Welcome back, {userData?.firstName || userData?.displayName || 'User'}!
           </h2>
           <p className="text-slate-600 dark:text-slate-200">Here's what's happening with your business today.</p>
         </CardContent>

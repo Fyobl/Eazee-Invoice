@@ -10,6 +10,9 @@ import { registerUser } from '@/lib/auth';
 import { useLocation } from 'wouter';
 
 const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  companyName: z.string().min(1, 'Company name is required'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string()
@@ -32,6 +35,9 @@ export const Register = ({ onSuccess }: RegisterProps) => {
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: '',
+      lastName: '',
+      companyName: '',
       email: '',
       password: '',
       confirmPassword: ''
@@ -43,7 +49,7 @@ export const Register = ({ onSuccess }: RegisterProps) => {
     setError(null);
 
     try {
-      await registerUser(data.email, data.password);
+      await registerUser(data.email, data.password, data.firstName, data.lastName, data.companyName);
       onSuccess();
       setLocation('/dashboard');
     } catch (err) {
@@ -63,6 +69,49 @@ export const Register = ({ onSuccess }: RegisterProps) => {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your first name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your last name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="companyName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Company Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your company name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="email"
