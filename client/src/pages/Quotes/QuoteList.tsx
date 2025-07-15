@@ -43,6 +43,7 @@ export const QuoteList = () => {
       case 'sent': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'rejected': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       case 'expired': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+      case 'converted': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
       default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
     }
   };
@@ -153,7 +154,8 @@ export const QuoteList = () => {
         taxAmount: typeof quote.taxAmount === 'string' ? quote.taxAmount : quote.taxAmount.toString(),
         total: typeof quote.total === 'string' ? quote.total : quote.total.toString(),
         status: 'sent' as const,
-        notes: quote.notes || ''
+        notes: quote.notes || '',
+        quoteId: quote.id // Include quote ID so server can mark it as converted
       };
 
       console.log('Converting quote to invoice:', invoiceData);
@@ -220,6 +222,7 @@ export const QuoteList = () => {
                   <SelectItem value="accepted">Accepted</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                   <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="converted">Converted</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={customerFilter} onValueChange={setCustomerFilter}>
@@ -282,27 +285,33 @@ export const QuoteList = () => {
                             <Eye className="h-4 w-4 mr-2" />
                             View Quote
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/quotes/${quote.id}/edit`} className="flex items-center">
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit Quote
-                            </Link>
-                          </DropdownMenuItem>
+                          {quote.status !== 'converted' && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/quotes/${quote.id}/edit`} className="flex items-center">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Quote
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Convert to Invoice
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteClick(quote)}
-                            className="text-red-600 dark:text-red-400"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Quote
-                          </DropdownMenuItem>
+                          {quote.status !== 'converted' && (
+                            <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Convert to Invoice
+                            </DropdownMenuItem>
+                          )}
+                          {quote.status !== 'converted' && (
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(quote)}
+                              className="text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Quote
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

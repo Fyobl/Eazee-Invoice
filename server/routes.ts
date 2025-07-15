@@ -199,6 +199,15 @@ export async function setupRoutes(app: Express) {
       
       const [invoice] = await db.insert(invoices).values(invoiceData).returning();
       console.log('Invoice created successfully:', invoice);
+      
+      // If this invoice was created from a quote, mark the quote as converted
+      if (bodyData.quoteId) {
+        await db.update(quotes)
+          .set({ status: 'converted', updatedAt: new Date() })
+          .where(eq(quotes.id, bodyData.quoteId));
+        console.log('Quote marked as converted:', bodyData.quoteId);
+      }
+      
       res.json(invoice);
     } catch (error) {
       console.error('Error creating invoice:', error);
