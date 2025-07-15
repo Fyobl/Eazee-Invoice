@@ -87,8 +87,8 @@ export const Reports = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">{stat.title}</p>
-                      <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{stat.title}</p>
+                      <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
                     </div>
                     <Icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
@@ -107,8 +107,8 @@ export const Reports = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">{stat.title}</p>
-                      <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{stat.title}</p>
+                      <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
                     </div>
                     <Icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
@@ -128,16 +128,16 @@ export const Reports = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Paid</span>
-                  <span className="text-sm font-medium text-green-600">{paidInvoices}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Paid</span>
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">{paidInvoices}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Pending</span>
-                  <span className="text-sm font-medium text-blue-600">{pendingInvoices}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Pending</span>
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{pendingInvoices}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Overdue</span>
-                  <span className="text-sm font-medium text-red-600">{overdueInvoices}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Overdue</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">{overdueInvoices}</span>
                 </div>
               </div>
             </CardContent>
@@ -151,16 +151,16 @@ export const Reports = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Accepted</span>
-                  <span className="text-sm font-medium text-green-600">{acceptedQuotes}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Accepted</span>
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">{acceptedQuotes}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Pending</span>
-                  <span className="text-sm font-medium text-blue-600">{pendingQuotes}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Pending</span>
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{pendingQuotes}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Total Quotes</span>
-                  <span className="text-sm font-medium text-slate-900">{totalQuotes}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Total Quotes</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{totalQuotes}</span>
                 </div>
               </div>
             </CardContent>
@@ -177,10 +177,10 @@ export const Reports = () => {
                   {topCustomers.map((customer, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-slate-900">{customer.name}</p>
-                        <p className="text-sm text-slate-500">{customer.invoiceCount} invoices</p>
+                        <p className="font-medium text-slate-900 dark:text-slate-100">{customer.name}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{customer.invoiceCount} invoices</p>
                       </div>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         £{customer.revenue.toLocaleString()}
                       </span>
                     </div>
@@ -188,8 +188,8 @@ export const Reports = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No customer data available</p>
+                  <Users className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No customer data available</p>
                 </div>
               )}
             </CardContent>
