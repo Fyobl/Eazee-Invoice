@@ -149,7 +149,7 @@ export const InvoiceList = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Invoices</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Invoices</h2>
             <p className="text-slate-600 dark:text-slate-400">Manage your invoices and track payments</p>
           </div>
           <Link href="/invoices/new">

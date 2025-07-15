@@ -40,7 +40,7 @@ export const CustomerList = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Customers</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Customers</h2>
             <p className="text-slate-600 dark:text-slate-400">Manage your customer database</p>
           </div>
           <Link href="/customers/new">
