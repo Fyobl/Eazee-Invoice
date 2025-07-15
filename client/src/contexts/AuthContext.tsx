@@ -33,14 +33,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to initialize before setting up the listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
       if (user) {
-        const data = await getUserData(user.uid);
-        setUserData(data);
+        try {
+          const data = await getUserData(user.uid);
+          setUserData(data);
+          // Store user data in localStorage as backup
+          localStorage.setItem('userData', JSON.stringify(data));
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          setUserData(null);
+          localStorage.removeItem('userData');
+        }
       } else {
         setUserData(null);
+        localStorage.removeItem('userData');
       }
       
       setLoading(false);

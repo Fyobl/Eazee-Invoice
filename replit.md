@@ -128,12 +128,17 @@ The application is designed to be easily extensible with additional features lik
 
 ## Recent Changes
 
-### January 15, 2025 - Database Migration
+### January 15, 2025 - Database Migration & Authentication Improvements
 - **Firebase to PostgreSQL Migration**: Successfully migrated all data from Firebase Firestore to PostgreSQL database
   - Migrated 2 users, 2 companies, 1 customer, 2 products
   - Fixed API request issues in useDatabase hook to work with new backend
   - Updated customer and product forms to use PostgreSQL instead of Firestore
   - Data now persists properly after server restarts
+- **Enhanced Authentication Persistence**: Improved Firebase Auth to maintain login state during development
+  - Configured proper browserLocalPersistence for Firebase Auth
+  - Added localStorage backup for user data
+  - Fixed decimal parsing issues in product displays and currency formatting
+  - Improved product selection functionality in quotes and invoices
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
