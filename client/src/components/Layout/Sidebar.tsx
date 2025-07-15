@@ -1,0 +1,129 @@
+import { Link, useLocation } from 'wouter';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Quote, 
+  FileBarChart, 
+  Users, 
+  Package, 
+  BarChart3, 
+  Trash2, 
+  Settings, 
+  User, 
+  Shield,
+  X
+} from 'lucide-react';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+  const [location] = useLocation();
+  const { isAdmin } = useAuth();
+
+  const mainNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/invoices', label: 'Invoices', icon: FileText },
+    { href: '/quotes', label: 'Quotes', icon: Quote },
+    { href: '/statements', label: 'Statements', icon: FileBarChart },
+    { href: '/customers', label: 'Customers', icon: Users },
+    { href: '/products', label: 'Products', icon: Package },
+    { href: '/reports', label: 'Reports', icon: BarChart3 },
+    { href: '/recycle-bin', label: 'Recycle Bin', icon: Trash2 },
+  ];
+
+  const accountNavItems = [
+    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/account', label: 'Account', icon: User },
+  ];
+
+  if (isAdmin) {
+    accountNavItems.push({ href: '/admin', label: 'Admin Panel', icon: Shield });
+  }
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        "lg:translate-x-0"
+      )}>
+        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold text-slate-900">InvoicePro</span>
+          </div>
+          <button className="lg:hidden" onClick={onClose}>
+            <X className="h-5 w-5 text-slate-500" />
+          </button>
+        </div>
+        
+        <nav className="mt-8">
+          <div className="px-4 space-y-2">
+            {mainNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.href;
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
+                    isActive 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-slate-700 hover:bg-slate-50"
+                  )}
+                  onClick={onClose}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+          
+          <div className="mt-8 px-4 space-y-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Account
+            </div>
+            {accountNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.href;
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
+                    isActive 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-slate-700 hover:bg-slate-50"
+                  )}
+                  onClick={onClose}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
+    </>
+  );
+};

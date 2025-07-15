@@ -1,0 +1,127 @@
+# replit.md
+
+## Overview
+
+This is a full-featured SaaS invoice management application built with React and Firebase. The application allows freelancers to manage invoices, quotes, statements, customers, and products with PDF generation capabilities. It features a trial-based subscription model with user authentication and role-based access control.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite for development and production builds
+- **UI Framework**: Tailwind CSS with shadcn/ui components
+- **State Management**: React Context API for authentication state
+- **Data Fetching**: TanStack Query for server state management
+- **Routing**: Wouter for client-side routing
+- **Forms**: React Hook Form with Zod validation
+
+### Backend Architecture
+- **Database**: Firebase Firestore for document storage
+- **Authentication**: Firebase Auth with email/password
+- **API Layer**: Express.js server (currently minimal, ready for expansion)
+- **Database ORM**: Drizzle ORM configured for PostgreSQL (for future expansion)
+
+### Authentication & Authorization
+- **Provider**: Firebase Authentication
+- **User Roles**: Trial users (7-day access), subscribers (full access), and admins (platform control)
+- **Access Control**: Context-based with route protection and trial expiration checks
+- **Session Management**: Firebase Auth state persistence
+
+## Key Components
+
+### User Management
+- Trial system with 7-day access from registration
+- Subscription flag-based access control
+- Admin panel for user management
+- Account suspension capabilities
+
+### Document Management
+- Invoice creation and management
+- Quote generation and tracking
+- Statement generation
+- PDF export functionality using html2pdf.js
+- Soft deletion with 7-day recovery period
+
+### Customer & Product Management
+- Customer profile management
+- Product catalog with pricing and tax rates
+- Relationship tracking between documents and customers/products
+
+### UI Components
+- Comprehensive shadcn/ui component library
+- Responsive design with mobile-first approach
+- Modal-based interactions (no browser alerts/confirms)
+- Toast notifications for user feedback
+- Protected route components with loading states
+
+## Data Flow
+
+### Authentication Flow
+1. User registers/logs in through Firebase Auth
+2. User data is stored in Firestore with trial information
+3. AuthContext provides user state throughout the app
+4. ProtectedRoute components check access permissions
+5. Trial expiration and suspension checks on each route
+
+### Document Creation Flow
+1. User creates document through form components
+2. Data is validated using Zod schemas
+3. Document is stored in Firestore with user association
+4. Real-time updates through Firestore listeners
+5. PDF generation on-demand using company branding
+
+### Data Persistence
+- Firestore collections for users, documents, customers, products
+- Real-time synchronization with useFirestore hook
+- Soft deletion with recycle bin functionality
+- Automatic cleanup of old deleted items
+
+## External Dependencies
+
+### Firebase Services
+- **Authentication**: User registration, login, password management
+- **Firestore**: Document storage with real-time updates
+- **Hosting**: (Ready for deployment)
+
+### UI Libraries
+- **Radix UI**: Accessible component primitives
+- **Tailwind CSS**: Utility-first styling
+- **Lucide React**: Icon library
+- **html2pdf.js**: PDF generation from HTML
+
+### Development Tools
+- **Vite**: Fast development and build tooling
+- **TypeScript**: Type safety and development experience
+- **ESLint/Prettier**: Code quality and formatting
+
+## Deployment Strategy
+
+### Development Environment
+- Replit-hosted development with hot module replacement
+- Environment variables for Firebase configuration
+- Development-specific error handling and logging
+
+### Production Deployment
+- Vite build process generates optimized static assets
+- Express server serves the React application
+- Firebase hosting for static assets and API endpoints
+- Environment-based configuration management
+
+### Database Schema
+- Firestore collections: users, invoices, quotes, statements, customers, products, companies, recycle_bin
+- Document-based structure with user-scoped data
+- Soft deletion implementation with automatic cleanup
+- Indexing for efficient queries and real-time updates
+
+### Security Considerations
+- Firebase security rules for data access control
+- Client-side route protection with server-side validation
+- Input validation using Zod schemas
+- Secure password handling through Firebase Auth
+- XSS protection through React's built-in escaping
+
+The application is designed to be easily extensible with additional features like Stripe integration, email notifications, and advanced reporting while maintaining a clean separation of concerns between authentication, data management, and UI components.
