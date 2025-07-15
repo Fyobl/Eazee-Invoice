@@ -26,6 +26,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If no current user but we have stored auth data, show loading instead of redirecting
   if (!currentUser && storedAuthUser && storedUserData) {
+    console.log('Protected route: No current user but stored data found, showing restore session');
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -37,6 +38,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!currentUser) {
+    console.log('Protected route: No current user, redirecting to landing page');
     return <Redirect to="/" />;
   }
 

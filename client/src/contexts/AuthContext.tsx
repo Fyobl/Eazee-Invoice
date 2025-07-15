@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (!currentUser && storedUserData) {
         // If we still don't have a user after 5 seconds but have stored data,
         // stop loading to prevent infinite loading state
+        console.log('Auth timeout reached, stopping loading with stored data');
         setLoading(false);
       }
     }, 5000);
@@ -57,6 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Wait for auth to initialize before setting up the listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       clearTimeout(authTimeout);
+      console.log('Auth state changed:', user ? `User ${user.email} logged in` : 'No user');
       setCurrentUser(user);
       
       if (user) {
@@ -70,6 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             email: user.email,
             displayName: user.displayName
           }));
+          console.log('User data stored in localStorage');
         } catch (error) {
           console.error('Error loading user data:', error);
           // Keep the stored data if available, don't clear it immediately
@@ -78,11 +81,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         }
       } else {
-        // Only clear data if auth explicitly says no user and we don't have stored data
+        console.log('No user found, stored data available:', !!storedUserData);
+        // Don't clear localStorage data immediately - give Firebase Auth time to restore
+        // Only clear if we're sure there's no user and no stored data
         if (!storedUserData) {
           setUserData(null);
           localStorage.removeItem('userData');
           localStorage.removeItem('authUser');
+          console.log('Cleared localStorage data');
+        } else {
+          console.log('Keeping stored data during auth restoration');
         }
       }
       
