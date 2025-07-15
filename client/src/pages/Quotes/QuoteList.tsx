@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
 
@@ -25,6 +25,7 @@ export const QuoteList = () => {
   const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
   const { data: companies } = useDatabase('companies');
+  const { create: createInvoice } = useDatabase('invoices');
   const { toast } = useToast();
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
@@ -132,6 +133,43 @@ export const QuoteList = () => {
       toast({
         title: "Error",
         description: "Failed to download PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConvertToInvoice = async (quote: Quote) => {
+    try {
+      // Generate invoice number (simple increment based on existing invoices)
+      const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+      
+      // Create invoice from quote data
+      const invoiceData = {
+        uid: quote.uid,
+        number: invoiceNumber,
+        customerId: quote.customerId,
+        customerName: quote.customerName,
+        date: new Date(),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        items: quote.items,
+        subtotal: quote.subtotal,
+        taxAmount: quote.taxAmount,
+        total: quote.total,
+        status: 'sent' as const,
+        notes: quote.notes || ''
+      };
+
+      await createInvoice(invoiceData);
+      
+      toast({
+        title: "Invoice Created",
+        description: `Invoice ${invoiceNumber} has been created from quote ${quote.number}.`,
+      });
+    } catch (error) {
+      console.error('Error converting to invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to convert quote to invoice. Please try again.",
         variant: "destructive",
       });
     }
@@ -257,6 +295,10 @@ export const QuoteList = () => {
                           <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Convert to Invoice
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(quote)}
