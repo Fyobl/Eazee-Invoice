@@ -86,14 +86,27 @@ export const InvoiceForm = () => {
   };
 
   const addProductToItem = (index: number, product: Product) => {
-    updateItem(index, 'description', product.name);
-    updateItem(index, 'unitPrice', parseFloat(product.unitPrice.toString()));
-    updateItem(index, 'taxRate', parseFloat(product.taxRate.toString()));
-    updateItem(index, 'productId', product.id.toString());
-    // Make sure quantity is at least 1
-    if (items[index].quantity === 0) {
-      updateItem(index, 'quantity', 1);
-    }
+    const newItems = [...items];
+    const unitPrice = parseFloat(product.unitPrice.toString());
+    const taxRate = parseFloat(product.taxRate.toString());
+    const quantity = items[index].quantity === 0 ? 1 : items[index].quantity;
+    
+    // Update all fields at once
+    newItems[index] = {
+      ...newItems[index],
+      description: product.name,
+      unitPrice: unitPrice,
+      taxRate: taxRate,
+      productId: product.id.toString(),
+      quantity: quantity
+    };
+    
+    // Calculate amount
+    const subtotal = quantity * unitPrice;
+    const tax = subtotal * (taxRate / 100);
+    newItems[index].amount = subtotal + tax;
+    
+    setItems(newItems);
   };
 
   const calculateTotals = () => {
