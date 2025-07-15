@@ -5,6 +5,7 @@ import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-r
 import { Modal } from '@/components/ui/modal';
 import { Login } from './Auth/Login';
 import { Register } from './Auth/Register';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export const Landing = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -29,16 +30,17 @@ export const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <FileText className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-slate-900">InvoicePro</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">InvoicePro</span>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <Button variant="ghost" onClick={() => setShowLogin(true)}>
                 Login
               </Button>
@@ -51,15 +53,15 @@ export const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/5 to-slate-100 py-20">
+      <section className="bg-gradient-to-br from-primary/5 to-slate-100 dark:from-primary/10 dark:to-gray-800 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
               Professional Invoice Management
               <br />
               <span className="text-primary">Made Simple</span>
             </h1>
-            <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
               Create, manage, and track invoices, quotes, and statements with ease. 
               Built specifically for freelancers and small businesses.
             </p>
@@ -76,13 +78,13 @@ export const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
               Everything You Need to Manage Your Business
             </h2>
-            <p className="text-xl text-slate-600">Professional tools to streamline your workflow</p>
+            <p className="text-xl text-slate-600 dark:text-slate-300">Professional tools to streamline your workflow</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -92,8 +94,8 @@ export const Landing = () => {
                 <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                   <CardContent className="p-8">
                     <Icon className="h-12 w-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                    <p className="text-slate-600">{feature.description}</p>
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{feature.title}</h3>
+                    <p className="text-slate-600 dark:text-slate-300">{feature.description}</p>
                   </CardContent>
                 </Card>
               );
@@ -103,19 +105,19 @@ export const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-20 bg-slate-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-slate-600">Start with our free trial, upgrade when you're ready</p>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300">Start with our free trial, upgrade when you're ready</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="border-2 border-primary/20">
               <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Free Trial</h3>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Free Trial</h3>
                 <div className="text-4xl font-bold text-primary mb-4">7 Days</div>
-                <p className="text-slate-600 mb-6">Full access to all features</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">Full access to all features</p>
                 <Button className="w-full" onClick={() => setShowRegister(true)}>
                   Start Free Trial
                 </Button>
@@ -124,9 +126,9 @@ export const Landing = () => {
             
             <Card>
               <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Pro Plan</h3>
-                <div className="text-4xl font-bold text-slate-900 mb-4">Coming Soon</div>
-                <p className="text-slate-600 mb-6">Unlimited access and premium features</p>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pro Plan</h3>
+                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">Coming Soon</div>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">Unlimited access and premium features</p>
                 <Button variant="secondary" className="w-full" disabled>
                   Coming Soon
                 </Button>
