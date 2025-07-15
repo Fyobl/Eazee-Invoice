@@ -29,7 +29,7 @@ Open the Replit shell and run these commands:
 git init
 
 # Add all files to staging
-git add .
+git add .FreelanceFoundry
 
 # Create initial commit
 git commit -m "Initial commit: SaaS invoice management application with Firebase integration"
