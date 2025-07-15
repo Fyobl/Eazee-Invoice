@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,8 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFirestore } from '@/hooks/useFirestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
-import { Upload, Image } from 'lucide-react';
+import { Upload, Image, X } from 'lucide-react';
 import { Company } from '@shared/schema';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 const settingsSchema = z.object({
   name: z.string().min(1, 'Company name is required'),
@@ -31,6 +33,10 @@ export const Settings = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { documents: companies, addDocument, updateDocument } = useFirestore('companies');
   const currentCompany = companies?.find((c: Company) => c.uid === currentUser?.uid);
@@ -57,8 +63,110 @@ export const Settings = () => {
         currency: currentCompany.currency,
         dateFormat: currentCompany.dateFormat
       });
+      setLogoPreview(currentCompany.logo || null);
     }
   }, [currentCompany, form]);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image file must be less than 5MB');
+      return;
+    }
+
+    setLogoFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile || !currentUser) return;
+
+    setLogoUploading(true);
+    setError(null);
+
+    try {
+      // Create a reference to the file location
+      const fileRef = ref(storage, `logos/${currentUser.uid}/${logoFile.name}`);
+      
+      // Upload the file
+      await uploadBytes(fileRef, logoFile);
+      
+      // Get the download URL
+      const downloadURL = await getDownloadURL(fileRef);
+      
+      // Update company record with logo URL
+      const companyData: Partial<Company> = {
+        logo: downloadURL
+      };
+
+      if (currentCompany) {
+        await updateDocument(currentCompany.id, companyData);
+      } else {
+        // If no company exists, create one with current form data
+        const formData = form.getValues();
+        await addDocument({
+          uid: currentUser.uid,
+          name: formData.name || 'My Company',
+          address: formData.address || '',
+          vatNumber: formData.vatNumber,
+          registrationNumber: formData.registrationNumber,
+          currency: formData.currency,
+          dateFormat: formData.dateFormat,
+          logo: downloadURL
+        });
+      }
+
+      setSuccess('Logo uploaded successfully!');
+      setLogoFile(null);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload logo');
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    if (!currentCompany?.logo || !currentUser) return;
+
+    setLogoUploading(true);
+    setError(null);
+
+    try {
+      // Delete from storage
+      const logoRef = ref(storage, currentCompany.logo);
+      await deleteObject(logoRef);
+      
+      // Update company record
+      await updateDocument(currentCompany.id, { logo: null });
+      
+      setLogoPreview(null);
+      setSuccess('Logo removed successfully!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove logo');
+    } finally {
+      setLogoUploading(false);
+    }
+  };
 
   const onSubmit = async (data: SettingsForm) => {
     if (!currentUser) return;
@@ -131,18 +239,68 @@ export const Settings = () => {
                   />
                   
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Company Logo</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Company Logo</label>
                     <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Image className="h-6 w-6 text-slate-400" />
+                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden">
+                        {logoPreview ? (
+                          <img 
+                            src={logoPreview} 
+                            alt="Company logo" 
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Image className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                        )}
                       </div>
-                      <Button type="button" variant="outline">
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Logo
-                      </Button>
+                      
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={logoUploading}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            {logoFile ? 'Change Logo' : 'Upload Logo'}
+                          </Button>
+                          
+                          {logoFile && (
+                            <Button 
+                              type="button" 
+                              onClick={handleLogoUpload}
+                              disabled={logoUploading}
+                              size="sm"
+                            >
+                              {logoUploading ? 'Uploading...' : 'Save'}
+                            </Button>
+                          )}
+                          
+                          {logoPreview && !logoFile && (
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={handleLogoRemove}
+                              disabled={logoUploading}
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-500 mt-2">
-                      Logo upload functionality will be available in a future update
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                      Upload a logo to appear on your invoices, quotes, and statements. Max size: 5MB
                     </p>
                   </div>
                 </div>

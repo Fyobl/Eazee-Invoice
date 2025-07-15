@@ -21,6 +21,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #1e293b; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; }
         .logo { font-size: 24px; font-weight: bold; color: #3b82f6; }
+        .logo-img { max-height: 60px; max-width: 200px; object-fit: contain; }
         .document-type { text-align: center; font-size: 28px; font-weight: bold; color: #1e293b; }
         .company-info { text-align: right; }
         .document-info { margin-bottom: 30px; }
@@ -36,7 +37,9 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
     </head>
     <body>
       <div class="header">
-        <div class="logo">InvoicePro</div>
+        <div class="logo">
+          ${company.logo ? `<img src="${company.logo}" alt="${company.name}" class="logo-img">` : 'Eazee Invoice'}
+        </div>
         <div class="document-type">${documentTitle}</div>
         <div class="company-info">
           <strong>${company.name}</strong><br>
