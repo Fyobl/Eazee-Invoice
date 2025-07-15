@@ -157,6 +157,8 @@ The application is designed to be easily extensible with additional features lik
 - **PDF Functionality**: Implemented complete PDF view and download system for quotes and invoices
 - **Professional PDFs**: Created professional PDF documents with company branding, proper formatting, and GBP currency
 - **PDF Layout Enhancement**: Fixed PDF design issues - company logo now positioned in top-left, improved currency formatting, clean totals table, and proper page layout preventing content cut-off
+- **Settings Page Database Migration**: Updated Settings page from Firestore to PostgreSQL database with proper logo upload functionality
+- **Company Data Fixes**: Fixed company name typo and improved PDF margin settings to prevent content cut-off
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience

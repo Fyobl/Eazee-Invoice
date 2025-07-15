@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Upload, Image, X } from 'lucide-react';
@@ -38,7 +38,7 @@ export const Settings = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { documents: companies, addDocument, updateDocument } = useFirestore('companies');
+  const { data: companies, create: createCompany, update: updateCompany } = useDatabase('companies');
   const currentCompany = companies?.find((c: Company) => c.uid === currentUser?.uid);
 
   const form = useForm<SettingsForm>({
@@ -115,11 +115,11 @@ export const Settings = () => {
       };
 
       if (currentCompany) {
-        await updateDocument(currentCompany.id, companyData);
+        await updateCompany(currentCompany.id, companyData);
       } else {
         // If no company exists, create one with current form data
         const formData = form.getValues();
-        await addDocument({
+        await createCompany({
           uid: currentUser.uid,
           name: formData.name || 'My Company',
           address: formData.address || '',
@@ -157,7 +157,7 @@ export const Settings = () => {
       await deleteObject(logoRef);
       
       // Update company record
-      await updateDocument(currentCompany.id, { logo: null });
+      await updateCompany(currentCompany.id, { logo: null });
       
       setLogoPreview(null);
       setSuccess('Logo removed successfully!');
@@ -187,9 +187,9 @@ export const Settings = () => {
       };
 
       if (currentCompany) {
-        await updateDocument(currentCompany.id, companyData);
+        await updateCompany(currentCompany.id, companyData);
       } else {
-        await addDocument(companyData);
+        await createCompany(companyData);
       }
 
       setSuccess('Settings saved successfully!');

@@ -134,6 +134,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         .footer { 
           border-top: 1px solid #e2e8f0; 
           padding-top: 20px; 
+          padding-bottom: 30px;
           text-align: center; 
           color: #64748b; 
           font-size: 12px;
@@ -222,7 +223,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
   `;
 
   const options = {
-    margin: 0.5,
+    margin: [0.5, 0.5, 0.8, 0.5], // top, right, bottom, left
     filename: `${type}-${document.number}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
