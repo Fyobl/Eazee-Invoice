@@ -143,7 +143,7 @@ export const QuoteList = () => {
       // Generate invoice number (simple increment based on existing invoices)
       const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
       
-      // Create invoice from quote data
+      // Create invoice from quote data - convert decimal strings to proper format
       const invoiceData = {
         uid: quote.uid,
         number: invoiceNumber,
@@ -152,13 +152,14 @@ export const QuoteList = () => {
         date: new Date(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         items: quote.items,
-        subtotal: quote.subtotal,
-        taxAmount: quote.taxAmount,
-        total: quote.total,
+        subtotal: typeof quote.subtotal === 'string' ? quote.subtotal : quote.subtotal.toString(),
+        taxAmount: typeof quote.taxAmount === 'string' ? quote.taxAmount : quote.taxAmount.toString(),
+        total: typeof quote.total === 'string' ? quote.total : quote.total.toString(),
         status: 'sent' as const,
         notes: quote.notes || ''
       };
 
+      console.log('Converting quote to invoice:', invoiceData);
       await createInvoice(invoiceData);
       
       toast({
