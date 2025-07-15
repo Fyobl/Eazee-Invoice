@@ -156,6 +156,7 @@ The application is designed to be easily extensible with additional features lik
 - **Toast Notifications**: Added success notifications that appear in bottom-right corner when items are deleted
 - **PDF Functionality**: Implemented complete PDF view and download system for quotes and invoices
 - **Professional PDFs**: Created professional PDF documents with company branding, proper formatting, and GBP currency
+- **PDF Layout Enhancement**: Fixed PDF design issues - company logo now positioned in top-left, improved currency formatting, clean totals table, and proper page layout preventing content cut-off
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
