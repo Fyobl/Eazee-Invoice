@@ -24,7 +24,6 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden"
             onClick={onMenuClick}
           >
             <Menu className="h-5 w-5" />
