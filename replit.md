@@ -146,3 +146,6 @@ The application is designed to be easily extensible with additional features lik
 - **Trial Access Fix**: Fixed critical bug where new users couldn't access trial - properly handled Firestore Timestamp objects in date calculations
 - **Dark Mode Reports**: Updated Reports screen with proper dark mode text colors for better visibility
 - **Logo Upload System**: Implemented complete logo upload functionality with Firebase Storage integration, file validation, preview, and PDF integration
+- **Searchable Customer Selection**: Added searchable customer dropdown with typing search functionality for quotes and invoices
+- **Searchable Product Selection**: Created searchable product selector that allows typing to find products and auto-fills pricing/tax information
+- **Enhanced Form UX**: Both quote and invoice forms now have improved user experience with search-as-you-type functionality

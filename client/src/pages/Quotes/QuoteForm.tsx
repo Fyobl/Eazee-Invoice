@@ -14,8 +14,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Plus, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { Quote, InvoiceItem } from '@shared/schema';
+import { Quote, InvoiceItem, Product } from '@shared/schema';
 import { formatCurrency } from '@/lib/currency';
+import { SearchableCustomerSelect } from '@/components/SearchableCustomerSelect';
+import { SearchableProductSelect } from '@/components/SearchableProductSelect';
 
 const quoteSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
@@ -37,6 +39,7 @@ export const QuoteForm = () => {
   const [success, setSuccess] = useState<string | null>(null);
   
   const { documents: customers } = useFirestore('customers');
+  const { documents: products } = useFirestore('products');
   const { addDocument, loading } = useFirestore('quotes');
 
   const form = useForm<QuoteForm>({
@@ -80,6 +83,13 @@ export const QuoteForm = () => {
     if (items.length > 1) {
       setItems(items.filter((_, i) => i !== index));
     }
+  };
+
+  const addProductToItem = (index: number, product: Product) => {
+    updateItem(index, 'description', product.name);
+    updateItem(index, 'unitPrice', product.unitPrice);
+    updateItem(index, 'taxRate', product.taxRate);
+    updateItem(index, 'productId', product.id);
   };
 
   const calculateTotals = () => {
@@ -164,20 +174,14 @@ export const QuoteForm = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Customer</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select customer" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {customers?.map((customer) => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <SearchableCustomerSelect
+                            customers={customers}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Search and select customer..."
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -258,11 +262,18 @@ export const QuoteForm = () => {
                     <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium mb-1">Description</label>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateItem(index, 'description', e.target.value)}
-                          placeholder="Item description"
-                        />
+                        <div className="space-y-2">
+                          <SearchableProductSelect
+                            products={products}
+                            onProductSelect={(product) => addProductToItem(index, product)}
+                            placeholder="Search products..."
+                          />
+                          <Input
+                            value={item.description}
+                            onChange={(e) => updateItem(index, 'description', e.target.value)}
+                            placeholder="Or enter custom description"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Quantity</label>
