@@ -79,9 +79,9 @@ export const AdminPanel = () => {
   };
 
   const getUserStatus = (user: User) => {
-    if (user.isSuspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800' };
-    if (user.isSubscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800' };
-    return { text: 'Trial', color: 'bg-amber-100 text-amber-800' };
+    if (user.isSuspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+    if (user.isSubscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+    return { text: 'Trial', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' };
   };
 
   const getTrialEndDate = (user: User) => {
@@ -100,9 +100,9 @@ export const AdminPanel = () => {
 
   const stats = [
     { title: 'Total Users', value: totalUsers, icon: Users, color: 'text-primary' },
-    { title: 'Active Trials', value: activeTrials, icon: Clock, color: 'text-amber-600' },
-    { title: 'Subscribers', value: subscribers, icon: Crown, color: 'text-green-600' },
-    { title: 'Revenue (Est.)', value: `£${mockRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-blue-600' }
+    { title: 'Active Trials', value: activeTrials, icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+    { title: 'Subscribers', value: subscribers, icon: Crown, color: 'text-green-600 dark:text-green-400' },
+    { title: 'Revenue (Est.)', value: `£${mockRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-blue-600 dark:text-blue-400' }
   ];
 
   if (loading) {

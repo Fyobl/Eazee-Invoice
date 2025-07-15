@@ -34,19 +34,19 @@ export const Reports = () => {
       title: 'Active Quotes',
       value: totalQuotes,
       icon: Quote,
-      color: 'text-emerald-600'
+      color: 'text-emerald-600 dark:text-emerald-400'
     },
     {
       title: 'Statements',
       value: totalStatements,
       icon: FileBarChart,
-      color: 'text-blue-600'
+      color: 'text-blue-600 dark:text-blue-400'
     },
     {
       title: 'Customers',
       value: totalCustomers,
       icon: Users,
-      color: 'text-purple-600'
+      color: 'text-purple-600 dark:text-purple-400'
     }
   ];
 
@@ -55,13 +55,13 @@ export const Reports = () => {
       title: 'Total Revenue',
       value: `£${totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      color: 'text-green-600'
+      color: 'text-green-600 dark:text-green-400'
     },
     {
       title: 'Average Invoice',
       value: totalInvoices > 0 ? `£${(totalRevenue / totalInvoices).toFixed(2)}` : '£0.00',
       icon: TrendingUp,
-      color: 'text-blue-600'
+      color: 'text-blue-600 dark:text-blue-400'
     }
   ];
 
