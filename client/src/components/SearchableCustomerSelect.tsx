@@ -34,7 +34,7 @@ export const SearchableCustomerSelect: React.FC<SearchableCustomerSelectProps> =
 }) => {
   const [open, setOpen] = useState(false);
 
-  const selectedCustomer = customers?.find((customer) => customer.id === value);
+  const selectedCustomer = customers?.find((customer) => customer.id.toString() === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,7 +61,7 @@ export const SearchableCustomerSelect: React.FC<SearchableCustomerSelectProps> =
                   key={customer.id}
                   value={customer.name}
                   onSelect={() => {
-                    onValueChange(customer.id);
+                    onValueChange(customer.id.toString());
                     setOpen(false);
                   }}
                 >
@@ -72,7 +72,7 @@ export const SearchableCustomerSelect: React.FC<SearchableCustomerSelectProps> =
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === customer.id ? "opacity-100" : "opacity-0"
+                      value === customer.id.toString() ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

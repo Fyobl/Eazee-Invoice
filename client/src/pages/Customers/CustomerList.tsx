@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useCustomers } from '@/hooks/useDatabase';
 import { Plus, Edit, Trash2, Mail, Phone } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
@@ -12,7 +12,7 @@ import { Customer } from '@shared/schema';
 export const CustomerList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { documents: customers, loading, deleteDocument } = useFirestore('customers');
+  const { data: customers, isLoading: loading, remove: deleteCustomer } = useCustomers();
 
   const filteredCustomers = customers?.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,9 +20,9 @@ export const CustomerList = () => {
     return matchesSearch;
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
-      await deleteDocument(id);
+      deleteCustomer(id);
     }
   };
 

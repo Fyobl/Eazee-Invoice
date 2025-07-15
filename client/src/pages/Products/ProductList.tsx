@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useProducts } from '@/hooks/useDatabase';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Link } from 'wouter';
 import { Product } from '@shared/schema';
@@ -12,7 +12,7 @@ import { Product } from '@shared/schema';
 export const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { documents: products, loading, deleteDocument } = useFirestore('products');
+  const { data: products, isLoading: loading, remove: deleteProduct } = useProducts();
 
   const filteredProducts = products?.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,9 +20,9 @@ export const ProductList = () => {
     return matchesSearch;
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      await deleteDocument(id);
+      deleteProduct(id);
     }
   };
 

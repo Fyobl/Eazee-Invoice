@@ -43,12 +43,12 @@ export const SearchableProductSelect: React.FC<SearchableProductSelectProps> = (
   const handleAddNew = () => {
     // Create a new product object with the search value as description
     const newProduct: Product = {
-      id: `temp-${Date.now()}`,
+      id: 0, // Temporary ID for new products
       uid: '', // This will be set by the parent component
       name: searchValue,
       description: searchValue,
-      unitPrice: 0,
-      taxRate: 0,
+      unitPrice: '0',
+      taxRate: '0',
       isDeleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),

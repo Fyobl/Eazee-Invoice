@@ -1,15 +1,349 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { Express } from "express";
+import { db } from "./db";
+import { customers, products, invoices, quotes, statements, companies, recycleBin } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+export async function setupRoutes(app: Express) {
+  
+  // Customers routes
+  app.get('/api/customers', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(customers)
+        .where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)))
+        .orderBy(desc(customers.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.post('/api/customers', async (req, res) => {
+    try {
+      const [customer] = await db.insert(customers).values(req.body).returning();
+      res.json(customer);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create customer' });
+    }
+  });
 
-  const httpServer = createServer(app);
+  app.put('/api/customers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [customer] = await db.update(customers)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(customers.id, id))
+        .returning();
+      res.json(customer);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update customer' });
+    }
+  });
 
-  return httpServer;
+  app.delete('/api/customers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [customer] = await db.update(customers)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(customers.id, id))
+        .returning();
+      res.json(customer);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete customer' });
+    }
+  });
+
+  // Products routes
+  app.get('/api/products', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(products)
+        .where(and(eq(products.uid, uid), eq(products.isDeleted, false)))
+        .orderBy(desc(products.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch products' });
+    }
+  });
+
+  app.post('/api/products', async (req, res) => {
+    try {
+      const [product] = await db.insert(products).values(req.body).returning();
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create product' });
+    }
+  });
+
+  app.put('/api/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [product] = await db.update(products)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(products.id, id))
+        .returning();
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update product' });
+    }
+  });
+
+  app.delete('/api/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [product] = await db.update(products)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(products.id, id))
+        .returning();
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete product' });
+    }
+  });
+
+  // Companies routes
+  app.get('/api/companies', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(companies)
+        .where(eq(companies.uid, uid))
+        .orderBy(desc(companies.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch companies' });
+    }
+  });
+
+  app.post('/api/companies', async (req, res) => {
+    try {
+      const [company] = await db.insert(companies).values(req.body).returning();
+      res.json(company);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create company' });
+    }
+  });
+
+  app.put('/api/companies/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [company] = await db.update(companies)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(companies.id, id))
+        .returning();
+      res.json(company);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update company' });
+    }
+  });
+
+  // Invoices routes
+  app.get('/api/invoices', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(invoices)
+        .where(and(eq(invoices.uid, uid), eq(invoices.isDeleted, false)))
+        .orderBy(desc(invoices.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch invoices' });
+    }
+  });
+
+  app.post('/api/invoices', async (req, res) => {
+    try {
+      const [invoice] = await db.insert(invoices).values(req.body).returning();
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create invoice' });
+    }
+  });
+
+  app.put('/api/invoices/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [invoice] = await db.update(invoices)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(invoices.id, id))
+        .returning();
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update invoice' });
+    }
+  });
+
+  app.delete('/api/invoices/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [invoice] = await db.update(invoices)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(invoices.id, id))
+        .returning();
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete invoice' });
+    }
+  });
+
+  // Quotes routes
+  app.get('/api/quotes', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(quotes)
+        .where(and(eq(quotes.uid, uid), eq(quotes.isDeleted, false)))
+        .orderBy(desc(quotes.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch quotes' });
+    }
+  });
+
+  app.post('/api/quotes', async (req, res) => {
+    try {
+      const [quote] = await db.insert(quotes).values(req.body).returning();
+      res.json(quote);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create quote' });
+    }
+  });
+
+  app.put('/api/quotes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [quote] = await db.update(quotes)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(quotes.id, id))
+        .returning();
+      res.json(quote);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update quote' });
+    }
+  });
+
+  app.delete('/api/quotes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [quote] = await db.update(quotes)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(quotes.id, id))
+        .returning();
+      res.json(quote);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete quote' });
+    }
+  });
+
+  // Statements routes
+  app.get('/api/statements', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(statements)
+        .where(and(eq(statements.uid, uid), eq(statements.isDeleted, false)))
+        .orderBy(desc(statements.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch statements' });
+    }
+  });
+
+  app.post('/api/statements', async (req, res) => {
+    try {
+      const [statement] = await db.insert(statements).values(req.body).returning();
+      res.json(statement);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create statement' });
+    }
+  });
+
+  app.put('/api/statements/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [statement] = await db.update(statements)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(statements.id, id))
+        .returning();
+      res.json(statement);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update statement' });
+    }
+  });
+
+  app.delete('/api/statements/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [statement] = await db.update(statements)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(statements.id, id))
+        .returning();
+      res.json(statement);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete statement' });
+    }
+  });
+
+  // Recycle bin routes
+  app.get('/api/recycle-bin', async (req, res) => {
+    try {
+      const uid = req.query.uid as string;
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+      
+      const result = await db.select().from(recycleBin)
+        .where(eq(recycleBin.uid, uid))
+        .orderBy(desc(recycleBin.deletedAt));
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch recycle bin items' });
+    }
+  });
+
+  app.post('/api/recycle-bin', async (req, res) => {
+    try {
+      const [item] = await db.insert(recycleBin).values(req.body).returning();
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create recycle bin item' });
+    }
+  });
+
+  app.delete('/api/recycle-bin/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await db.delete(recycleBin).where(eq(recycleBin.id, id));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete recycle bin item' });
+    }
+  });
 }

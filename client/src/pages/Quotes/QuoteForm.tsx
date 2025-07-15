@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useCustomers, useProducts, useQuotes } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Plus, Trash2 } from 'lucide-react';
@@ -38,9 +38,9 @@ export const QuoteForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { documents: customers } = useFirestore('customers');
-  const { documents: products } = useFirestore('products');
-  const { addDocument, loading } = useFirestore('quotes');
+  const { data: customers } = useCustomers();
+  const { data: products } = useProducts();
+  const { add: addQuote, addMutation: { isPending: loading } } = useQuotes();
 
   const form = useForm<QuoteForm>({
     resolver: zodResolver(quoteSchema),
@@ -87,9 +87,9 @@ export const QuoteForm = () => {
 
   const addProductToItem = (index: number, product: Product) => {
     updateItem(index, 'description', product.name);
-    updateItem(index, 'unitPrice', product.unitPrice);
-    updateItem(index, 'taxRate', product.taxRate);
-    updateItem(index, 'productId', product.id);
+    updateItem(index, 'unitPrice', parseFloat(product.unitPrice.toString()));
+    updateItem(index, 'taxRate', parseFloat(product.taxRate.toString()));
+    updateItem(index, 'productId', product.id.toString());
   };
 
   const calculateTotals = () => {
@@ -106,7 +106,7 @@ export const QuoteForm = () => {
     setSuccess(null);
 
     try {
-      const selectedCustomer = customers?.find(c => c.id === data.customerId);
+      const selectedCustomer = customers?.find(c => c.id.toString() === data.customerId);
       if (!selectedCustomer) {
         setError('Selected customer not found');
         return;
@@ -131,7 +131,7 @@ export const QuoteForm = () => {
         isDeleted: false
       };
 
-      await addDocument(quote);
+      addQuote(quote);
       setSuccess('Quote created successfully!');
       
       setTimeout(() => {
