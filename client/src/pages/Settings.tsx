@@ -14,8 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Upload, Image, X } from 'lucide-react';
 import { Company } from '@shared/schema';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+// Firebase storage imports removed - now using base64 encoding for database storage
 
 const settingsSchema = z.object({
   name: z.string().min(1, 'Company name is required'),
@@ -100,18 +99,19 @@ export const Settings = () => {
     setError(null);
 
     try {
-      // Create a reference to the file location
-      const fileRef = ref(storage, `logos/${currentUser.uid}/${logoFile.name}`);
+      // Convert file to base64 for database storage
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(logoFile);
+      });
+
+      const base64Data = await base64Promise;
       
-      // Upload the file
-      await uploadBytes(fileRef, logoFile);
-      
-      // Get the download URL
-      const downloadURL = await getDownloadURL(fileRef);
-      
-      // Update company record with logo URL
+      // Update company record with logo data
       const companyData: Partial<Company> = {
-        logo: downloadURL
+        logo: base64Data
       };
 
       if (currentCompany) {
@@ -127,7 +127,7 @@ export const Settings = () => {
           registrationNumber: formData.registrationNumber,
           currency: formData.currency,
           dateFormat: formData.dateFormat,
-          logo: downloadURL
+          logo: base64Data
         });
       }
 
@@ -139,6 +139,7 @@ export const Settings = () => {
         fileInputRef.current.value = '';
       }
     } catch (err) {
+      console.error('Logo upload error:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload logo');
     } finally {
       setLogoUploading(false);
@@ -152,11 +153,7 @@ export const Settings = () => {
     setError(null);
 
     try {
-      // Delete from storage
-      const logoRef = ref(storage, currentCompany.logo);
-      await deleteObject(logoRef);
-      
-      // Update company record
+      // Update company record to remove logo
       await updateCompany(currentCompany.id, { logo: null });
       
       setLogoPreview(null);
