@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return unsubscribe;
   }, []);
 
-  const hasAccess = userData ? (userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
+  const hasAccess = userData ? (userData.isAdmin || userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;
   
   const trialDaysLeft = userData && !userData.isSubscriber ? 
