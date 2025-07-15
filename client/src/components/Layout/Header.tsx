@@ -1,9 +1,10 @@
-import { Menu, Clock } from 'lucide-react';
+import { Menu, Clock, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { logoutUser } from '@/lib/auth';
 
 interface HeaderProps {
   title: string;
@@ -15,6 +16,15 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      // Redirect will be handled by the AuthContext
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -51,6 +61,15 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
               {userData?.displayName || userData?.email}
             </span>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-slate-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </header>
