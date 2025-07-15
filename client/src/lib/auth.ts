@@ -79,11 +79,21 @@ export const getUserData = async (uid: string): Promise<User | null> => {
 export const checkTrialStatus = (user: User): boolean => {
   if (user.isSubscriber || user.isAdmin) return true;
   
-  const trialStart = new Date(user.trialStartDate);
+  let trialStart: Date;
+  
+  // Handle Firestore Timestamp objects
+  if (user.trialStartDate && typeof user.trialStartDate === 'object' && 'seconds' in user.trialStartDate) {
+    trialStart = new Date((user.trialStartDate as any).seconds * 1000);
+  } else {
+    trialStart = new Date(user.trialStartDate);
+  }
+  
   const now = new Date();
   const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
   
-  return daysDiff <= 7;
+
+  
+  return daysDiff < 7;
 };
 
 export const makeUserAdmin = async (uid: string) => {

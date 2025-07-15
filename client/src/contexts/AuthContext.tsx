@@ -53,7 +53,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isAdmin = userData?.isAdmin || false;
   
   const trialDaysLeft = userData && !userData.isSubscriber ? 
-    Math.max(0, 7 - Math.floor((new Date().getTime() - new Date(userData.trialStartDate).getTime()) / (1000 * 60 * 60 * 24))) : 0;
+    (() => {
+      let trialStart: Date;
+      
+      // Handle Firestore Timestamp objects
+      if (userData.trialStartDate && typeof userData.trialStartDate === 'object' && 'seconds' in userData.trialStartDate) {
+        trialStart = new Date((userData.trialStartDate as any).seconds * 1000);
+      } else {
+        trialStart = new Date(userData.trialStartDate);
+      }
+      
+      return Math.max(0, 7 - Math.floor((new Date().getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24)));
+    })() : 0;
+
+
 
   const value = {
     currentUser,
