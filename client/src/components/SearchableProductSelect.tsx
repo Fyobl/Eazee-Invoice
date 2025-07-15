@@ -120,7 +120,7 @@ export const SearchableProductSelect: React.FC<SearchableProductSelectProps> = (
                         {formatCurrency(product.unitPrice, 'GBP')}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        Tax: {product.taxRate}%
+                        Tax: {parseFloat(product.taxRate).toFixed(0)}%
                       </span>
                     </div>
                   </div>

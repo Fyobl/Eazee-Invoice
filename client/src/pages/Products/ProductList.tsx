@@ -99,8 +99,8 @@ export const ProductList = () => {
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell className="max-w-xs truncate">{product.description}</TableCell>
-                      <TableCell>£{product.unitPrice.toFixed(2)}</TableCell>
-                      <TableCell>{product.taxRate}%</TableCell>
+                      <TableCell>£{parseFloat(product.unitPrice).toFixed(2)}</TableCell>
+                      <TableCell>{parseFloat(product.taxRate).toFixed(0)}%</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Link href={`/products/${product.id}/edit`}>

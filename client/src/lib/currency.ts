@@ -9,7 +9,8 @@ export const getCurrencySymbol = (currency: string): string => {
   return symbols[currency] || currency;
 };
 
-export const formatCurrency = (amount: number, currency: string): string => {
+export const formatCurrency = (amount: number | string, currency: string): string => {
   const symbol = getCurrencySymbol(currency);
-  return `${symbol}${amount.toFixed(2)}`;
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return `${symbol}${numAmount.toFixed(2)}`;
 };
