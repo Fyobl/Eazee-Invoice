@@ -54,6 +54,7 @@ export const QuoteForm = () => {
   });
 
   const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
+    console.log('Updating item:', { index, field, value, currentItems: items });
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     
@@ -65,6 +66,7 @@ export const QuoteForm = () => {
       newItems[index].amount = subtotal + tax;
     }
     
+    console.log('Updated items:', newItems);
     setItems(newItems);
   };
 
@@ -86,6 +88,7 @@ export const QuoteForm = () => {
   };
 
   const addProductToItem = (index: number, product: Product) => {
+    console.log('Adding product to item:', { index, product, currentItems: items });
     updateItem(index, 'description', product.name);
     updateItem(index, 'unitPrice', parseFloat(product.unitPrice.toString()));
     updateItem(index, 'taxRate', parseFloat(product.taxRate.toString()));
