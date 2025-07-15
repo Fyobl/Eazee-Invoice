@@ -110,7 +110,7 @@ export const StatementList = () => {
                     <TableCell>
                       {new Date(statement.startDate).toLocaleDateString()} - {new Date(statement.endDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>${statement.total.toFixed(2)}</TableCell>
+                    <TableCell>£{statement.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button variant="ghost" size="sm">

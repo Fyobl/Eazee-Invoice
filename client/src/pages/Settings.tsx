@@ -42,8 +42,8 @@ export const Settings = () => {
       address: '',
       vatNumber: '',
       registrationNumber: '',
-      currency: 'USD',
-      dateFormat: 'MM/DD/YYYY'
+      currency: 'GBP',
+      dateFormat: 'DD/MM/YYYY'
     }
   });
 
@@ -227,9 +227,9 @@ export const Settings = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
                             <SelectItem value="USD">USD ($)</SelectItem>
                             <SelectItem value="EUR">EUR (€)</SelectItem>
-                            <SelectItem value="GBP">GBP (£)</SelectItem>
                             <SelectItem value="CAD">CAD ($)</SelectItem>
                           </SelectContent>
                         </Select>

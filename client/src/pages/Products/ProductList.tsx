@@ -99,7 +99,7 @@ export const ProductList = () => {
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell className="max-w-xs truncate">{product.description}</TableCell>
-                      <TableCell>${product.unitPrice.toFixed(2)}</TableCell>
+                      <TableCell>£{product.unitPrice.toFixed(2)}</TableCell>
                       <TableCell>{product.taxRate}%</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">

@@ -1,5 +1,6 @@
 import html2pdf from 'html2pdf.js';
 import { Invoice, Quote, Statement, Company } from '@shared/schema';
+import { formatCurrency } from '@/lib/currency';
 
 interface PDFGeneratorProps {
   document: Invoice | Quote | Statement;
@@ -70,9 +71,9 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
             <tr>
               <td>${item.description}</td>
               <td>${item.quantity}</td>
-              <td>${company.currency}${item.unitPrice.toFixed(2)}</td>
+              <td>${formatCurrency(item.unitPrice, company.currency)}</td>
               <td>${item.taxRate}%</td>
-              <td>${company.currency}${item.amount.toFixed(2)}</td>
+              <td>${formatCurrency(item.amount, company.currency)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -82,15 +83,15 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         <table>
           <tr>
             <td><strong>Subtotal:</strong></td>
-            <td>${company.currency}${document.subtotal.toFixed(2)}</td>
+            <td>${formatCurrency(document.subtotal, company.currency)}</td>
           </tr>
           <tr>
             <td><strong>Tax:</strong></td>
-            <td>${company.currency}${document.taxAmount.toFixed(2)}</td>
+            <td>${formatCurrency(document.taxAmount, company.currency)}</td>
           </tr>
           <tr class="total-row">
             <td><strong>Total:</strong></td>
-            <td>${company.currency}${document.total.toFixed(2)}</td>
+            <td>${formatCurrency(document.total, company.currency)}</td>
           </tr>
         </table>
       </div>

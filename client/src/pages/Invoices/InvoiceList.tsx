@@ -133,7 +133,7 @@ export const InvoiceList = () => {
                     <TableCell>{invoice.customerName}</TableCell>
                     <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
-                    <TableCell>${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>£{invoice.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}

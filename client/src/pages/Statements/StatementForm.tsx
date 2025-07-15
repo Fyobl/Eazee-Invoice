@@ -15,6 +15,7 @@ import { Banner } from '@/components/ui/banner';
 import { Plus, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { Statement, InvoiceItem } from '@shared/schema';
+import { formatCurrency } from '@/lib/currency';
 
 const statementSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
@@ -284,7 +285,7 @@ export const StatementForm = () => {
                         <div className="flex-1">
                           <label className="block text-sm font-medium mb-1">Amount</label>
                           <Input
-                            value={`$${item.amount.toFixed(2)}`}
+                            value={formatCurrency(item.amount, 'GBP')}
                             readOnly
                             className="bg-gray-50"
                           />
@@ -315,15 +316,15 @@ export const StatementForm = () => {
                 <div className="space-y-2 text-right">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatCurrency(subtotal, 'GBP')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax:</span>
-                    <span>${taxAmount.toFixed(2)}</span>
+                    <span>{formatCurrency(taxAmount, 'GBP')}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatCurrency(total, 'GBP')}</span>
                   </div>
                 </div>
               </CardContent>

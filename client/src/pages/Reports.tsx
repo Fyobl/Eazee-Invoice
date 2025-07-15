@@ -53,13 +53,13 @@ export const Reports = () => {
   const revenueStats = [
     {
       title: 'Total Revenue',
-      value: `$${totalRevenue.toLocaleString()}`,
+      value: `£${totalRevenue.toLocaleString()}`,
       icon: DollarSign,
       color: 'text-green-600'
     },
     {
       title: 'Average Invoice',
-      value: totalInvoices > 0 ? `$${(totalRevenue / totalInvoices).toFixed(2)}` : '$0.00',
+      value: totalInvoices > 0 ? `£${(totalRevenue / totalInvoices).toFixed(2)}` : '£0.00',
       icon: TrendingUp,
       color: 'text-blue-600'
     }
@@ -181,7 +181,7 @@ export const Reports = () => {
                         <p className="text-sm text-slate-500">{customer.invoiceCount} invoices</p>
                       </div>
                       <span className="text-lg font-semibold text-slate-900">
-                        ${customer.revenue.toLocaleString()}
+                        £{customer.revenue.toLocaleString()}
                       </span>
                     </div>
                   ))}

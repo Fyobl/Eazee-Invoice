@@ -135,7 +135,7 @@ export const QuoteList = () => {
                     <TableCell>{quote.customerName}</TableCell>
                     <TableCell>{new Date(quote.date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(quote.validUntil).toLocaleDateString()}</TableCell>
-                    <TableCell>${quote.total.toFixed(2)}</TableCell>
+                    <TableCell>£{quote.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(quote.status)}>
                         {quote.status}
