@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useProducts } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { useLocation } from 'wouter';
@@ -29,7 +29,7 @@ export const ProductForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { addDocument, loading } = useFirestore('products');
+  const { add: addProduct, addMutation: { isPending: loading } } = useProducts();
 
   const form = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
@@ -57,7 +57,7 @@ export const ProductForm = () => {
         isDeleted: false
       };
 
-      await addDocument(product);
+      addProduct(product);
       setSuccess('Product added successfully!');
       
       setTimeout(() => {

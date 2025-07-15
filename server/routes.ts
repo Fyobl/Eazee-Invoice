@@ -9,6 +9,7 @@ export async function setupRoutes(app: Express) {
   app.get('/api/customers', async (req, res) => {
     try {
       const uid = req.query.uid as string;
+      console.log('GET /api/customers with uid:', uid);
       if (!uid) {
         return res.status(400).json({ error: 'uid is required' });
       }
@@ -17,17 +18,22 @@ export async function setupRoutes(app: Express) {
         .where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)))
         .orderBy(desc(customers.createdAt));
       
+      console.log('Customers result:', result);
       res.json(result);
     } catch (error) {
+      console.error('Error fetching customers:', error);
       res.status(500).json({ error: 'Failed to fetch customers' });
     }
   });
 
   app.post('/api/customers', async (req, res) => {
     try {
+      console.log('POST /api/customers with data:', req.body);
       const [customer] = await db.insert(customers).values(req.body).returning();
+      console.log('Created customer:', customer);
       res.json(customer);
     } catch (error) {
+      console.error('Error creating customer:', error);
       res.status(500).json({ error: 'Failed to create customer' });
     }
   });

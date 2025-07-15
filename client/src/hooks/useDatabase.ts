@@ -16,21 +16,18 @@ export const useDatabase = (collectionName: string) => {
     queryKey: [`/api/${collectionName}`, currentUser?.uid],
     queryFn: async () => {
       if (!currentUser?.uid) return [];
-      const response = await apiRequest(`/api/${collectionName}?uid=${currentUser.uid}`);
-      return response.data;
+      const response = await apiRequest('GET', `/api/${collectionName}?uid=${currentUser.uid}`);
+      return response.json();
     },
     enabled: !!currentUser?.uid,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 10 * 60 * 1000, // 10 minutes (cacheTime is now gcTime in v5)
   });
 
   const addMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest(`/api/${collectionName}`, {
-        method: 'POST',
-        data: { ...data, uid: currentUser?.uid }
-      });
-      return response.data;
+      const response = await apiRequest('POST', `/api/${collectionName}`, { ...data, uid: currentUser?.uid });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
@@ -39,11 +36,8 @@ export const useDatabase = (collectionName: string) => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string | number, data: any }) => {
-      const response = await apiRequest(`/api/${collectionName}/${id}`, {
-        method: 'PUT',
-        data
-      });
-      return response.data;
+      const response = await apiRequest('PUT', `/api/${collectionName}/${id}`, data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
@@ -52,10 +46,8 @@ export const useDatabase = (collectionName: string) => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string | number) => {
-      const response = await apiRequest(`/api/${collectionName}/${id}`, {
-        method: 'DELETE'
-      });
-      return response.data;
+      const response = await apiRequest('DELETE', `/api/${collectionName}/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
