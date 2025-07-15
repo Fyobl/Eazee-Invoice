@@ -130,11 +130,10 @@ export const InvoiceForm = () => {
       }
 
       const { subtotal, taxAmount, total } = calculateTotals();
-      const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
 
       const invoice: Partial<Invoice> = {
         uid: currentUser.uid,
-        number: invoiceNumber,
+        // Server will generate the invoice number automatically
         customerId: data.customerId,
         customerName: selectedCustomer.name,
         date: new Date(data.date),

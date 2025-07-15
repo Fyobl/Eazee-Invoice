@@ -179,8 +179,20 @@ export async function setupRoutes(app: Express) {
       // Remove any fields that shouldn't be in the insert
       const { createdAt, updatedAt, ...bodyData } = req.body;
       
+      // Generate sequential invoice number starting from 100000
+      const existingInvoices = await db.select().from(invoices)
+        .where(eq(invoices.uid, bodyData.uid))
+        .orderBy(desc(invoices.id));
+      
+      const nextNumber = existingInvoices.length > 0 ? 
+        Math.max(...existingInvoices.map(inv => {
+          const match = inv.number.match(/INV-(\d+)/);
+          return match ? parseInt(match[1]) : 99999;
+        })) + 1 : 100000;
+      
       const invoiceData = {
         ...bodyData,
+        number: `INV-${nextNumber}`,
         date: new Date(bodyData.date),
         dueDate: new Date(bodyData.dueDate)
       };
@@ -247,8 +259,20 @@ export async function setupRoutes(app: Express) {
       // Remove any fields that shouldn't be in the insert
       const { createdAt, updatedAt, ...bodyData } = req.body;
       
+      // Generate sequential quote number starting from 100000
+      const existingQuotes = await db.select().from(quotes)
+        .where(eq(quotes.uid, bodyData.uid))
+        .orderBy(desc(quotes.id));
+      
+      const nextNumber = existingQuotes.length > 0 ? 
+        Math.max(...existingQuotes.map(quote => {
+          const match = quote.number.match(/QUO-(\d+)/);
+          return match ? parseInt(match[1]) : 99999;
+        })) + 1 : 100000;
+      
       const quoteData = {
         ...bodyData,
+        number: `QUO-${nextNumber}`,
         date: new Date(bodyData.date),
         validUntil: new Date(bodyData.validUntil)
       };

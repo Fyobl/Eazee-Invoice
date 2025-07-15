@@ -130,11 +130,10 @@ export const QuoteForm = () => {
       }
 
       const { subtotal, taxAmount, total } = calculateTotals();
-      const quoteNumber = `QTE-${Date.now().toString().slice(-6)}`;
 
       const quote: Partial<Quote> = {
         uid: currentUser.uid,
-        number: quoteNumber,
+        // Server will generate the quote number automatically
         customerId: data.customerId,
         customerName: selectedCustomer.name,
         date: new Date(data.date),

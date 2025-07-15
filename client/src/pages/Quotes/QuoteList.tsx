@@ -140,13 +140,10 @@ export const QuoteList = () => {
 
   const handleConvertToInvoice = async (quote: Quote) => {
     try {
-      // Generate invoice number (simple increment based on existing invoices)
-      const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
-      
       // Create invoice from quote data - convert decimal strings to proper format
       const invoiceData = {
         uid: quote.uid,
-        number: invoiceNumber,
+        // Server will generate the invoice number automatically
         customerId: quote.customerId,
         customerName: quote.customerName,
         date: new Date(),
@@ -160,11 +157,11 @@ export const QuoteList = () => {
       };
 
       console.log('Converting quote to invoice:', invoiceData);
-      await createInvoice(invoiceData);
+      const newInvoice = await createInvoice(invoiceData);
       
       toast({
         title: "Invoice Created",
-        description: `Invoice ${invoiceNumber} has been created from quote ${quote.number}.`,
+        description: `Invoice ${newInvoice.number} has been created from quote ${quote.number}.`,
       });
     } catch (error) {
       console.error('Error converting to invoice:', error);
