@@ -35,62 +35,67 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Try to restore user data from localStorage immediately
     const storedUserData = localStorage.getItem('userData');
-    if (storedUserData) {
+    const storedAuthUser = localStorage.getItem('authUser');
+    
+    if (storedUserData && storedAuthUser) {
       try {
         const parsedData = JSON.parse(storedUserData);
+        const parsedAuth = JSON.parse(storedAuthUser);
+        console.log('Restoring stored user data:', parsedData.email);
         setUserData(parsedData);
+        setCurrentUser(parsedAuth);
+        setLoading(false); // Stop loading immediately when we have stored data
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('userData');
+        localStorage.removeItem('authUser');
       }
     }
 
     // Set a timeout to prevent infinite loading if Firebase Auth fails
     const authTimeout = setTimeout(() => {
-      if (!currentUser && storedUserData) {
-        // If we still don't have a user after 5 seconds but have stored data,
-        // stop loading to prevent infinite loading state
-        console.log('Auth timeout reached, stopping loading with stored data');
-        setLoading(false);
-      }
-    }, 5000);
+      console.log('Auth timeout reached, stopping loading');
+      setLoading(false);
+    }, 3000);
 
     // Wait for auth to initialize before setting up the listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       clearTimeout(authTimeout);
       console.log('Auth state changed:', user ? `User ${user.email} logged in` : 'No user');
-      setCurrentUser(user);
       
       if (user) {
-        try {
-          const data = await getUserData(user.uid);
-          setUserData(data);
-          // Store user data in localStorage as backup
-          localStorage.setItem('userData', JSON.stringify(data));
-          localStorage.setItem('authUser', JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName
-          }));
-          console.log('User data stored in localStorage');
-        } catch (error) {
-          console.error('Error loading user data:', error);
-          // Keep the stored data if available, don't clear it immediately
-          if (!storedUserData) {
-            setUserData(null);
+        // Only update if we don't already have this user or if it's different
+        if (!currentUser || currentUser.uid !== user.uid) {
+          setCurrentUser(user);
+          try {
+            const data = await getUserData(user.uid);
+            setUserData(data);
+            // Store user data in localStorage as backup
+            localStorage.setItem('userData', JSON.stringify(data));
+            localStorage.setItem('authUser', JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName
+            }));
+            console.log('User data stored in localStorage');
+          } catch (error) {
+            console.error('Error loading user data:', error);
+            // Keep stored data if available
+            if (!storedUserData) {
+              setUserData(null);
+            }
           }
         }
       } else {
-        console.log('No user found, stored data available:', !!storedUserData);
-        // Don't clear localStorage data immediately - give Firebase Auth time to restore
-        // Only clear if we're sure there's no user and no stored data
-        if (!storedUserData) {
+        // Only clear data if we don't have valid stored data
+        if (!storedUserData || !storedAuthUser) {
+          console.log('No user found, clearing data');
+          setCurrentUser(null);
           setUserData(null);
           localStorage.removeItem('userData');
           localStorage.removeItem('authUser');
-          console.log('Cleared localStorage data');
         } else {
-          console.log('Keeping stored data during auth restoration');
+          console.log('No user found but keeping stored data');
         }
       }
       
@@ -101,7 +106,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       unsubscribe();
       clearTimeout(authTimeout);
     };
-  }, [currentUser]);
+  }, []);
 
   const hasAccess = userData ? (userData.isAdmin || userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;

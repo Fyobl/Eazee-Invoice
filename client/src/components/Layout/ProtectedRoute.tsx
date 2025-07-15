@@ -32,13 +32,14 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Restoring session...</p>
+          <p className="text-sm text-muted-foreground mt-2">Please wait while we restore your login</p>
         </div>
       </div>
     );
   }
 
   if (!currentUser) {
-    console.log('Protected route: No current user, redirecting to landing page');
+    console.log('Protected route: No current user and no stored data, redirecting to landing page');
     return <Redirect to="/" />;
   }
 
