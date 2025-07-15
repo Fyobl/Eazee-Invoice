@@ -46,7 +46,7 @@ export const StatementList = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">Statements</h2>
-            <p className="text-slate-600">Generate and manage customer statements</p>
+            <p className="text-slate-600 dark:text-slate-400">Generate and manage customer statements</p>
           </div>
           <Link href="/statements/new">
             <Button>

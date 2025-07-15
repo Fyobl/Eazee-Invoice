@@ -41,7 +41,7 @@ export const ProductList = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">Products</h2>
-            <p className="text-slate-600">Manage your product catalog</p>
+            <p className="text-slate-600 dark:text-slate-400">Manage your product catalog</p>
           </div>
           <Link href="/products/new">
             <Button>

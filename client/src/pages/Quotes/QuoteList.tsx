@@ -191,7 +191,7 @@ export const QuoteList = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">Quotes</h2>
-            <p className="text-slate-600">Create and manage your quotes</p>
+            <p className="text-slate-600 dark:text-slate-400">Create and manage your quotes</p>
           </div>
           <Link href="/quotes/new">
             <Button>
