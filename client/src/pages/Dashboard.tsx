@@ -25,19 +25,19 @@ export const Dashboard = () => {
       title: 'Active Quotes',
       value: quotes?.filter(q => q.status === 'sent').length || 0,
       icon: Quote,
-      color: 'text-emerald-600'
+      color: 'text-emerald-600 dark:text-emerald-400'
     },
     {
       title: 'Customers',
       value: customers?.length || 0,
       icon: Users,
-      color: 'text-blue-600'
+      color: 'text-blue-600 dark:text-blue-400'
     },
     {
       title: 'This Month',
       value: `£${totalRevenue.toLocaleString()}`,
       icon: TrendingUp,
-      color: 'text-green-600'
+      color: 'text-green-600 dark:text-green-400'
     }
   ];
 
@@ -47,11 +47,58 @@ export const Dashboard = () => {
     { label: 'Add Customer', href: '/customers/new', icon: Plus }
   ];
 
-  const recentActivity = [
-    { action: 'Invoice #001 created', time: '2 hours ago', icon: FileText },
-    { action: 'New customer added', time: '1 day ago', icon: Users },
-    { action: 'Quote #005 sent', time: '3 days ago', icon: Quote }
-  ];
+  // Generate real recent activity from database
+  const recentActivity = [];
+  
+  // Add recent invoices
+  const recentInvoices = invoices?.slice(0, 2) || [];
+  recentInvoices.forEach(invoice => {
+    const timeAgo = getTimeAgo(invoice.createdAt);
+    recentActivity.push({
+      action: `Invoice ${invoice.number} created for ${invoice.customerName}`,
+      time: timeAgo,
+      icon: FileText
+    });
+  });
+  
+  // Add recent quotes
+  const recentQuotes = quotes?.slice(0, 2) || [];
+  recentQuotes.forEach(quote => {
+    const timeAgo = getTimeAgo(quote.createdAt);
+    recentActivity.push({
+      action: `Quote ${quote.number} created for ${quote.customerName}`,
+      time: timeAgo,
+      icon: Quote
+    });
+  });
+  
+  // Add recent customers
+  const recentCustomers = customers?.slice(0, 1) || [];
+  recentCustomers.forEach(customer => {
+    const timeAgo = getTimeAgo(customer.createdAt);
+    recentActivity.push({
+      action: `New customer "${customer.name}" added`,
+      time: timeAgo,
+      icon: Users
+    });
+  });
+  
+  // Sort by creation time (most recent first) and limit to 5
+  recentActivity.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  const limitedActivity = recentActivity.slice(0, 5);
+  
+  // Helper function to calculate time ago
+  function getTimeAgo(dateString: string | Date) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+  }
 
   return (
     <Layout title="Dashboard">
@@ -111,20 +158,29 @@ export const Dashboard = () => {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentActivity.map((activity, index) => {
-              const Icon = activity.icon;
-              return (
-                <div key={index} className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Icon className="h-4 w-4 text-primary" />
+            {limitedActivity.length > 0 ? (
+              limitedActivity.map((activity, index) => {
+                const Icon = activity.icon;
+                return (
+                  <div key={index} className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-900 dark:text-slate-100">{activity.action}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-300">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-900 dark:text-slate-100">{activity.action}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-300">{activity.time}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-500 dark:text-slate-400">No recent activity yet</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  Create your first invoice or quote to see activity here
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
