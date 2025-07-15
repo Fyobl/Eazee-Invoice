@@ -86,10 +86,15 @@ export const InvoiceForm = () => {
   };
 
   const addProductToItem = (index: number, product: Product) => {
+    console.log('Adding product to item:', product);
     updateItem(index, 'description', product.name);
     updateItem(index, 'unitPrice', parseFloat(product.unitPrice.toString()));
     updateItem(index, 'taxRate', parseFloat(product.taxRate.toString()));
     updateItem(index, 'productId', product.id.toString());
+    // Make sure quantity is at least 1
+    if (items[index].quantity === 0) {
+      updateItem(index, 'quantity', 1);
+    }
   };
 
   const calculateTotals = () => {
