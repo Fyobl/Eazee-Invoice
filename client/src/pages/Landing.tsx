@@ -5,7 +5,6 @@ import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-r
 import { Modal } from '@/components/ui/modal';
 import { Login } from './Auth/Login';
 import { Register } from './Auth/Register';
-import { AdminSetup } from '@/components/AdminSetup';
 
 export const Landing = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -50,13 +49,6 @@ export const Landing = () => {
           </div>
         </div>
       </header>
-
-      {/* Temporary Admin Setup - Remove after use */}
-      <div className="bg-yellow-50 border-b border-yellow-200 p-4">
-        <div className="max-w-7xl mx-auto">
-          <AdminSetup />
-        </div>
-      </div>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/5 to-slate-100 py-20">

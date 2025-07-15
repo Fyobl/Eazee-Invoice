@@ -125,3 +125,12 @@ Preferred communication style: Simple, everyday language.
 - XSS protection through React's built-in escaping
 
 The application is designed to be easily extensible with additional features like Stripe integration, email notifications, and advanced reporting while maintaining a clean separation of concerns between authentication, data management, and UI components.
+
+## Recent Changes
+
+### January 15, 2025
+- **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
+- **GitHub Integration**: Created comprehensive GitHub setup guide and documentation
+- **Repository Setup**: Added README.md, .env.example, and updated .gitignore for GitHub integration
+- **Currency Formatting**: Successfully implemented GBP (£) currency formatting throughout entire application
+- **Documentation**: Added detailed project documentation and setup instructions
