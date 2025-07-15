@@ -6,8 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDatabase } from '@/hooks/useDatabase';
-import { Plus, Eye, Edit, Download, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
 import { Link } from 'wouter';
 import { Invoice } from '@shared/schema';
 
@@ -15,9 +18,12 @@ export const InvoiceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [customerFilter, setCustomerFilter] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   
   const { data: invoices, isLoading: loading, remove: deleteDocument } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
+  const { toast } = useToast();
 
   const filteredInvoices = invoices?.filter((invoice: Invoice) => {
     const matchesSearch = invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,9 +43,20 @@ export const InvoiceList = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this invoice?')) {
-      await deleteDocument(id);
+  const handleDeleteClick = (invoice: Invoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (invoiceToDelete) {
+      await deleteDocument(invoiceToDelete.id);
+      toast({
+        title: "Invoice Successfully Deleted",
+        description: `Invoice ${invoiceToDelete.number} has been deleted.`,
+      });
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
     }
   };
 
@@ -140,26 +157,38 @@ export const InvoiceList = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Link href={`/invoices/${invoice.id}/edit`}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDelete(invoice.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/invoices/${invoice.id}/edit`}>
+                              <div className="flex items-center">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Invoice
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteClick(invoice)}
+                            className="text-red-600 dark:text-red-400"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Invoice
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -168,6 +197,26 @@ export const InvoiceList = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete invoice {invoiceToDelete?.number}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

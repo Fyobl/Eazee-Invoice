@@ -149,6 +149,11 @@ The application is designed to be easily extensible with additional features lik
 - **Authentication Persistence Enhancement**: Implemented robust localStorage-based authentication restoration to prevent logout during server restarts
 - **UI Styling Fix**: Fixed amount field background color and alignment issues in quote/invoice forms to use proper dark theme colors
 - **Improved Auth Flow**: Authentication now immediately restores from localStorage on app startup, preventing redirect loops
+- **PostgreSQL Migration**: Successfully migrated Quote List, Invoice List, Dashboard, and Reports components from Firestore to PostgreSQL
+- **Decimal Field Handling**: Fixed decimal field display issues throughout the application (quote.total, invoice.total parsing)
+- **Enhanced Delete Experience**: Replaced browser pop-ups with in-app confirmation dialogs for better user experience
+- **Dropdown Action Menus**: Converted action buttons to dropdown menus with descriptive text for quotes and invoices
+- **Toast Notifications**: Added success notifications that appear in bottom-right corner when items are deleted
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
