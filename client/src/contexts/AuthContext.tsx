@@ -33,18 +33,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Try to restore user data from localStorage immediately
     const storedUserData = localStorage.getItem('userData');
     const storedAuthUser = localStorage.getItem('authUser');
+    
+    console.log('Auth initialization - Stored data available:', !!storedUserData && !!storedAuthUser);
     
     if (storedUserData && storedAuthUser) {
       try {
         const parsedData = JSON.parse(storedUserData);
         const parsedAuth = JSON.parse(storedAuthUser);
         console.log('Restoring stored user data:', parsedData.email);
-        setUserData(parsedData);
-        setCurrentUser(parsedAuth);
-        setLoading(false); // Stop loading immediately when we have stored data
+        
+        if (isMounted) {
+          setUserData(parsedData);
+          setCurrentUser(parsedAuth);
+          setLoading(false); // Stop loading immediately when we have stored data
+        }
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('userData');
@@ -52,23 +59,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }
 
-    // Set a timeout to prevent infinite loading if Firebase Auth fails
+    // Set a longer timeout for Firebase Auth initialization
     const authTimeout = setTimeout(() => {
       console.log('Auth timeout reached, stopping loading');
-      setLoading(false);
-    }, 3000);
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 5000);
 
-    // Wait for auth to initialize before setting up the listener
+    // Set up the auth listener 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!isMounted) return;
+      
       clearTimeout(authTimeout);
       console.log('Auth state changed:', user ? `User ${user.email} logged in` : 'No user');
       
       if (user) {
-        // Only update if we don't already have this user or if it's different
-        if (!currentUser || currentUser.uid !== user.uid) {
-          setCurrentUser(user);
-          try {
-            const data = await getUserData(user.uid);
+        setCurrentUser(user);
+        try {
+          const data = await getUserData(user.uid);
+          if (isMounted) {
             setUserData(data);
             // Store user data in localStorage as backup
             localStorage.setItem('userData', JSON.stringify(data));
@@ -78,31 +88,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               displayName: user.displayName
             }));
             console.log('User data stored in localStorage');
-          } catch (error) {
-            console.error('Error loading user data:', error);
-            // Keep stored data if available
-            if (!storedUserData) {
-              setUserData(null);
-            }
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          // Keep stored data if available
+          if (!storedUserData && isMounted) {
+            setUserData(null);
           }
         }
       } else {
-        // Only clear data if we don't have valid stored data
+        // If no Firebase user and no stored data, clear everything
         if (!storedUserData || !storedAuthUser) {
           console.log('No user found, clearing data');
-          setCurrentUser(null);
-          setUserData(null);
-          localStorage.removeItem('userData');
-          localStorage.removeItem('authUser');
+          if (isMounted) {
+            setCurrentUser(null);
+            setUserData(null);
+            localStorage.removeItem('userData');
+            localStorage.removeItem('authUser');
+          }
         } else {
-          console.log('No user found but keeping stored data');
+          console.log('No Firebase user but keeping stored data');
         }
       }
       
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     });
 
     return () => {
+      isMounted = false;
       unsubscribe();
       clearTimeout(authTimeout);
     };
