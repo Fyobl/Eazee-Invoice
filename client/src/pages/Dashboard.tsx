@@ -35,7 +35,7 @@ export const Dashboard = () => {
     },
     {
       title: 'This Month',
-      value: `$${totalRevenue.toLocaleString()}`,
+      value: `£${totalRevenue.toLocaleString()}`,
       icon: TrendingUp,
       color: 'text-green-600'
     }

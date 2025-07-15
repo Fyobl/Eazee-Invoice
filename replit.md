@@ -137,3 +137,6 @@ The application is designed to be easily extensible with additional features lik
 - **Dark Mode Implementation**: Added comprehensive dark mode system with theme context and proper CSS variables
 - **Navigation System**: Converted sidebar to burger menu that slides in/out, hiding by default on all screen sizes
 - **UI Consistency**: Updated all major components (Dashboard, Layout, Sidebar, Header) with proper dark mode styling
+- **Authentication Persistence**: Fixed Firebase Auth persistence to prevent logout on page refresh using browserLocalPersistence
+- **Branding Update**: Renamed application from "InvoicePro" to "Eazee Invoice" throughout the interface
+- **Currency Symbol Cleanup**: Fixed remaining $ symbols to £ in PDF generator, Reports, and Admin panel components

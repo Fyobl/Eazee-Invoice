@@ -40,7 +40,7 @@ export const AdminPanel = () => {
   const activeTrials = users?.filter((user: User) => !user.isSubscriber && !user.isSuspended).length || 0;
   const subscribers = users?.filter((user: User) => user.isSubscriber).length || 0;
   const suspendedUsers = users?.filter((user: User) => user.isSuspended).length || 0;
-  const mockRevenue = subscribers * 29; // Assuming $29/month
+  const mockRevenue = subscribers * 29; // Assuming £29/month
 
   const handleGrantSubscription = async (userId: string) => {
     try {
@@ -102,7 +102,7 @@ export const AdminPanel = () => {
     { title: 'Total Users', value: totalUsers, icon: Users, color: 'text-primary' },
     { title: 'Active Trials', value: activeTrials, icon: Clock, color: 'text-amber-600' },
     { title: 'Subscribers', value: subscribers, icon: Crown, color: 'text-green-600' },
-    { title: 'Revenue (Est.)', value: `$${mockRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-blue-600' }
+    { title: 'Revenue (Est.)', value: `£${mockRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-blue-600' }
   ];
 
   if (loading) {

@@ -71,7 +71,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
             <tr>
               <td>${item.description}</td>
               <td>${item.quantity}</td>
-              <td>${formatCurrency(item.unitPrice, company.currency)}</td>
+              <td>£{formatCurrency(item.unitPrice, company.currency)}</td>
               <td>${item.taxRate}%</td>
               <td>${formatCurrency(item.amount, company.currency)}</td>
             </tr>
@@ -91,7 +91,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           </tr>
           <tr class="total-row">
             <td><strong>Total:</strong></td>
-            <td>${formatCurrency(document.total, company.currency)}</td>
+            <td>£{formatCurrency(document.total, company.currency)}</td>
           </tr>
         </table>
       </div>
