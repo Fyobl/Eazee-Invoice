@@ -28,7 +28,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">{title}</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -47,7 +47,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                 {getInitials(userData?.displayName || userData?.email || 'U')}
               </AvatarFallback>
             </Avatar>
-            <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-200">
               {userData?.displayName || userData?.email}
             </span>
           </div>

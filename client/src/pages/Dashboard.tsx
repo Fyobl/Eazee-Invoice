@@ -58,10 +58,10 @@ export const Dashboard = () => {
       {/* Welcome Section */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
             Welcome back, {userData?.displayName || 'User'}!
           </h2>
-          <p className="text-slate-600 dark:text-slate-300">Here's what's happening with your business today.</p>
+          <p className="text-slate-600 dark:text-slate-200">Here's what's happening with your business today.</p>
         </CardContent>
       </Card>
 
@@ -74,8 +74,8 @@ export const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{stat.title}</p>
-                    <p className="text-2xl font-semibold text-slate-900 dark:text-white">{stat.value}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
                   </div>
                   <Icon className={`h-8 w-8 ${stat.color}`} />
                 </div>
@@ -119,8 +119,8 @@ export const Dashboard = () => {
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-slate-900 dark:text-white">{activity.action}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{activity.time}</p>
+                    <p className="text-sm text-slate-900 dark:text-slate-100">{activity.action}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-300">{activity.time}</p>
                   </div>
                 </div>
               );
