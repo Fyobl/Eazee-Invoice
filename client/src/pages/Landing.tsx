@@ -37,7 +37,7 @@ export const Landing = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <FileText className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-slate-900 dark:text-white">InvoicePro</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">Eazee Invoice</span>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
@@ -51,7 +51,6 @@ export const Landing = () => {
           </div>
         </div>
       </header>
-
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/5 to-slate-100 dark:from-primary/10 dark:to-gray-800 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,7 +75,6 @@ export const Landing = () => {
           </div>
         </div>
       </section>
-
       {/* Features Section */}
       <section className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -103,7 +101,6 @@ export const Landing = () => {
           </div>
         </div>
       </section>
-
       {/* Pricing Section */}
       <section className="py-20 bg-slate-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -137,7 +134,6 @@ export const Landing = () => {
           </div>
         </div>
       </section>
-
       {/* Modals */}
       <Modal
         isOpen={showLogin}
@@ -147,7 +143,6 @@ export const Landing = () => {
       >
         <Login onSuccess={() => setShowLogin(false)} />
       </Modal>
-
       <Modal
         isOpen={showRegister}
         onClose={() => setShowRegister(false)}
