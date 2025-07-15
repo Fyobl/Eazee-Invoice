@@ -45,8 +45,8 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           align-items: center;
         }
         .logo-img { 
-          max-height: 60px; 
-          max-width: 200px; 
+          max-height: 100px; 
+          max-width: 300px; 
           object-fit: contain; 
         }
         .logo-text {
