@@ -25,7 +25,7 @@ export const QuoteList = () => {
   const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
   const { data: companies } = useDatabase('companies');
-  const { create: createInvoice } = useDatabase('invoices');
+  const { add: createInvoice } = useDatabase('invoices');
   const { toast } = useToast();
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
