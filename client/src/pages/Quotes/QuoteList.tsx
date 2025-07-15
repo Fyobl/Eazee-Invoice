@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
+import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
@@ -23,6 +24,7 @@ export const QuoteList = () => {
   
   const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
+  const { data: companies } = useDatabase('companies');
   const { toast } = useToast();
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
@@ -58,6 +60,80 @@ export const QuoteList = () => {
       });
       setDeleteDialogOpen(false);
       setQuoteToDelete(null);
+    }
+  };
+
+  const handleViewPDF = async (quote: Quote) => {
+    if (!companies || companies.length === 0) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please check your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const company = companies[0]; // Get the first company
+    try {
+      const pdfBlob = await generatePDF({
+        document: quote,
+        company,
+        type: 'quote'
+      });
+      
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url, '_blank');
+      
+      // Clean up the object URL after a delay to allow the browser to open it
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadPDF = async (quote: Quote) => {
+    if (!companies || companies.length === 0) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please check your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const company = companies[0]; // Get the first company
+    try {
+      const pdfBlob = await generatePDF({
+        document: quote,
+        company,
+        type: 'quote'
+      });
+      
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `quote-${quote.number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Started",
+        description: `Quote ${quote.number} PDF is being downloaded.`,
+      });
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download PDF. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -166,7 +242,7 @@ export const QuoteList = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewPDF(quote)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Quote
                           </DropdownMenuItem>
@@ -178,7 +254,7 @@ export const QuoteList = () => {
                               </div>
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>

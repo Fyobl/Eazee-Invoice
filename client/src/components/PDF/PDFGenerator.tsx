@@ -8,7 +8,7 @@ interface PDFGeneratorProps {
   type: 'invoice' | 'quote' | 'statement';
 }
 
-export const generatePDF = async ({ document, company, type }: PDFGeneratorProps) => {
+export const generatePDF = async ({ document, company, type }: PDFGeneratorProps): Promise<Blob> => {
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
   
   const html = `
@@ -117,5 +117,6 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
-  return html2pdf().from(html).set(options).save();
+  // Generate PDF and return as blob
+  return html2pdf().from(html).set(options).outputPdf('blob');
 };
