@@ -7,7 +7,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { User } from '@shared/schema';
 
@@ -74,11 +74,33 @@ export const getUserData = async (uid: string): Promise<User | null> => {
 };
 
 export const checkTrialStatus = (user: User): boolean => {
-  if (user.isSubscriber) return true;
+  if (user.isSubscriber || user.isAdmin) return true;
   
   const trialStart = new Date(user.trialStartDate);
   const now = new Date();
   const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
   
   return daysDiff <= 7;
+};
+
+export const makeUserAdmin = async (uid: string) => {
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, {
+    isAdmin: true,
+    isSubscriber: true,
+    isSuspended: false,
+    updatedAt: new Date()
+  }, { merge: true });
+};
+
+export const getUserByEmail = async (email: string): Promise<User | null> => {
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, where('email', '==', email));
+  const querySnapshot = await getDocs(q);
+  
+  if (!querySnapshot.empty) {
+    const userDoc = querySnapshot.docs[0];
+    return userDoc.data() as User;
+  }
+  return null;
 };
