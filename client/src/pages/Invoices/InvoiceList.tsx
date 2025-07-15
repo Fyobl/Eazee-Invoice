@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { Plus, Eye, Edit, Download, Trash2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Invoice } from '@shared/schema';
@@ -16,14 +16,14 @@ export const InvoiceList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [customerFilter, setCustomerFilter] = useState('all');
   
-  const { documents: invoices, loading, deleteDocument } = useFirestore('invoices');
-  const { documents: customers } = useFirestore('customers');
+  const { data: invoices, isLoading: loading, remove: deleteDocument } = useDatabase('invoices');
+  const { data: customers } = useDatabase('customers');
 
   const filteredInvoices = invoices?.filter((invoice: Invoice) => {
     const matchesSearch = invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    const matchesCustomer = customerFilter === 'all' || invoice.customerId === customerFilter;
+    const matchesCustomer = customerFilter === 'all' || invoice.customerId === customerFilter || invoice.customerId === parseInt(customerFilter);
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
@@ -98,7 +98,7 @@ export const InvoiceList = () => {
                 <SelectContent>
                   <SelectItem value="all">All Customers</SelectItem>
                   {customers?.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
+                    <SelectItem key={customer.id} value={customer.id.toString()}>
                       {customer.name}
                     </SelectItem>
                   ))}
@@ -133,7 +133,7 @@ export const InvoiceList = () => {
                     <TableCell>{invoice.customerName}</TableCell>
                     <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
-                    <TableCell>£{invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>£{parseFloat(invoice.total).toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}

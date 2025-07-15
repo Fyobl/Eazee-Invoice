@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { Plus, Eye, Edit, Download, Trash2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
@@ -16,14 +16,14 @@ export const QuoteList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [customerFilter, setCustomerFilter] = useState('all');
   
-  const { documents: quotes, loading, deleteDocument } = useFirestore('quotes');
-  const { documents: customers } = useFirestore('customers');
+  const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
+  const { data: customers } = useDatabase('customers');
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
     const matchesSearch = quote.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          quote.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-    const matchesCustomer = customerFilter === 'all' || quote.customerId === customerFilter;
+    const matchesCustomer = customerFilter === 'all' || quote.customerId === customerFilter || quote.customerId === parseInt(customerFilter);
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
@@ -100,7 +100,7 @@ export const QuoteList = () => {
                 <SelectContent>
                   <SelectItem value="all">All Customers</SelectItem>
                   {customers?.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
+                    <SelectItem key={customer.id} value={customer.id.toString()}>
                       {customer.name}
                     </SelectItem>
                   ))}
@@ -135,7 +135,7 @@ export const QuoteList = () => {
                     <TableCell>{quote.customerName}</TableCell>
                     <TableCell>{new Date(quote.date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(quote.validUntil).toLocaleDateString()}</TableCell>
-                    <TableCell>£{quote.total.toFixed(2)}</TableCell>
+                    <TableCell>£{parseFloat(quote.total).toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(quote.status)}>
                         {quote.status}

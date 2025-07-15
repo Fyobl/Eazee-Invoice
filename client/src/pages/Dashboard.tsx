@@ -2,17 +2,17 @@ import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { FileText, Quote, FileBarChart, Users, Plus, TrendingUp } from 'lucide-react';
 import { Link } from 'wouter';
 
 export const Dashboard = () => {
   const { userData } = useAuth();
-  const { documents: invoices } = useFirestore('invoices');
-  const { documents: quotes } = useFirestore('quotes');
-  const { documents: customers } = useFirestore('customers');
+  const { data: invoices } = useDatabase('invoices');
+  const { data: quotes } = useDatabase('quotes');
+  const { data: customers } = useDatabase('customers');
 
-  const totalRevenue = invoices?.reduce((sum, invoice) => sum + invoice.total, 0) || 0;
+  const totalRevenue = invoices?.reduce((sum, invoice) => sum + parseFloat(invoice.total), 0) || 0;
 
   const stats = [
     {

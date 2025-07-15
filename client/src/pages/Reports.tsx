@@ -1,21 +1,21 @@
 import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { FileText, Quote, FileBarChart, Users, TrendingUp, DollarSign } from 'lucide-react';
 import { Invoice, Quote as QuoteType, Statement, Customer } from '@shared/schema';
 
 export const Reports = () => {
-  const { documents: invoices } = useFirestore('invoices');
-  const { documents: quotes } = useFirestore('quotes');
-  const { documents: statements } = useFirestore('statements');
-  const { documents: customers } = useFirestore('customers');
+  const { data: invoices } = useDatabase('invoices');
+  const { data: quotes } = useDatabase('quotes');
+  const { data: statements } = useDatabase('statements');
+  const { data: customers } = useDatabase('customers');
 
   const totalInvoices = invoices?.length || 0;
   const totalQuotes = quotes?.length || 0;
   const totalStatements = statements?.length || 0;
   const totalCustomers = customers?.length || 0;
 
-  const totalRevenue = invoices?.reduce((sum: number, invoice: Invoice) => sum + invoice.total, 0) || 0;
+  const totalRevenue = invoices?.reduce((sum: number, invoice: Invoice) => sum + parseFloat(invoice.total), 0) || 0;
   const paidInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'paid').length || 0;
   const pendingInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'sent').length || 0;
   const overdueInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'overdue').length || 0;
