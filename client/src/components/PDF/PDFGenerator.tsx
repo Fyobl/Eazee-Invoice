@@ -1,5 +1,6 @@
 import html2pdf from 'html2pdf.js';
 import { Invoice, Quote, Statement, Company } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
 
 interface PDFGeneratorProps {
   document: Invoice | Quote | Statement;
@@ -15,6 +16,29 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return `£${numAmount.toFixed(2)}`;
   };
+
+  // Fetch unpaid invoices for statements
+  let unpaidInvoices: Invoice[] = [];
+  if (type === 'statement') {
+    try {
+      const response = await apiRequest(`/api/invoices?uid=${document.uid}`);
+      const allInvoices = await response.json();
+      
+      // Filter unpaid invoices for this customer within the statement period
+      unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
+        const invoiceDate = new Date(invoice.date);
+        const statementStart = new Date(document.startDate);
+        const statementEnd = new Date(document.endDate);
+        
+        return invoice.customerId === document.customerId &&
+               invoice.status !== 'paid' &&
+               invoiceDate >= statementStart &&
+               invoiceDate <= statementEnd;
+      });
+    } catch (error) {
+      console.error('Error fetching unpaid invoices:', error);
+    }
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -165,6 +189,32 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           text-align: center;
           color: #64748b;
         }
+        .statement-summary {
+          margin-top: 20px;
+          padding: 15px;
+          background-color: #f1f5f9;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          font-weight: bold;
+        }
+        .summary-row:last-child {
+          margin-bottom: 0;
+        }
+        .status-badge {
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+        .status-sent { background-color: #fef3c7; color: #92400e; }
+        .status-overdue { background-color: #fecaca; color: #b91c1c; }
+        .status-draft { background-color: #f3f4f6; color: #4b5563; }
         @media print {
           body { margin: 0; padding: 15px; }
           .header { page-break-inside: avoid; }
@@ -201,12 +251,49 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
       ${type === 'statement' ? `
         <div class="statement-content">
           <h3>Customer Statement</h3>
-          <p>This statement shows all transactions for the selected period.</p>
+          <p>This statement shows unpaid invoices for the selected period.</p>
           <p><strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}</p>
           <p><strong>Statement Type:</strong> ${document.period === '7' ? 'Weekly' : document.period === '30' ? 'Monthly' : 'Custom Period'}</p>
-          <div class="statement-placeholder">
-            <p>Statement details will be populated based on invoices and transactions within this period.</p>
-          </div>
+          
+          ${unpaidInvoices.length > 0 ? `
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Date</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${unpaidInvoices.map(invoice => `
+                  <tr>
+                    <td>${invoice.number}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString()}</td>
+                    <td>${new Date(invoice.dueDate).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${invoice.status}">${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</span></td>
+                    <td>${formatPrice(invoice.total)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="statement-summary">
+              <div class="summary-row">
+                <span>Total Outstanding:</span>
+                <span class="amount">${formatPrice(unpaidInvoices.reduce((sum, inv) => sum + parseFloat(inv.total), 0))}</span>
+              </div>
+              <div class="summary-row">
+                <span>Number of Unpaid Invoices:</span>
+                <span class="amount">${unpaidInvoices.length}</span>
+              </div>
+            </div>
+          ` : `
+            <div class="statement-placeholder">
+              <p>No unpaid invoices found for this customer within the selected period.</p>
+            </div>
+          `}
         </div>
       ` : `
         <table class="table">
