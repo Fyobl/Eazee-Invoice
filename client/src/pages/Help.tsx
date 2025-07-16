@@ -437,16 +437,18 @@ export const Help = () => {
             <CardDescription>Jump to any section</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {sections.map((section) => (
                 <Button
                   key={section.id}
                   variant="outline"
-                  className="justify-start"
+                  className="justify-start h-auto py-3 px-4 text-left"
                   onClick={() => document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                  {section.icon}
-                  <span className="ml-2">{section.title}</span>
+                  <div className="flex items-center gap-2 w-full">
+                    {section.icon}
+                    <span className="text-sm font-medium leading-tight">{section.title}</span>
+                  </div>
                 </Button>
               ))}
             </div>
@@ -571,7 +573,7 @@ export const Help = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded">
@@ -644,7 +646,7 @@ export const Help = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
               <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
                   <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
