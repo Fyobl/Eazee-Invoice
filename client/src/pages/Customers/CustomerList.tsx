@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCustomers } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal, Download, Upload } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
@@ -19,8 +20,9 @@ export const CustomerList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   
-  const { data: customers, isLoading: loading, remove: deleteCustomer } = useCustomers();
+  const { data: customers, isLoading: loading, remove: deleteCustomer, add: addCustomer } = useCustomers();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const filteredCustomers = customers?.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,18 +74,108 @@ export const CustomerList = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const csv = e.target?.result as string;
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      const lines = csv.split('\n').filter(line => line.trim());
       
-      // Process CSV data here
-      toast({
-        title: "CSV Upload",
-        description: "Customer CSV upload functionality will be implemented soon.",
-      });
+      if (lines.length < 2) {
+        toast({
+          title: "Invalid CSV",
+          description: "CSV file must contain at least a header row and one data row.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      const expectedHeaders = ['name', 'email', 'phone', 'address'];
+      
+      // Validate headers
+      const hasRequiredHeaders = ['name', 'email', 'address'].every(header => 
+        headers.some(h => h.toLowerCase() === header.toLowerCase())
+      );
+      
+      if (!hasRequiredHeaders) {
+        toast({
+          title: "Invalid CSV Format",
+          description: "CSV must contain columns: name, email, phone, address (phone is optional)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      // Process each data row
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+        
+        if (values.length !== headers.length) {
+          errorCount++;
+          errors.push(`Row ${i + 1}: Incorrect number of columns`);
+          continue;
+        }
+
+        try {
+          const customerData: any = {};
+          headers.forEach((header, index) => {
+            customerData[header.toLowerCase()] = values[index];
+          });
+
+          // Validate required fields
+          if (!customerData.name || !customerData.email || !customerData.address) {
+            errorCount++;
+            errors.push(`Row ${i + 1}: Missing required fields (name, email, address)`);
+            continue;
+          }
+
+          // Validate email format
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(customerData.email)) {
+            errorCount++;
+            errors.push(`Row ${i + 1}: Invalid email format`);
+            continue;
+          }
+
+          const customer = {
+            uid: currentUser?.uid,
+            name: customerData.name,
+            email: customerData.email,
+            phone: customerData.phone || '',
+            address: customerData.address,
+            isDeleted: false
+          };
+
+          await addCustomer(customer);
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        toast({
+          title: "CSV Import Complete",
+          description: `Successfully imported ${successCount} customers${errorCount > 0 ? ` (${errorCount} errors)` : ''}`,
+        });
+      }
+      
+      if (errorCount > 0 && successCount === 0) {
+        toast({
+          title: "Import Failed",
+          description: `${errorCount} errors occurred. Please check your CSV format.`,
+          variant: "destructive",
+        });
+      }
     };
     reader.readAsText(file);
+    
+    // Reset the file input
+    event.target.value = '';
   };
 
   const handleCustomerClick = (customer: Customer) => {

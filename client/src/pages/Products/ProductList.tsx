@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useProducts } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2, Package, MoreHorizontal, Download, Upload } from 'lucide-react';
 import { Link } from 'wouter';
 import { Product } from '@shared/schema';
@@ -17,8 +18,9 @@ export const ProductList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   
-  const { data: products, isLoading: loading, remove: deleteProduct } = useProducts();
+  const { data: products, isLoading: loading, remove: deleteProduct, add: addProduct } = useProducts();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const filteredProducts = products?.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,18 +72,109 @@ export const ProductList = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const csv = e.target?.result as string;
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      const lines = csv.split('\n').filter(line => line.trim());
       
-      // Process CSV data here
-      toast({
-        title: "CSV Upload",
-        description: "CSV upload functionality will be implemented soon.",
-      });
+      if (lines.length < 2) {
+        toast({
+          title: "Invalid CSV",
+          description: "CSV file must contain at least a header row and one data row.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      const expectedHeaders = ['name', 'description', 'unitPrice', 'taxRate'];
+      
+      // Validate headers
+      const hasRequiredHeaders = expectedHeaders.every(header => 
+        headers.some(h => h.toLowerCase() === header.toLowerCase())
+      );
+      
+      if (!hasRequiredHeaders) {
+        toast({
+          title: "Invalid CSV Format",
+          description: "CSV must contain columns: name, description, unitPrice, taxRate",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      // Process each data row
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+        
+        if (values.length !== headers.length) {
+          errorCount++;
+          errors.push(`Row ${i + 1}: Incorrect number of columns`);
+          continue;
+        }
+
+        try {
+          const productData: any = {};
+          headers.forEach((header, index) => {
+            productData[header.toLowerCase()] = values[index];
+          });
+
+          // Validate and convert data types
+          const unitPrice = parseFloat(productData.unitprice);
+          const taxRate = parseFloat(productData.taxrate);
+          
+          if (isNaN(unitPrice) || unitPrice < 0) {
+            errorCount++;
+            errors.push(`Row ${i + 1}: Invalid unit price`);
+            continue;
+          }
+          
+          if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+            errorCount++;
+            errors.push(`Row ${i + 1}: Invalid tax rate (must be 0-100)`);
+            continue;
+          }
+
+          const product = {
+            uid: currentUser?.uid,
+            name: productData.name,
+            description: productData.description || '',
+            unitPrice: unitPrice,
+            taxRate: taxRate,
+            isDeleted: false
+          };
+
+          await addProduct(product);
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        toast({
+          title: "CSV Import Complete",
+          description: `Successfully imported ${successCount} products${errorCount > 0 ? ` (${errorCount} errors)` : ''}`,
+        });
+      }
+      
+      if (errorCount > 0 && successCount === 0) {
+        toast({
+          title: "Import Failed",
+          description: `${errorCount} errors occurred. Please check your CSV format.`,
+          variant: "destructive",
+        });
+      }
     };
     reader.readAsText(file);
+    
+    // Reset the file input
+    event.target.value = '';
   };
 
   if (loading) {
