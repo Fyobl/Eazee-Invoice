@@ -163,15 +163,10 @@ export async function setupRoutes(app: Express) {
   });
   
   // Customers routes
-  app.get('/api/customers', async (req, res) => {
+  app.get('/api/customers', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(customers)
-        .where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)))
+        .where(and(eq(customers.uid, req.user!.uid), eq(customers.isDeleted, false)))
         .orderBy(desc(customers.createdAt));
       
       res.json(result);
@@ -238,15 +233,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Products routes
-  app.get('/api/products', async (req, res) => {
+  app.get('/api/products', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(products)
-        .where(and(eq(products.uid, uid), eq(products.isDeleted, false)))
+        .where(and(eq(products.uid, req.user!.uid), eq(products.isDeleted, false)))
         .orderBy(desc(products.createdAt));
       
       res.json(result);
@@ -291,15 +281,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Companies routes
-  app.get('/api/companies', async (req, res) => {
+  app.get('/api/companies', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(companies)
-        .where(eq(companies.uid, uid))
+        .where(eq(companies.uid, req.user!.uid))
         .orderBy(desc(companies.createdAt));
       
       res.json(result);
@@ -331,15 +316,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Invoices routes
-  app.get('/api/invoices', async (req, res) => {
+  app.get('/api/invoices', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(invoices)
-        .where(and(eq(invoices.uid, uid), eq(invoices.isDeleted, false)))
+        .where(and(eq(invoices.uid, req.user!.uid), eq(invoices.isDeleted, false)))
         .orderBy(desc(invoices.createdAt));
       
       res.json(result);
@@ -449,15 +429,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Quotes routes
-  app.get('/api/quotes', async (req, res) => {
+  app.get('/api/quotes', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(quotes)
-        .where(and(eq(quotes.uid, uid), eq(quotes.isDeleted, false)))
+        .where(and(eq(quotes.uid, req.user!.uid), eq(quotes.isDeleted, false)))
         .orderBy(desc(quotes.createdAt));
       
       res.json(result);
