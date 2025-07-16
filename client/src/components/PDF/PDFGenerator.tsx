@@ -391,11 +391,40 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
   // Generate PDF and return as blob with better error handling
   try {
     console.log(`Generating PDF for ${type} with options:`, options);
-    const result = html2pdf().from(html).set(options).outputPdf('blob');
+    
+    // Create a more robust PDF generation with error handling
+    const pdfPromise = html2pdf().from(html).set(options).outputPdf('blob');
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('PDF generation timeout')), 30000); // 30 second timeout
+    });
+    
+    const result = await Promise.race([pdfPromise, timeoutPromise]);
     console.log(`PDF generation completed for ${type}`);
     return result;
   } catch (error) {
     console.error(`Error in PDF generation for ${type}:`, error);
+    
+    // If it's a frame disposal error, try a simpler approach
+    if (error.message.includes('WebFrameMain') || error.message.includes('frame was disposed')) {
+      console.log('Attempting fallback PDF generation...');
+      try {
+        // Simpler options for fallback
+        const fallbackOptions = {
+          margin: 0.5,
+          filename: `${type}-${document.number}.pdf`,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 1 },
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        return html2pdf().from(html).set(fallbackOptions).outputPdf('blob');
+      } catch (fallbackError) {
+        console.error('Fallback PDF generation also failed:', fallbackError);
+      }
+    }
+    
     throw new Error(`PDF generation failed for ${type}: ${error.message}`);
   }
 };

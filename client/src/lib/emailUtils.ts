@@ -1,6 +1,7 @@
 import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { Invoice, Quote, Statement, Customer, Company } from '@shared/schema';
 import { formatCurrency } from './currency';
+import { handlePDFError } from './pdfErrorHandler';
 
 // Email template interface
 export interface EmailTemplate {
@@ -200,10 +201,32 @@ export const openMailApp = async (
   try {
     console.log('Starting email preparation for:', { type, documentId: document.id, customerEmail: customer.email });
     
-    // Generate PDF
+    // Generate PDF with better error handling
     console.log('Generating PDF...');
-    const pdfBlob = await generatePDF({ document, company, type });
-    console.log('PDF generated successfully, size:', pdfBlob.size);
+    let pdfBlob;
+    
+    // Wrap PDF generation in a try-catch to handle browser-specific errors
+    try {
+      pdfBlob = await Promise.race([
+        generatePDF({ document, company, type }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('PDF generation timeout')), 15000)
+        )
+      ]);
+      console.log('PDF generated successfully, size:', pdfBlob.size);
+    } catch (pdfError) {
+      console.error('PDF generation failed:', pdfError);
+      
+      // Check if it's a browser-specific error that we can handle gracefully
+      if (handlePDFError(pdfError)) {
+        console.warn('Browser-specific PDF error detected - continuing with email preparation');
+        // Create a minimal blob for email preparation to continue
+        pdfBlob = new Blob(['PDF generation failed due to browser limitations'], { type: 'application/pdf' });
+      } else {
+        // For other errors, fail gracefully
+        throw new Error('PDF generation failed. Please try viewing the PDF directly first.');
+      }
+    }
     
     const base64PDF = await blobToBase64(pdfBlob);
     console.log('PDF converted to base64');
@@ -244,43 +267,48 @@ export const openMailApp = async (
 
     // Download the PDF file with better error handling
     try {
-      const url = URL.createObjectURL(pdfBlob);
-      
-      // Fix the filename generation
-      let filename: string;
-      switch (type) {
-        case 'invoice':
-          filename = `invoice-${(document as Invoice).number}.pdf`;
-          break;
-        case 'quote':
-          filename = `quote-${(document as Quote).number}.pdf`;
-          break;
-        case 'statement':
-          filename = `statement-${(document as Statement).number || document.id}.pdf`;
-          break;
-        default:
-          filename = `${type}-${document.id}.pdf`;
-      }
-      
-      // Create download link with better error handling
-      const link = window.document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.style.display = 'none';
-      
-      // Add to DOM, click, then remove with timeout for cleanup
-      window.document.body.appendChild(link);
-      link.click();
-      
-      // Clean up after a short delay to prevent frame disposal issues
-      setTimeout(() => {
-        if (window.document.body.contains(link)) {
-          window.document.body.removeChild(link);
+      // Only try to download if we have a valid PDF blob
+      if (pdfBlob && pdfBlob.size > 100) {
+        const url = URL.createObjectURL(pdfBlob);
+        
+        // Fix the filename generation
+        let filename: string;
+        switch (type) {
+          case 'invoice':
+            filename = `invoice-${(document as Invoice).number}.pdf`;
+            break;
+          case 'quote':
+            filename = `quote-${(document as Quote).number}.pdf`;
+            break;
+          case 'statement':
+            filename = `statement-${(document as Statement).number || document.id}.pdf`;
+            break;
+          default:
+            filename = `${type}-${document.id}.pdf`;
         }
-        URL.revokeObjectURL(url);
-      }, 100);
-      
-      console.log('PDF download initiated');
+        
+        // Create download link with better error handling
+        const link = window.document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        // Add to DOM, click, then remove with timeout for cleanup
+        window.document.body.appendChild(link);
+        link.click();
+        
+        // Clean up after a short delay to prevent frame disposal issues
+        setTimeout(() => {
+          if (window.document.body.contains(link)) {
+            window.document.body.removeChild(link);
+          }
+          URL.revokeObjectURL(url);
+        }, 100);
+        
+        console.log('PDF download initiated');
+      } else {
+        console.warn('PDF blob is invalid or too small, skipping download');
+      }
     } catch (downloadError) {
       console.error('Error downloading PDF:', downloadError);
       // Still try to open mail app even if download fails
