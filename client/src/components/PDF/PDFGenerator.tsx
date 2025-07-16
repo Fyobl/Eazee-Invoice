@@ -25,19 +25,6 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
-      console.log('DEBUG: Statement data', {
-        customerId: document.customerId,
-        startDate: document.startDate,
-        endDate: document.endDate
-      });
-      
-      console.log('DEBUG: Available invoices', allInvoices.map(inv => ({
-        number: inv.number,
-        customerId: inv.customerId,
-        status: inv.status,
-        date: inv.date
-      })));
-      
       unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
         const invoiceDate = new Date(invoice.date);
         const statementStart = new Date(document.startDate);
@@ -51,12 +38,8 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
         const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEndOfDay;
         
-        console.log(`DEBUG: ${invoice.number} - Customer: ${customerMatch}, Status: ${statusMatch}, Date: ${dateMatch}`);
-        
         return customerMatch && statusMatch && dateMatch;
       });
-      
-      console.log('DEBUG: Filtered invoices count:', unpaidInvoices.length);
     } catch (error) {
       console.error('Error fetching unpaid invoices:', error);
     }
@@ -81,9 +64,9 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           display: flex; 
           justify-content: space-between; 
           align-items: flex-start; 
-          margin-bottom: 30px; 
+          margin-bottom: 15px; 
           border-bottom: 2px solid #3b82f6; 
-          padding-bottom: 20px; 
+          padding-bottom: 10px; 
         }
         .logo-section { 
           flex: 1;
@@ -114,24 +97,33 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           line-height: 1.4;
         }
         .document-info { 
-          margin-bottom: 30px; 
+          margin-bottom: 15px; 
           font-size: 14px;
-          line-height: 1.6;
+          line-height: 1.4;
+        }
+        .info-section {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 15px;
+        }
+        .document-details {
+          flex: 1;
+          padding-right: 20px;
         }
         .customer-info { 
-          margin-bottom: 30px; 
+          flex: 1;
           font-size: 14px;
-          line-height: 1.6;
+          line-height: 1.4;
         }
         .table { 
           width: 100%; 
           border-collapse: collapse; 
-          margin-bottom: 30px; 
-          font-size: 14px;
+          margin-bottom: 20px; 
+          font-size: 13px;
         }
         .table th, .table td { 
           border: 1px solid #e2e8f0; 
-          padding: 12px; 
+          padding: 8px; 
           text-align: left; 
         }
         .table th { 
@@ -145,7 +137,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           text-align: right;
         }
         .totals { 
-          margin-bottom: 40px; 
+          margin-bottom: 20px; 
           display: flex;
           justify-content: flex-end;
         }
@@ -155,7 +147,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           min-width: 300px;
         }
         .totals-table td { 
-          padding: 8px 12px; 
+          padding: 6px 10px; 
           border: 1px solid #e2e8f0;
         }
         .totals-table .label { 
@@ -173,34 +165,35 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           background-color: #f1f5f9;
         }
         .notes {
-          margin-bottom: 30px;
-          font-size: 14px;
-          line-height: 1.6;
+          margin-bottom: 20px;
+          font-size: 13px;
+          line-height: 1.4;
         }
         .footer { 
           border-top: 1px solid #e2e8f0; 
-          padding-top: 20px; 
-          padding-bottom: 30px;
+          padding-top: 15px; 
+          padding-bottom: 20px;
           text-align: center; 
           color: #64748b; 
-          font-size: 12px;
-          margin-top: 40px;
+          font-size: 11px;
+          margin-top: 30px;
         }
         .statement-content {
-          margin: 30px 0;
-          padding: 20px;
+          margin: 15px 0;
+          padding: 15px;
           background-color: #f8fafc;
           border-radius: 8px;
           border: 1px solid #e2e8f0;
         }
         .statement-content h3 {
-          margin: 0 0 15px 0;
+          margin: 0 0 10px 0;
           color: #1e293b;
-          font-size: 18px;
+          font-size: 16px;
         }
         .statement-content p {
-          margin: 10px 0;
-          line-height: 1.6;
+          margin: 5px 0;
+          line-height: 1.4;
+          font-size: 14px;
         }
         .statement-placeholder {
           padding: 20px;
@@ -212,8 +205,8 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           color: #64748b;
         }
         .statement-summary {
-          margin-top: 20px;
-          padding: 15px;
+          margin-top: 15px;
+          padding: 10px;
           background-color: #f1f5f9;
           border-radius: 4px;
           border: 1px solid #e2e8f0;
@@ -221,8 +214,9 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         .summary-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
           font-weight: bold;
+          font-size: 14px;
         }
         .summary-row:last-child {
           margin-bottom: 0;
@@ -257,17 +251,19 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         </div>
       </div>
       
-      <div class="document-info">
-        <strong>${documentTitle} #:</strong> ${document.number}<br>
-        <strong>Date:</strong> ${new Date(document.date).toLocaleDateString()}<br>
-        ${type === 'quote' && 'validUntil' in document ? `<strong>Valid Until:</strong> ${new Date(document.validUntil).toLocaleDateString()}<br>` : ''}
-        ${type === 'invoice' && 'dueDate' in document ? `<strong>Due Date:</strong> ${new Date(document.dueDate).toLocaleDateString()}<br>` : ''}
-        ${type === 'statement' && 'startDate' in document && 'endDate' in document ? `<strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}<br>` : ''}
-      </div>
-      
-      <div class="customer-info">
-        <strong>Bill To:</strong><br>
-        ${document.customerName}
+      <div class="info-section">
+        <div class="document-details">
+          <strong>${documentTitle} #:</strong> ${document.number}<br>
+          <strong>Date:</strong> ${new Date(document.date).toLocaleDateString()}<br>
+          ${type === 'quote' && 'validUntil' in document ? `<strong>Valid Until:</strong> ${new Date(document.validUntil).toLocaleDateString()}<br>` : ''}
+          ${type === 'invoice' && 'dueDate' in document ? `<strong>Due Date:</strong> ${new Date(document.dueDate).toLocaleDateString()}<br>` : ''}
+          ${type === 'statement' && 'startDate' in document && 'endDate' in document ? `<strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}<br>` : ''}
+        </div>
+        
+        <div class="customer-info">
+          <strong>Bill To:</strong><br>
+          ${document.customerName}
+        </div>
       </div>
       
       ${type === 'statement' ? `

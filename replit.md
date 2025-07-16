@@ -160,7 +160,7 @@ The application is designed to be easily extensible with additional features lik
 - **Settings Page Database Migration**: Updated Settings page from Firestore to PostgreSQL database with proper logo upload functionality
 - **Company Data Fixes**: Fixed company name typo and improved PDF margin settings to prevent content cut-off
 
-### January 16, 2025 - Status System Update & Statement PDF Enhancement
+### January 16, 2025 - Status System Update & Statement PDF Enhancement & Layout Improvements
 - **Invoice Status Simplification**: Updated invoice status options from "Draft/Sent/Paid/Overdue" to "Unpaid/Paid/Overdue" for clearer user experience
 - **Database Status Migration**: Updated all existing invoices from "draft" and "sent" statuses to "unpaid" status (3 invoices updated)
 - **Statement PDF Enhancement**: Statement PDFs now display actual unpaid invoices from the database for the selected customer and period
@@ -168,6 +168,11 @@ The application is designed to be easily extensible with additional features lik
 - **Statement Logic Update**: Updated statement filtering logic to show invoices with "unpaid" or "overdue" status instead of checking for "not paid"
 - **UI Component Updates**: Updated invoice forms, lists, and reports to reflect the new three-status system
 - **Status Badge Styling**: Updated status color coding throughout the application for the new status values
+- **PDF Layout Optimization**: Enhanced all PDF documents (invoices, quotes, statements) with improved layout design
+- **Bill To Section Repositioning**: Moved "Bill To" customer information to the right side of the document below the header
+- **Compact Design Implementation**: Reduced margins, padding, and font sizes throughout PDF documents to fit more content per page
+- **Statement PDF Bug Fix**: Resolved API request error that prevented statement PDFs from displaying unpaid invoices correctly
+- **PDF Content Density**: Optimized table spacing, section margins, and text sizing for better space utilization while maintaining readability
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
