@@ -227,8 +227,6 @@ export const openMailApp = async (
 
     // Download the PDF file
     const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = url;
     
     // Fix the filename generation
     let filename: string;
@@ -246,10 +244,14 @@ export const openMailApp = async (
         filename = `${type}-${document.id}.pdf`;
     }
     
+    // Create download link using the DOM API correctly
+    const link = window.document.createElement('a');
+    link.href = url;
     link.download = filename;
-    document.body.appendChild(link);
+    link.style.display = 'none';
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
     URL.revokeObjectURL(url);
     console.log('PDF download initiated');
 
