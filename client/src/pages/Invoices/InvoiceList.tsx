@@ -179,7 +179,7 @@ export const InvoiceList = () => {
       await openMailApp(invoice, customer, company, 'invoice');
       toast({
         title: "Email Prepared",
-        description: `Email template opened for invoice ${invoice.number}. PDF will be downloaded automatically.`,
+        description: `Email template opened for invoice ${invoice.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);

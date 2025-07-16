@@ -173,7 +173,7 @@ export const StatementList = () => {
       await openMailApp(statement, customer, company, 'statement');
       toast({
         title: "Email Prepared",
-        description: `Email template opened for statement ${statement.number}. PDF will be downloaded automatically.`,
+        description: `Email template opened for statement ${statement.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);

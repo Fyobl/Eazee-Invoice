@@ -219,7 +219,7 @@ export const openMailApp = async (
     // So we'll open the email with content and instructions to attach the PDF
     const bodyWithAttachmentNote = encodeURIComponent(
       emailContent.body + 
-      '\n\n--- \nNote: Please attach the PDF document that will be downloaded automatically.'
+      '\n\n--- \nNote: A PDF document has been downloaded to your Downloads folder. Please attach it to this email before sending.'
     );
 
     const mailtoUrl = `mailto:${to}?subject=${subject}&body=${bodyWithAttachmentNote}`;
