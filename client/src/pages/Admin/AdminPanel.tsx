@@ -185,7 +185,8 @@ export const AdminPanel = () => {
       data: {
         isSubscriber: true,
         isSuspended: false,
-        subscriptionCurrentPeriodEnd: subscriptionEndDate.toISOString()
+        subscriptionCurrentPeriodEnd: subscriptionEndDate.toISOString(),
+        isAdminGrantedSubscription: true
       }
     });
     
@@ -271,7 +272,8 @@ export const AdminPanel = () => {
       isAdmin: false,
       mustChangePassword: true,
       trialStartDate: new Date().toISOString(),
-      subscriptionEndDate: subscriptionEndDate?.toISOString() || null
+      subscriptionEndDate: subscriptionEndDate?.toISOString() || null,
+      isAdminGrantedSubscription: isSubscriber
     });
   };
 
@@ -330,11 +332,31 @@ export const AdminPanel = () => {
 
   const getUserStatus = (user: any) => {
     if (user.isSuspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+    if (user.isSubscriber && user.isAdminGrantedSubscription) return { text: 'Admin Subscriber', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' };
     if (user.isSubscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
     return { text: 'Trial', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' };
   };
 
   const getTrialEndDate = (user: any) => {
+    if (user.isSubscriber && user.subscriptionCurrentPeriodEnd) {
+      const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
+      const now = new Date();
+      
+      // Check if it's expired
+      if (periodEnd <= now) {
+        return 'Expired';
+      }
+      
+      // Calculate days left
+      const daysLeft = Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Special handling for permanent subscriptions (year 2099)
+      if (periodEnd.getFullYear() === 2099) {
+        return 'Permanent';
+      }
+      
+      return `${daysLeft} days left`;
+    }
     if (user.isSubscriber) return 'N/A';
     if (user.isSuspended) return 'Suspended';
     
@@ -438,7 +460,7 @@ export const AdminPanel = () => {
                   <TableHead className="text-slate-900 dark:text-slate-100">User</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Status</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Joined</TableHead>
-                  <TableHead className="text-slate-900 dark:text-slate-100">Trial Ends</TableHead>
+                  <TableHead className="text-slate-900 dark:text-slate-100">Expires</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Actions</TableHead>
                 </TableRow>
               </TableHeader>

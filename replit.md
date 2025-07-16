@@ -317,6 +317,16 @@ The application is designed to be easily extensible with additional features lik
 - **Self-Deletion Prevention**: Admins cannot delete their own accounts
 - **Admin User Creation Fix**: Fixed password hashing for users created through admin panel (default password: temp123456)
 
+### January 16, 2025 - Admin-Granted Subscription Status & Expiration Enhancement
+- **Admin Subscriber Status Tags**: Added "Admin Subscriber" status tags in admin panel to distinguish admin-granted from paid subscriptions
+- **Purple Badge Styling**: Admin-granted subscriptions display with purple badge color (bg-purple-100 text-purple-800) for clear visual distinction
+- **Subscription Days Calculation**: Enhanced admin panel to show accurate days left for all subscription types including admin-granted subscriptions
+- **Permanent Subscription Display**: Subscriptions set to year 2099 now display as "Permanent" instead of showing large day counts
+- **Expired Subscription Handling**: Expired subscriptions properly display as "Expired" in admin panel
+- **Column Header Update**: Changed "Trial Ends" column to "Expires" to better reflect subscription and trial expiration information
+- **Database Data Consistency**: Updated all existing admin-granted users to have proper subscription period end dates (John & Sarah Smith set to Feb 15, 2025)
+- **Auto-Flag Admin Subscriptions**: Both grant subscription and create user functions now automatically set isAdminGrantedSubscription = true for admin-created subscriptions
+
 ### January 16, 2025 - Admin-Granted Subscription Expiration System
 - **Database Schema Enhancement**: Added `isAdminGrantedSubscription` field to distinguish between admin-granted and paid subscriptions
 - **Subscription Expiration Logic**: Implemented separate handling for admin-granted subscription expiration vs paid subscription expiration
