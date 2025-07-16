@@ -152,6 +152,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     new Date(userData.subscriptionCurrentPeriodEnd) > new Date()
   ) : false;
   
+  // Debug logging for access control
+  if (userData) {
+    console.log('=== AUTH DEBUG ===');
+    console.log('User data:', userData);
+    console.log('Current time:', new Date().toISOString());
+    console.log('Subscription end:', userData.subscriptionCurrentPeriodEnd);
+    console.log('Has active subscription:', hasActiveSubscription);
+    console.log('Is admin:', userData.isAdmin);
+    console.log('Is suspended:', userData.isSuspended);
+    console.log('Trial status check:', checkTrialStatus(userData));
+    console.log('==================');
+  }
+  
   const hasAccess = userData ? (userData.isAdmin || hasActiveSubscription || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;
   const mustChangePassword = userData?.mustChangePassword || false;

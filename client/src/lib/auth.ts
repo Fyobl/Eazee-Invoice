@@ -77,13 +77,26 @@ export const getUserData = async (uid: string): Promise<User | null> => {
 };
 
 export const checkTrialStatus = (user: User): boolean => {
-  if (user.isAdmin) return true;
+  console.log('=== TRIAL STATUS CHECK ===');
+  console.log('User admin:', user.isAdmin);
+  
+  if (user.isAdmin) {
+    console.log('User is admin - granting access');
+    return true;
+  }
   
   // Check if subscription is active based on current time
   const hasActiveSubscription = user.subscriptionCurrentPeriodEnd && 
     new Date(user.subscriptionCurrentPeriodEnd) > new Date();
   
-  if (hasActiveSubscription) return true;
+  console.log('Subscription current period end:', user.subscriptionCurrentPeriodEnd);
+  console.log('Current time:', new Date().toISOString());
+  console.log('Has active subscription:', hasActiveSubscription);
+  
+  if (hasActiveSubscription) {
+    console.log('Active subscription found - granting access');
+    return true;
+  }
   
   let trialStart: Date;
   
@@ -96,6 +109,11 @@ export const checkTrialStatus = (user: User): boolean => {
   
   const now = new Date();
   const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+  
+  console.log('Trial start date:', trialStart.toISOString());
+  console.log('Days since trial start:', daysDiff);
+  console.log('Trial valid (< 7 days):', daysDiff < 7);
+  console.log('==========================');
   
   return daysDiff < 7;
 };
