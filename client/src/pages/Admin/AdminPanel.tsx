@@ -105,8 +105,6 @@ export const AdminPanel = () => {
   // CSV Upload mutation
   const csvUploadMutation = useMutation({
     mutationFn: async ({ file, type, userId }: { file: File; type: 'customers' | 'products'; userId: string }) => {
-      console.log('CSV Upload - Starting upload:', { fileName: file.name, type, userId });
-      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
@@ -117,17 +115,12 @@ export const AdminPanel = () => {
         body: formData
       });
       
-      console.log('CSV Upload - Response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('CSV Upload - Error response:', errorData);
         throw new Error(errorData.error || 'CSV upload failed');
       }
       
-      const result = await response.json();
-      console.log('CSV Upload - Success response:', result);
-      return result;
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.errorCount > 0) {

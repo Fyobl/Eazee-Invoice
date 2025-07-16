@@ -48,10 +48,10 @@ export const CustomerList = () => {
   };
 
   const downloadCustomerTemplate = () => {
-    const csvContent = `name,email,phone,address
-"John Smith","john@example.com","07123456789","123 Main Street, London, UK"
-"Jane Doe","jane@example.com","07987654321","456 Oak Avenue, Manchester, UK"
-"Bob Johnson","bob@example.com","07555123456","789 Pine Road, Birmingham, UK"`;
+    const csvContent = `name,email,phone,address,city,country,taxNumber
+John Smith,john@example.com,07123456789,123 Main Street,London,United Kingdom,GB123456789
+Jane Doe,jane@example.com,07987654321,456 Oak Avenue,Manchester,United Kingdom,GB987654321
+Bob Johnson,bob@example.com,07555123456,789 Pine Road,Birmingham,United Kingdom,GB555123456`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -69,113 +69,52 @@ export const CustomerList = () => {
     });
   };
 
-  const handleCustomerCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomerCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !currentUser) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const csv = e.target?.result as string;
-      const lines = csv.split('\n').filter(line => line.trim());
-      
-      if (lines.length < 2) {
-        toast({
-          title: "Invalid CSV",
-          description: "CSV file must contain at least a header row and one data row.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-      const expectedHeaders = ['name', 'email', 'phone', 'address'];
-      
-      // Validate headers
-      const hasRequiredHeaders = ['name', 'email', 'address'].every(header => 
-        headers.some(h => h.toLowerCase() === header.toLowerCase())
-      );
-      
-      if (!hasRequiredHeaders) {
-        toast({
-          title: "Invalid CSV Format",
-          description: "CSV must contain columns: name, email, phone, address (phone is optional)",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      let successCount = 0;
-      let errorCount = 0;
-      const errors: string[] = [];
-
-      // Process each data row
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
-        
-        if (values.length !== headers.length) {
-          errorCount++;
-          errors.push(`Row ${i + 1}: Incorrect number of columns`);
-          continue;
-        }
-
-        try {
-          const customerData: any = {};
-          headers.forEach((header, index) => {
-            customerData[header.toLowerCase()] = values[index];
-          });
-
-          // Validate required fields
-          if (!customerData.name || !customerData.email || !customerData.address) {
-            errorCount++;
-            errors.push(`Row ${i + 1}: Missing required fields (name, email, address)`);
-            continue;
-          }
-
-          // Validate email format
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(customerData.email)) {
-            errorCount++;
-            errors.push(`Row ${i + 1}: Invalid email format`);
-            continue;
-          }
-
-          const customer = {
-            uid: currentUser?.uid,
-            name: customerData.name,
-            email: customerData.email,
-            phone: customerData.phone || '',
-            address: customerData.address,
-            isDeleted: false
-          };
-
-          await addCustomer(customer);
-          successCount++;
-        } catch (error) {
-          errorCount++;
-          errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }
-
-      // Show results
-      if (successCount > 0) {
-        toast({
-          title: "CSV Import Complete",
-          description: `Successfully imported ${successCount} customers${errorCount > 0 ? ` (${errorCount} errors)` : ''}`,
-        });
-      }
-      
-      if (errorCount > 0 && successCount === 0) {
-        toast({
-          title: "Import Failed",
-          description: `${errorCount} errors occurred. Please check your CSV format.`,
-          variant: "destructive",
-        });
-      }
-    };
-    reader.readAsText(file);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'customers');
+    formData.append('userId', currentUser.uid);
     
-    // Reset the file input
-    event.target.value = '';
+    try {
+      const response = await fetch('/api/csv-upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'CSV upload failed');
+      }
+      
+      const data = await response.json();
+      
+      if (data.errorCount > 0) {
+        toast({ 
+          title: 'CSV Upload Completed with Errors', 
+          description: `Successfully imported ${data.successCount} customers. ${data.errorCount} errors encountered.`
+        });
+        console.error('CSV upload errors:', data.errors);
+      } else {
+        toast({ 
+          title: 'CSV Upload Successful', 
+          description: `Successfully imported ${data.successCount} customers.` 
+        });
+      }
+      
+      // Reset the file input
+      event.target.value = '';
+      
+    } catch (error: any) {
+      console.error('CSV upload error:', error);
+      toast({ 
+        title: 'CSV Upload Failed', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    }
   };
 
   const handleCustomerClick = (customer: Customer) => {
