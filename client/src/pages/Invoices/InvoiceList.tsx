@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { openMailApp } from '@/lib/emailUtils';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, Mail } from 'lucide-react';
@@ -25,7 +26,7 @@ export const InvoiceList = () => {
   
   const { data: invoices, isLoading: loading, remove: deleteDocument } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
-  const { data: companies } = useDatabase('companies');
+  const { currentUser } = useAuth();
   const { toast } = useToast();
 
   const filteredInvoices = invoices?.filter((invoice: Invoice) => {
@@ -64,20 +65,19 @@ export const InvoiceList = () => {
   };
 
   const handleViewPDF = async (invoice: Invoice) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
-    const company = companies[0];
     try {
       const pdfBlob = await generatePDF({
         document: invoice,
-        company,
+        user: currentUser,
         type: 'invoice'
       });
       
@@ -96,20 +96,19 @@ export const InvoiceList = () => {
   };
 
   const handleDownloadPDF = async (invoice: Invoice) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
-    const company = companies[0];
     try {
       const pdfBlob = await generatePDF({
         document: invoice,
-        company,
+        user: currentUser,
         type: 'invoice'
       });
       
@@ -137,10 +136,10 @@ export const InvoiceList = () => {
   };
 
   const handleSendEmail = async (invoice: Invoice) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
@@ -155,7 +154,6 @@ export const InvoiceList = () => {
       return;
     }
 
-    const company = companies[0];
     const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
 
     if (!customer) {
@@ -174,9 +172,9 @@ export const InvoiceList = () => {
     try {
       console.log('Attempting to send email for invoice:', invoice);
       console.log('Customer found:', customer);
-      console.log('Company found:', company);
+      console.log('User found:', currentUser);
       
-      await openMailApp(invoice, customer, company, 'invoice');
+      await openMailApp(invoice, customer, currentUser, 'invoice');
       toast({
         title: "Email Prepared",
         description: `Email template opened for invoice ${invoice.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,

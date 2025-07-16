@@ -13,14 +13,15 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Upload, Image, X } from 'lucide-react';
-import { Company } from '@shared/schema';
-// Firebase storage imports removed - now using base64 encoding for database storage
+import { User } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 const settingsSchema = z.object({
-  name: z.string().min(1, 'Company name is required'),
-  address: z.string().min(1, 'Address is required'),
-  vatNumber: z.string().optional(),
-  registrationNumber: z.string().optional(),
+  companyName: z.string().min(1, 'Company name is required'),
+  companyAddress: z.string().min(1, 'Address is required'),
+  companyVatNumber: z.string().optional(),
+  companyRegistrationNumber: z.string().optional(),
   currency: z.string().min(1, 'Currency is required'),
   dateFormat: z.string().min(1, 'Date format is required')
 });
@@ -28,7 +29,8 @@ const settingsSchema = z.object({
 type SettingsForm = z.infer<typeof settingsSchema>;
 
 export const Settings = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,35 +38,32 @@ export const Settings = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const { data: companies, create: createCompany, update: updateCompany } = useDatabase('companies');
-  const currentCompany = companies?.find((c: Company) => c.uid === currentUser?.uid);
 
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      name: '',
-      address: '',
-      vatNumber: '',
-      registrationNumber: '',
+      companyName: '',
+      companyAddress: '',
+      companyVatNumber: '',
+      companyRegistrationNumber: '',
       currency: 'GBP',
       dateFormat: 'DD/MM/YYYY'
     }
   });
 
   useEffect(() => {
-    if (currentCompany) {
+    if (currentUser) {
       form.reset({
-        name: currentCompany.name,
-        address: currentCompany.address,
-        vatNumber: currentCompany.vatNumber || '',
-        registrationNumber: currentCompany.registrationNumber || '',
-        currency: currentCompany.currency,
-        dateFormat: currentCompany.dateFormat
+        companyName: currentUser.companyName || '',
+        companyAddress: currentUser.companyAddress || '',
+        companyVatNumber: currentUser.companyVatNumber || '',
+        companyRegistrationNumber: currentUser.companyRegistrationNumber || '',
+        currency: currentUser.currency || 'GBP',
+        dateFormat: currentUser.dateFormat || 'DD/MM/YYYY'
       });
-      setLogoPreview(currentCompany.logo || null);
+      setLogoPreview(currentUser.companyLogo || null);
     }
-  }, [currentCompany, form]);
+  }, [currentUser, form]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -109,53 +108,44 @@ export const Settings = () => {
 
       const base64Data = await base64Promise;
       
-      // Update company record with logo data
-      const companyData: Partial<Company> = {
-        logo: base64Data
-      };
-
-      if (currentCompany) {
-        await updateCompany(currentCompany.id, companyData);
-      } else {
-        // If no company exists, create one with current form data
-        const formData = form.getValues();
-        await createCompany({
-          uid: currentUser.uid,
-          name: formData.name || 'My Company',
-          address: formData.address || '',
-          vatNumber: formData.vatNumber,
-          registrationNumber: formData.registrationNumber,
-          currency: formData.currency,
-          dateFormat: formData.dateFormat,
-          logo: base64Data
-        });
+      // Update user record with logo data
+      const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
+        companyLogo: base64Data
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update logo');
       }
-
+      
+      await refreshUser();
       setSuccess('Logo uploaded successfully!');
       setLogoFile(null);
-      
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    } catch (err) {
-      console.error('Logo upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload logo');
+    } catch (error) {
+      setError('Failed to upload logo');
     } finally {
       setLogoUploading(false);
     }
   };
 
   const handleLogoRemove = async () => {
-    if (!currentCompany?.logo || !currentUser) return;
+    if (!currentUser?.companyLogo) return;
 
     setLogoUploading(true);
     setError(null);
 
     try {
-      // Update company record to remove logo
-      await updateCompany(currentCompany.id, { logo: null });
+      const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
+        companyLogo: null
+      });
       
+      if (!response.ok) {
+        throw new Error('Failed to remove logo');
+      }
+      
+      await refreshUser();
       setLogoPreview(null);
       setSuccess('Logo removed successfully!');
     } catch (err) {
@@ -173,22 +163,24 @@ export const Settings = () => {
     setLoading(true);
 
     try {
-      const companyData: Partial<Company> = {
-        uid: currentUser.uid,
-        name: data.name,
-        address: data.address,
-        vatNumber: data.vatNumber,
-        registrationNumber: data.registrationNumber,
+      const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
+        companyName: data.companyName,
+        companyAddress: data.companyAddress,
+        companyVatNumber: data.companyVatNumber,
+        companyRegistrationNumber: data.companyRegistrationNumber,
         currency: data.currency,
         dateFormat: data.dateFormat
-      };
-
-      if (currentCompany) {
-        await updateCompany(currentCompany.id, companyData);
-      } else {
-        await createCompany(companyData);
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
       }
-
+      
+      await refreshUser();
+      toast({
+        title: 'Success',
+        description: 'Settings saved successfully!'
+      });
       setSuccess('Settings saved successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save settings');
@@ -223,7 +215,7 @@ export const Settings = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="companyName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Company Name</FormLabel>
@@ -313,7 +305,7 @@ export const Settings = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="address"
+                    name="companyAddress"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Business Address</FormLabel>
@@ -332,7 +324,7 @@ export const Settings = () => {
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="vatNumber"
+                      name="companyVatNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>VAT Number (Optional)</FormLabel>
@@ -346,7 +338,7 @@ export const Settings = () => {
                     
                     <FormField
                       control={form.control}
-                      name="registrationNumber"
+                      name="companyRegistrationNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Registration Number (Optional)</FormLabel>

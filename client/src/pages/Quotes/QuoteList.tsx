@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { openMailApp } from '@/lib/emailUtils';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
@@ -25,8 +26,8 @@ export const QuoteList = () => {
   
   const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
-  const { data: companies } = useDatabase('companies');
   const { add: createInvoice } = useDatabase('invoices');
+  const { currentUser } = useAuth();
   const { toast } = useToast();
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
@@ -67,20 +68,19 @@ export const QuoteList = () => {
   };
 
   const handleViewPDF = async (quote: Quote) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
-    const company = companies[0]; // Get the first company
     try {
       const pdfBlob = await generatePDF({
         document: quote,
-        company,
+        user: currentUser,
         type: 'quote'
       });
       
@@ -100,20 +100,19 @@ export const QuoteList = () => {
   };
 
   const handleDownloadPDF = async (quote: Quote) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
-    const company = companies[0]; // Get the first company
     try {
       const pdfBlob = await generatePDF({
         document: quote,
-        company,
+        user: currentUser,
         type: 'quote'
       });
       
@@ -177,10 +176,10 @@ export const QuoteList = () => {
   };
 
   const handleSendEmail = async (quote: Quote) => {
-    if (!companies || companies.length === 0) {
+    if (!currentUser) {
       toast({
         title: "Error",
-        description: "Company information not found. Please check your settings.",
+        description: "User information not found. Please log in again.",
         variant: "destructive",
       });
       return;
@@ -195,7 +194,6 @@ export const QuoteList = () => {
       return;
     }
 
-    const company = companies[0];
     const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
 
     if (!customer) {
@@ -215,9 +213,9 @@ export const QuoteList = () => {
       console.log('Quote email process starting for quote:', quote.number);
       console.log('Quote data:', quote);
       console.log('Customer data:', customer);
-      console.log('Company data:', company);
+      console.log('User data:', currentUser);
       
-      await openMailApp(quote, customer, company, 'quote');
+      await openMailApp(quote, customer, currentUser, 'quote');
       toast({
         title: "Email Prepared",
         description: `Email template opened for quote ${quote.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,

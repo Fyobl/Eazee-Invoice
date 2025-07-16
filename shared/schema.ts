@@ -21,6 +21,13 @@ export const users = pgTable('users', {
   subscriptionStatus: text('subscription_status'),
   subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
   isAdminGrantedSubscription: boolean('is_admin_granted_subscription').default(false),
+  // Company branding fields
+  companyLogo: text('company_logo'),
+  companyAddress: text('company_address'),
+  companyVatNumber: text('company_vat_number'),
+  companyRegistrationNumber: text('company_registration_number'),
+  currency: text('currency').notNull().default('GBP'),
+  dateFormat: text('date_format').notNull().default('DD/MM/YYYY'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -31,19 +38,7 @@ export const sessions = pgTable('sessions', {
   expire: timestamp('expire').notNull(),
 });
 
-export const companies = pgTable('companies', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  name: text('name').notNull(),
-  logo: text('logo'),
-  address: text('address').notNull(),
-  vatNumber: text('vat_number'),
-  registrationNumber: text('registration_number'),
-  currency: text('currency').notNull().default('GBP'),
-  dateFormat: text('date_format').notNull().default('DD/MM/YYYY'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+
 
 export const customers = pgTable('customers', {
   id: serial('id').primaryKey(),
@@ -163,7 +158,6 @@ export const statementsRelations = relations(statements, ({ one }) => ({
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
-export const insertCompanySchema = createInsertSchema(companies);
 export const insertCustomerSchema = createInsertSchema(customers);
 export const insertProductSchema = createInsertSchema(products);
 export const insertInvoiceSchema = createInsertSchema(invoices);
@@ -174,7 +168,6 @@ export const insertSessionSchema = createInsertSchema(sessions);
 
 // Select schemas
 export const selectUserSchema = createSelectSchema(users);
-export const selectCompanySchema = createSelectSchema(companies);
 export const selectCustomerSchema = createSelectSchema(customers);
 export const selectProductSchema = createSelectSchema(products);
 export const selectInvoiceSchema = createSelectSchema(invoices);
@@ -186,8 +179,6 @@ export const selectSessionSchema = createSelectSchema(sessions);
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$inferInsert;
 export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = typeof customers.$inferInsert;
 export type Product = typeof products.$inferSelect;

@@ -1,5 +1,5 @@
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Invoice, Quote, Statement, Customer, Company } from '@shared/schema';
+import { Invoice, Quote, Statement, Customer, User } from '@shared/schema';
 import { formatCurrency } from './currency';
 import { handlePDFError } from './pdfErrorHandler';
 
@@ -89,12 +89,12 @@ export const replaceVariables = (template: string, variables: Record<string, str
 };
 
 // Generate email content for invoice
-export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, company: Company): { subject: string; body: string } => {
+export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, user: User): { subject: string; body: string } => {
   try {
     console.log('Generating invoice email with data:', { 
       invoiceNumber: invoice.number,
       customerName: customer.name,
-      companyName: company.name,
+      companyName: user.companyName,
       invoiceDate: invoice.date,
       dueDate: invoice.dueDate,
       total: invoice.total
@@ -106,10 +106,10 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, compa
     const variables = {
       invoiceNumber: invoice.number,
       customerName: customer.name,
-      companyName: company.name,
+      companyName: user.companyName || 'Your Company',
       issueDate: new Date(invoice.date).toLocaleDateString('en-GB'),
       dueDate: new Date(invoice.dueDate).toLocaleDateString('en-GB'),
-      total: formatCurrency(invoice.total, company.currency),
+      total: formatCurrency(invoice.total, user.currency || 'GBP'),
     };
 
     console.log('Template variables:', variables);
@@ -125,12 +125,12 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, compa
 };
 
 // Generate email content for quote
-export const generateQuoteEmail = (quote: Quote, customer: Customer, company: Company): { subject: string; body: string } => {
+export const generateQuoteEmail = (quote: Quote, customer: Customer, user: User): { subject: string; body: string } => {
   try {
     console.log('Generating quote email with data:', { 
       quoteNumber: quote.number,
       customerName: customer.name,
-      companyName: company.name,
+      companyName: user.companyName,
       quoteDate: quote.date,
       validUntil: quote.validUntil,
       total: quote.total
@@ -144,10 +144,10 @@ export const generateQuoteEmail = (quote: Quote, customer: Customer, company: Co
     const variables = {
       quoteNumber: quote.number,
       customerName: customer.name,
-      companyName: company.name,
+      companyName: user.companyName || 'Your Company',
       issueDate: new Date(quote.date).toLocaleDateString('en-GB'),
       validUntil: validUntil.toLocaleDateString('en-GB'),
-      total: formatCurrency(quote.total, company.currency),
+      total: formatCurrency(quote.total, user.currency || 'GBP'),
     };
 
     console.log('Quote email variables:', variables);
@@ -163,12 +163,12 @@ export const generateQuoteEmail = (quote: Quote, customer: Customer, company: Co
 };
 
 // Generate email content for statement
-export const generateStatementEmail = (statement: Statement, customer: Customer, company: Company): { subject: string; body: string } => {
+export const generateStatementEmail = (statement: Statement, customer: Customer, user: User): { subject: string; body: string } => {
   const settings = getEmailSettings();
   
   const variables = {
     customerName: customer.name,
-    companyName: company.name,
+    companyName: user.companyName || 'Your Company',
     statementPeriod: `${new Date(statement.startDate).toLocaleDateString('en-GB')} - ${new Date(statement.endDate).toLocaleDateString('en-GB')}`,
   };
 
@@ -195,7 +195,7 @@ export const blobToBase64 = (blob: Blob): Promise<string> => {
 export const openMailApp = async (
   document: Invoice | Quote | Statement,
   customer: Customer,
-  company: Company,
+  user: User,
   type: 'invoice' | 'quote' | 'statement'
 ): Promise<void> => {
   try {
@@ -208,7 +208,7 @@ export const openMailApp = async (
     // Wrap PDF generation in a try-catch to handle browser-specific errors
     try {
       pdfBlob = await Promise.race([
-        generatePDF({ document, company, type }),
+        generatePDF({ document, user, type }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('PDF generation timeout')), 15000)
         )
@@ -236,13 +236,13 @@ export const openMailApp = async (
     
     switch (type) {
       case 'invoice':
-        emailContent = generateInvoiceEmail(document as Invoice, customer, company);
+        emailContent = generateInvoiceEmail(document as Invoice, customer, user);
         break;
       case 'quote':
-        emailContent = generateQuoteEmail(document as Quote, customer, company);
+        emailContent = generateQuoteEmail(document as Quote, customer, user);
         break;
       case 'statement':
-        emailContent = generateStatementEmail(document as Statement, customer, company);
+        emailContent = generateStatementEmail(document as Statement, customer, user);
         break;
       default:
         throw new Error('Unknown document type');

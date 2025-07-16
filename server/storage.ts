@@ -1,4 +1,4 @@
-import { users, customers, products, invoices, quotes, statements, companies, recycleBin, type User, type InsertUser } from "@shared/schema";
+import { users, customers, products, invoices, quotes, statements, recycleBin, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";

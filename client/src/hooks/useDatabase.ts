@@ -113,5 +113,4 @@ export const useProducts = () => useDatabase('products');
 export const useInvoices = () => useDatabase('invoices');
 export const useQuotes = () => useDatabase('quotes');
 export const useStatements = () => useDatabase('statements');
-export const useCompanies = () => useDatabase('companies');
 export const useRecycleBin = () => useDatabase('recycle-bin');

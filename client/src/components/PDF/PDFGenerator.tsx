@@ -1,18 +1,18 @@
 import html2pdf from 'html2pdf.js';
-import { Invoice, Quote, Statement, Company } from '@shared/schema';
+import { Invoice, Quote, Statement, User } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
 interface PDFGeneratorProps {
   document: Invoice | Quote | Statement;
-  company: Company;
+  user: User;
   type: 'invoice' | 'quote' | 'statement';
 }
 
-export const generatePDF = async ({ document, company, type }: PDFGeneratorProps): Promise<Blob> => {
+export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): Promise<Blob> => {
   console.log(`Starting PDF generation for ${type}:`, { 
     documentId: document.id, 
     documentNumber: document.number,
-    companyName: company.name 
+    companyName: user.companyName 
   });
   
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
@@ -249,12 +249,12 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
     <body>
       <div class="header">
         <div class="logo-section">
-          ${company.logo ? `<img src="${company.logo}" alt="${company.name}" class="logo-img">` : `<div class="logo-text">Eazee Invoice</div>`}
+          ${user.companyLogo ? `<img src="${user.companyLogo}" alt="${user.companyName}" class="logo-img">` : `<div class="logo-text">Eazee Invoice</div>`}
         </div>
         <div class="document-type">${documentTitle}</div>
         <div class="company-info">
-          <strong>${company.name}</strong><br>
-          ${company.address.replace(/\n/g, '<br>')}
+          <strong>${user.companyName || 'Company Name'}</strong><br>
+          ${(user.companyAddress || '').replace(/\n/g, '<br>')}
         </div>
       </div>
       

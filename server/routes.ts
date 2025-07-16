@@ -1,6 +1,6 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
-import { customers, products, invoices, quotes, statements, companies, recycleBin, users, type User } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, recycleBin, users, type User } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
@@ -286,45 +286,6 @@ export async function setupRoutes(app: Express) {
       res.json(product);
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete product' });
-    }
-  });
-
-  // Companies routes
-  app.get('/api/companies', requireAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const result = await db.select().from(companies)
-        .where(eq(companies.uid, req.user!.uid))
-        .orderBy(desc(companies.createdAt));
-      
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch companies' });
-    }
-  });
-
-  app.post('/api/companies', requireAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const companyData = {
-        ...req.body,
-        uid: req.user!.uid
-      };
-      const [company] = await db.insert(companies).values(companyData).returning();
-      res.json(company);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to create company' });
-    }
-  });
-
-  app.put('/api/companies/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const [company] = await db.update(companies)
-        .set({ ...req.body, updatedAt: new Date() })
-        .where(and(eq(companies.id, id), eq(companies.uid, req.user!.uid)))
-        .returning();
-      res.json(company);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to update company' });
     }
   });
 
