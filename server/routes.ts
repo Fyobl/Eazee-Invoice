@@ -985,7 +985,6 @@ export async function setupRoutes(app: Express) {
       // Check if subscription is still active
       const now = new Date();
       const isActiveSubscription = user.isSubscriber && 
-        user.subscriptionStatus === 'active' && 
         user.subscriptionCurrentPeriodEnd && 
         new Date(user.subscriptionCurrentPeriodEnd) > now;
 
@@ -997,20 +996,24 @@ export async function setupRoutes(app: Express) {
         stripeSubscriptionId: user.stripeSubscriptionId
       };
 
-      // If user has a Stripe subscription, get latest info
-      if (user.stripeSubscriptionId) {
+      // Only check Stripe if we don't have an active subscription in the database
+      if (user.stripeSubscriptionId && !isActiveSubscription) {
         try {
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-          subscriptionInfo.status = subscription.status;
-          subscriptionInfo.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-          subscriptionInfo.isSubscriber = subscription.status === 'active';
           
-          // Update database with latest info
-          await storage.updateUserSubscriptionStatus(
-            uid,
-            subscription.status,
-            new Date(subscription.current_period_end * 1000)
-          );
+          // Only update if the Stripe subscription is actually active
+          if (subscription.status === 'active') {
+            subscriptionInfo.status = subscription.status;
+            subscriptionInfo.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+            subscriptionInfo.isSubscriber = true;
+            
+            // Update database with latest info
+            await storage.updateUserSubscriptionStatus(
+              uid,
+              subscription.status,
+              new Date(subscription.current_period_end * 1000)
+            );
+          }
         } catch (error) {
           console.error('Error fetching subscription from Stripe:', error);
         }
