@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Plus, Eye, Download, Trash2, MoreHorizontal, FileText, Calendar } from 'lucide-react';
+import { openMailApp } from '@/lib/emailUtils';
+import { Plus, Eye, Download, Trash2, MoreHorizontal, FileText, Calendar, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { Statement } from '@shared/schema';
 
@@ -133,6 +134,53 @@ export const StatementList = () => {
     }
   };
 
+  const handleSendEmail = async (statement: Statement) => {
+    if (!companies || companies.length === 0) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please check your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const company = companies[0];
+    const customer = customers.find(c => c.id === statement.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this statement.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await openMailApp(statement, customer, company, 'statement');
+      toast({
+        title: "Email Prepared",
+        description: `Email template opened for statement ${statement.number}. PDF will be downloaded automatically.`,
+      });
+    } catch (error) {
+      console.error('Error preparing email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Statements">
@@ -249,6 +297,10 @@ export const StatementList = () => {
                             <DropdownMenuItem onClick={() => handleDownloadPDF(statement)}>
                               <Download className="h-4 w-4 mr-2" />
                               Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendEmail(statement)}>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Send via Email
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteClick(statement)}

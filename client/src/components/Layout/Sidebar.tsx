@@ -13,6 +13,7 @@ import {
   Settings, 
   User, 
   Shield,
+  Mail,
   X
 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const accountNavItems = [
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/account', label: 'Account', icon: User },
+    { href: '/email-settings', label: 'Email Settings', icon: Mail },
   ];
 
   if (isAdmin) {

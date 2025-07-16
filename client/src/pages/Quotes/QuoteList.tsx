@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText } from 'lucide-react';
+import { openMailApp } from '@/lib/emailUtils';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
 
@@ -175,6 +176,53 @@ export const QuoteList = () => {
     }
   };
 
+  const handleSendEmail = async (quote: Quote) => {
+    if (!companies || companies.length === 0) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please check your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const company = companies[0];
+    const customer = customers.find(c => c.id === quote.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this quote.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await openMailApp(quote, customer, company, 'quote');
+      toast({
+        title: "Email Prepared",
+        description: `Email template opened for quote ${quote.number}. PDF will be downloaded automatically.`,
+      });
+    } catch (error) {
+      console.error('Error preparing email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Quotes">
@@ -296,6 +344,10 @@ export const QuoteList = () => {
                           <DropdownMenuItem onClick={() => handleDownloadPDF(quote)}>
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendEmail(quote)}>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send via Email
                           </DropdownMenuItem>
                           {quote.status !== 'converted' && (
                             <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>

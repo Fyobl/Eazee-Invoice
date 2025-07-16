@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
+import { openMailApp } from '@/lib/emailUtils';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { Invoice } from '@shared/schema';
 
@@ -135,6 +136,53 @@ export const InvoiceList = () => {
     }
   };
 
+  const handleSendEmail = async (invoice: Invoice) => {
+    if (!companies || companies.length === 0) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please check your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const company = companies[0];
+    const customer = customers.find(c => c.id === invoice.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await openMailApp(invoice, customer, company, 'invoice');
+      toast({
+        title: "Email Prepared",
+        description: `Email template opened for invoice ${invoice.number}. PDF will be downloaded automatically.`,
+      });
+    } catch (error) {
+      console.error('Error preparing email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Invoices">
@@ -251,6 +299,10 @@ export const InvoiceList = () => {
                           <DropdownMenuItem onClick={() => handleDownloadPDF(invoice)}>
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendEmail(invoice)}>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send via Email
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(invoice)}

@@ -27,6 +27,7 @@ import { ProductList } from "@/pages/Products/ProductList";
 import { ProductForm } from "@/pages/Products/ProductForm";
 import { Settings } from "@/pages/Settings";
 import { Account } from "@/pages/Account";
+import { EmailSettings } from "@/pages/EmailSettings";
 import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
@@ -145,6 +146,12 @@ function Router() {
       <Route path="/account">
         <ProtectedRoute>
           <Account />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/email-settings">
+        <ProtectedRoute>
+          <EmailSettings />
         </ProtectedRoute>
       </Route>
       
