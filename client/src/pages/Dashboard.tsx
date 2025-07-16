@@ -6,6 +6,7 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { FileText, Quote, FileBarChart, Users, Plus, TrendingUp, Sun, Cloud, CloudRain, Thermometer, Wind, Droplets } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';
+import React from 'react';
 
 export const Dashboard = () => {
   const { userData } = useAuth();
@@ -72,15 +73,17 @@ export const Dashboard = () => {
     return 'Cloudy';
   };
 
-  const stats = [
-    {
-      title: 'Welcome Back!',
-      value: userData?.firstName || userData?.displayName || 'User',
-      subtitle: "Here's what's happening with your business today.",
-      icon: Users,
-      color: 'text-blue-600 dark:text-blue-400',
-      type: 'welcome'
-    },
+  // Arrange stats in the requested order
+  const welcomeBox = {
+    title: 'Welcome Back!',
+    value: userData?.firstName || userData?.displayName || 'User',
+    subtitle: "Here's what's happening with your business today.",
+    icon: Users,
+    color: 'text-blue-600 dark:text-blue-400',
+    type: 'welcome'
+  };
+
+  const businessStats = [
     {
       title: 'Total Invoices',
       value: invoices?.length || 0,
@@ -178,39 +181,25 @@ export const Dashboard = () => {
 
   return (
     <Layout title="Dashboard">
-      {/* Enhanced Stats Grid with Welcome and Weather */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardContent className="p-6">
-                {stat.type === 'welcome' ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
-                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}!</p>
-                      </div>
-                      <Icon className={`h-8 w-8 ${stat.color}`} />
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{stat.subtitle}</p>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
-                      <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
-                    </div>
-                    <Icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* 2x3 Grid Layout: Welcome/Weather, Invoices/Quotes, Customers/This Month */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Row 1: Welcome Back (Left) */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{welcomeBox.title}</p>
+                  <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{welcomeBox.value}!</p>
+                </div>
+                <Users className={`h-8 w-8 ${welcomeBox.color}`} />
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">{welcomeBox.subtitle}</p>
+            </div>
+          </CardContent>
+        </Card>
         
-        {/* Weather Widget */}
+        {/* Row 1: Local Weather (Right) */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -241,7 +230,63 @@ export const Dashboard = () => {
                   <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Unavailable</p>
                 )}
               </div>
-              <weatherWidget.icon className={`h-8 w-8 ${weatherWidget.color}`} />
+              {weather ? (
+                React.createElement(getWeatherIcon(weather.current?.weather_code || 0), { className: `h-8 w-8 ${weatherWidget.color}` })
+              ) : (
+                <Sun className={`h-8 w-8 ${weatherWidget.color}`} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Row 2: Total Invoices (Left) */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{businessStats[0].title}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{businessStats[0].value}</p>
+              </div>
+              <FileText className={`h-8 w-8 ${businessStats[0].color}`} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Row 2: Active Quotes (Right) */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{businessStats[1].title}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{businessStats[1].value}</p>
+              </div>
+              <Quote className={`h-8 w-8 ${businessStats[1].color}`} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Row 3: Customers (Left) */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{businessStats[2].title}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{businessStats[2].value}</p>
+              </div>
+              <Users className={`h-8 w-8 ${businessStats[2].color}`} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Row 3: This Month (Right) */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{businessStats[3].title}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{businessStats[3].value}</p>
+              </div>
+              <TrendingUp className={`h-8 w-8 ${businessStats[3].color}`} />
             </div>
           </CardContent>
         </Card>
