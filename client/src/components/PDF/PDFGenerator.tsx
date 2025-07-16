@@ -21,7 +21,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
   let unpaidInvoices: Invoice[] = [];
   if (type === 'statement') {
     try {
-      const response = await apiRequest(`/api/invoices?uid=${document.uid}`);
+      const response = await fetch(`/api/invoices?uid=${document.uid}`);
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
