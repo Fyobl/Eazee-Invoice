@@ -23,35 +23,79 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // Get user's location
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async (position) => {
-            const { latitude, longitude } = position.coords;
-            
-            // Get weather from Open-Meteo API (no API key required)
-            const weatherResponse = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`
+        console.log('Starting weather fetch...');
+        
+        // Check if geolocation is available
+        if (!navigator.geolocation) {
+          console.log('Geolocation not supported');
+          // Fallback to London weather
+          await fetchWeatherForLocation(51.5074, -0.1278, 'London');
+          return;
+        }
+
+        // Get user's location with timeout
+        const getPosition = () => {
+          return new Promise<GeolocationPosition>((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+              reject(new Error('Geolocation timeout'));
+            }, 10000); // 10 second timeout
+
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                clearTimeout(timeoutId);
+                resolve(position);
+              },
+              (error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+              },
+              {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+              }
             );
-            const weatherData = await weatherResponse.json();
-            
-            // Get location name from reverse geocoding
-            const locationResponse = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
-            );
-            
-            // For location name, we'll use a simple approach
-            setLocation('Current Location');
-            setWeather(weatherData);
-            setWeatherLoading(false);
-          }, (error) => {
-            console.error('Geolocation error:', error);
-            setWeatherLoading(false);
           });
-        } else {
-          setWeatherLoading(false);
+        };
+
+        try {
+          console.log('Requesting geolocation...');
+          const position = await getPosition();
+          const { latitude, longitude } = position.coords;
+          console.log('Got location:', latitude, longitude);
+          
+          await fetchWeatherForLocation(latitude, longitude, 'Your Location');
+        } catch (geoError) {
+          console.log('Geolocation failed, using fallback:', geoError.message);
+          // Fallback to London weather
+          await fetchWeatherForLocation(51.5074, -0.1278, 'London');
         }
       } catch (error) {
         console.error('Weather fetch error:', error);
+        setWeatherLoading(false);
+      }
+    };
+
+    const fetchWeatherForLocation = async (latitude: number, longitude: number, locationName: string) => {
+      try {
+        console.log('Fetching weather for:', locationName, latitude, longitude);
+        
+        const weatherResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`
+        );
+        
+        if (!weatherResponse.ok) {
+          throw new Error(`Weather API error: ${weatherResponse.status}`);
+        }
+        
+        const weatherData = await weatherResponse.json();
+        console.log('Weather data received:', weatherData);
+        
+        setLocation(locationName);
+        setWeather(weatherData);
+        setWeatherLoading(false);
+      } catch (error) {
+        console.error('Weather API error:', error);
         setWeatherLoading(false);
       }
     };
@@ -206,7 +250,10 @@ export const Dashboard = () => {
               <div>
                 <p className="text-sm text-slate-600 dark:text-slate-300">{weatherWidget.title}</p>
                 {weatherWidget.loading ? (
-                  <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Loading...</p>
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Loading...</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Getting weather data</p>
+                  </div>
                 ) : weather ? (
                   <div className="space-y-1">
                     <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
@@ -214,6 +261,9 @@ export const Dashboard = () => {
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       {getWeatherDescription(weather.current?.weather_code || 0)}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      {location}
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-slate-500 dark:text-slate-400">
                       <div className="flex items-center">
@@ -227,7 +277,10 @@ export const Dashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Unavailable</p>
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Unavailable</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Weather data unavailable</p>
+                  </div>
                 )}
               </div>
               {weather ? (
