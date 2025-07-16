@@ -97,20 +97,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           if (syncResponse.ok) {
             const syncedUser = await syncResponse.json();
             console.log('User synced to PostgreSQL:', syncedUser);
-          }
-
-          // Then load user data
-          const data = await getUserData(user.uid);
-          if (isMounted) {
-            setUserData(data);
-            // Store user data in localStorage as backup
-            localStorage.setItem('userData', JSON.stringify(data));
-            localStorage.setItem('authUser', JSON.stringify({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName
-            }));
-            console.log('User data stored in localStorage');
+            
+            // Use the PostgreSQL data instead of Firebase data
+            if (isMounted) {
+              setUserData(syncedUser);
+              // Store user data in localStorage as backup
+              localStorage.setItem('userData', JSON.stringify(syncedUser));
+              localStorage.setItem('authUser', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName
+              }));
+              console.log('User data stored in localStorage (PostgreSQL)');
+            }
+          } else {
+            console.error('Failed to sync user to PostgreSQL');
           }
         } catch (error) {
           console.error('Error loading user data:', error);
