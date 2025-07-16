@@ -35,7 +35,11 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         
         const customerMatch = invoice.customerId === document.customerId;
         const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
-        const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEnd;
+        // Set statement end date to end of day for proper comparison
+        const statementEndOfDay = new Date(statementEnd);
+        statementEndOfDay.setHours(23, 59, 59, 999);
+        
+        const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEndOfDay;
         
         console.log(`Invoice ${invoice.number}: customer=${customerMatch} (${invoice.customerId} === ${document.customerId}), status=${statusMatch} (${invoice.status}), date=${dateMatch} (${invoiceDate.toDateString()} >= ${statementStart.toDateString()} && <= ${statementEnd.toDateString()})`);
         
