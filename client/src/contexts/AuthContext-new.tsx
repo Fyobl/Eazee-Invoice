@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
       
-      // Then verify with server
+      // Then verify with server (this will check session cookie)
       await refreshUser();
       setLoading(false);
     };

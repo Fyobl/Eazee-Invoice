@@ -6,6 +6,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { loginUser } from '@/lib/auth-new';
@@ -14,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext-new';
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -24,11 +26,16 @@ export const LoginPage = () => {
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
 
+  // Check for remembered credentials
+  const rememberedEmail = localStorage.getItem('rememberedEmail') || '';
+  const isRemembered = localStorage.getItem('rememberMe') === 'true';
+
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      email: rememberedEmail,
       password: '',
+      rememberMe: isRemembered,
     },
   });
 
@@ -36,6 +43,16 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       await loginUser(data.email, data.password);
+      
+      // Store credentials if "Remember Me" is checked
+      if (data.rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberedEmail', data.email);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       await refreshUser();
       toast({
         title: 'Login successful',
@@ -98,6 +115,25 @@ export const LoginPage = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-slate-900 dark:text-white">
+                        Remember me
+                      </FormLabel>
+                    </div>
                   </FormItem>
                 )}
               />
