@@ -156,9 +156,13 @@ export const InvoiceList = () => {
     }
 
     const company = companies[0];
-    const customer = customers.find(c => c.id === invoice.customerId);
+    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
 
     if (!customer) {
+      console.error('Customer lookup failed:', {
+        invoiceCustomerId: invoice.customerId,
+        availableCustomers: customers.map(c => ({ id: c.id, name: c.name }))
+      });
       toast({
         title: "Error",
         description: "Customer not found for this invoice.",

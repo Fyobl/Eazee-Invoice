@@ -196,9 +196,13 @@ export const QuoteList = () => {
     }
 
     const company = companies[0];
-    const customer = customers.find(c => c.id === quote.customerId);
+    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
 
     if (!customer) {
+      console.error('Customer lookup failed:', {
+        quoteCustomerId: quote.customerId,
+        availableCustomers: customers.map(c => ({ id: c.id, name: c.name }))
+      });
       toast({
         title: "Error",
         description: "Customer not found for this quote.",

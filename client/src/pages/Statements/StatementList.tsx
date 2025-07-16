@@ -154,9 +154,13 @@ export const StatementList = () => {
     }
 
     const company = companies[0];
-    const customer = customers.find(c => c.id === statement.customerId);
+    const customer = customers.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId);
 
     if (!customer) {
+      console.error('Customer lookup failed:', {
+        statementCustomerId: statement.customerId,
+        availableCustomers: customers.map(c => ({ id: c.id, name: c.name }))
+      });
       toast({
         title: "Error",
         description: "Customer not found for this statement.",
