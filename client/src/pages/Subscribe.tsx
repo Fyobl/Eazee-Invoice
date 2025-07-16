@@ -19,6 +19,7 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,17 +54,75 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
     setIsLoading(false);
   };
 
+  const handleFakePayment = async () => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/fake-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: currentUser?.uid,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Payment Successful (Test Mode)",
+          description: "Your subscription has been activated!",
+        });
+        
+        // Redirect to dashboard after fake payment
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        throw new Error(data.error || 'Failed to process fake payment');
+      }
+    } catch (error) {
+      console.error('Error processing fake payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process fake payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+    
+    setIsLoading(false);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
-      <Button 
-        type="submit" 
-        disabled={!stripe || isLoading}
-        className="w-full"
-        size="lg"
-      >
-        {isLoading ? 'Processing...' : 'Subscribe to Pro - £19.99/month'}
-      </Button>
+      <div className="space-y-3">
+        <Button 
+          type="submit" 
+          disabled={!stripe || isLoading}
+          className="w-full"
+          size="lg"
+        >
+          {isLoading ? 'Processing...' : 'Subscribe to Pro - £19.99/month'}
+        </Button>
+        
+        <Button 
+          type="button"
+          onClick={handleFakePayment}
+          disabled={isLoading}
+          className="w-full"
+          size="lg"
+          variant="outline"
+        >
+          {isLoading ? 'Processing...' : 'Test Payment (Fake) - £19.99/month'}
+        </Button>
+        
+        <p className="text-xs text-center text-slate-500 dark:text-slate-400">
+          Use the "Test Payment" button to simulate a successful payment without charging a card
+        </p>
+      </div>
     </form>
   );
 };

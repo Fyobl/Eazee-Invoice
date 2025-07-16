@@ -1016,6 +1016,39 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // Fake payment endpoint for testing
+  app.post('/api/fake-payment', async (req, res) => {
+    try {
+      const { uid } = req.body;
+      
+      if (!uid) {
+        return res.status(400).json({ error: 'uid is required' });
+      }
+
+      const user = await storage.getUser(uid);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Simulate successful payment by updating user subscription status
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1); // Add 1 month
+
+      await storage.updateUserSubscriptionStatus(uid, 'active', currentPeriodEnd);
+
+      res.json({ 
+        success: true, 
+        message: 'Fake payment successful - subscription activated',
+        status: 'active',
+        currentPeriodEnd: currentPeriodEnd
+      });
+
+    } catch (error) {
+      console.error('Error processing fake payment:', error);
+      res.status(500).json({ error: 'Failed to process fake payment' });
+    }
+  });
+
   // Cancel subscription
   app.post('/api/cancel-subscription', async (req, res) => {
     try {
