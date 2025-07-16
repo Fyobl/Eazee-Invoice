@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle, CreditCard, Shield, Clock, Users } from 'lucide-react';
+import { Layout } from '@/components/Layout/Layout';
 
 const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
@@ -169,7 +170,8 @@ export const Subscribe = () => {
   // If user is already subscribed, show subscription management
   if (subscriptionStatus?.isSubscriber) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <Layout>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">Subscription Management</h1>
           <p className="text-slate-600 dark:text-slate-400">
@@ -218,12 +220,14 @@ export const Subscribe = () => {
           </CardContent>
         </Card>
       </div>
+      </Layout>
     );
   }
 
   // Show subscription signup form
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <Layout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Upgrade to Pro</h1>
         <p className="text-slate-600 dark:text-slate-400">
@@ -312,5 +316,6 @@ export const Subscribe = () => {
         </Card>
       </div>
     </div>
+    </Layout>
   );
 };

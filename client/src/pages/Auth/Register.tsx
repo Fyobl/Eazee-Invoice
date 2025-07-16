@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Banner } from '@/components/ui/banner';
 import { registerUser } from '@/lib/auth';
 import { useLocation } from 'wouter';
@@ -15,7 +16,8 @@ const registerSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  subscribeAfterTrial: z.boolean().default(false)
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"]
@@ -40,7 +42,8 @@ export const Register = ({ onSuccess }: RegisterProps) => {
       companyName: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      subscribeAfterTrial: false
     }
   });
 
@@ -51,7 +54,13 @@ export const Register = ({ onSuccess }: RegisterProps) => {
     try {
       await registerUser(data.email, data.password, data.firstName, data.lastName, data.companyName);
       onSuccess();
-      setLocation('/dashboard');
+      
+      // If user opted for subscription, redirect to subscription page
+      if (data.subscribeAfterTrial) {
+        setLocation('/subscribe');
+      } else {
+        setLocation('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -154,8 +163,31 @@ export const Register = ({ onSuccess }: RegisterProps) => {
             )}
           />
           
+          <FormField
+            control={form.control}
+            name="subscribeAfterTrial"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Subscribe after trial ends
+                  </FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically upgrade to Pro plan (£19.99/month) after your 7-day trial. Cancel anytime.
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+          
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create Account'}
+            {isLoading ? 'Creating account...' : 'Start 7-Day Free Trial'}
           </Button>
         </form>
       </Form>

@@ -256,6 +256,16 @@ The application is designed to be easily extensible with additional features lik
 - **Exponential Backoff Retry**: Added retry mechanism with exponential backoff for failed database operations
 - **Enhanced Error Logging**: Improved error logging and debugging information for database connection issues
 
+### January 16, 2025 - Landing Page Enhancement & Subscription Integration
+- **Landing Page Redesign**: Updated landing page with comprehensive feature showcase and new pricing structure
+- **Enhanced Feature Descriptions**: Added detailed descriptions of all current features including PDF generation, email integration, and analytics
+- **Subscription Pricing Update**: Updated all pricing displays to reflect £19.99/month subscription model
+- **Registration Enhancement**: Added subscription signup option during registration with checkbox for automatic upgrade after trial
+- **Additional Features Section**: Added dedicated section showcasing advanced features like CSV import/export, admin panel, and soft delete recovery
+- **Subscription Management Fix**: Fixed subscription management page by adding proper Layout component with header and navigation
+- **Pricing Section Enhancement**: Improved pricing cards with detailed feature lists and "Most Popular" badge for Pro plan
+- **User Experience Improvements**: Enhanced registration flow with clearer trial messaging and subscription options
+
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
 - **GitHub Integration**: Created comprehensive GitHub setup guide and documentation
