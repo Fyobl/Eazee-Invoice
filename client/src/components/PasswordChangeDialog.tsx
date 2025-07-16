@@ -19,9 +19,9 @@ export const PasswordChangeDialog = ({ open, onClose }: PasswordChangeDialogProp
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
   const queryClient = useQueryClient();
-
+  
   const updatePasswordFlagMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser?.uid) throw new Error('No user found');
@@ -61,6 +61,9 @@ export const PasswordChangeDialog = ({ open, onClose }: PasswordChangeDialogProp
     try {
       await changePassword(currentPassword, newPassword);
       await updatePasswordFlagMutation.mutateAsync();
+      
+      // Refresh user context to reflect the mustChangePassword flag change
+      await refreshUser();
       
       toast({
         title: "Success",
