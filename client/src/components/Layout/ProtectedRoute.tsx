@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext-new';
 import { Redirect } from 'wouter';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PasswordChangeDialog } from '../PasswordChangeDialog';
@@ -35,7 +35,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // If no current user but we have stored auth data, show loading instead of redirecting
-  if (!currentUser && storedAuthUser && storedUserData) {
+  if (!currentUser && storedUserData) {
     console.log('Protected route: No current user but stored data found, showing restore session');
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
@@ -49,8 +49,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!currentUser) {
-    console.log('Protected route: No current user and no stored data, redirecting to landing page');
-    return <Redirect to="/" />;
+    console.log('Protected route: No current user and no stored data, redirecting to login page');
+    return <Redirect to="/login" />;
   }
 
   if (userData?.isSuspended) {

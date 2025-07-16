@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext-new";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/Layout/ProtectedRoute";
 
@@ -12,6 +12,8 @@ import { Landing } from "@/pages/Landing";
 import { TrialExpired } from "@/pages/TrialExpired";
 import { Suspended } from "@/pages/Suspended";
 import NotFound from "@/pages/not-found";
+import { Register } from "@/pages/Auth/Register";
+import { LoginPage } from "@/pages/Auth/LoginPage";
 
 // Protected pages
 import { Dashboard } from "@/pages/Dashboard";
@@ -40,6 +42,8 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Landing} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={Register} />
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
       <Route path="/subscribe" component={Subscribe} />

@@ -8,49 +8,43 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { registerUser } from '@/lib/auth-new';
+import { loginUser } from '@/lib/auth-new';
 import { useAuth } from '@/contexts/AuthContext-new';
 
-const registerSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  companyName: z.string().min(1, 'Company name is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-type RegisterForm = z.infer<typeof registerSchema>;
+type LoginForm = z.infer<typeof loginSchema>;
 
-export const Register = () => {
+export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
 
-  const form = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
-      firstName: '',
-      lastName: '',
-      companyName: '',
     },
   });
 
-  const onSubmit = async (data: RegisterForm) => {
+  const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      await registerUser(data.email, data.password, data.firstName, data.lastName, data.companyName);
+      await loginUser(data.email, data.password);
       await refreshUser();
       toast({
-        title: 'Registration successful',
-        description: 'Welcome to Eazee Invoice! You have a 7-day free trial.',
+        title: 'Login successful',
+        description: 'Welcome back to Eazee Invoice!',
       });
       navigate('/dashboard');
     } catch (error) {
       toast({
-        title: 'Registration failed',
+        title: 'Login failed',
         description: error instanceof Error ? error.message : 'An error occurred',
         variant: 'destructive',
       });
@@ -64,43 +58,15 @@ export const Register = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Create your account
+            Sign in to your account
           </CardTitle>
           <CardDescription className="text-center">
-            Start your 7-day free trial with Eazee Invoice
+            Access your Eazee Invoice dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
                 name="email"
@@ -120,19 +86,6 @@ export const Register = () => {
               />
               <FormField
                 control={form.control}
-                name="companyName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Acme Corp" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -140,7 +93,7 @@ export const Register = () => {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Create a strong password"
+                        placeholder="Enter your password"
                         {...field}
                       />
                     </FormControl>
@@ -149,14 +102,14 @@ export const Register = () => {
                 )}
               />
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create account'}
+                {loading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500">
-              Sign in
+            Don't have an account?{' '}
+            <Link href="/register" className="text-blue-600 hover:text-blue-500">
+              Sign up
             </Link>
           </div>
         </CardContent>

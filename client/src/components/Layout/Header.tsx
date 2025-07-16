@@ -1,10 +1,11 @@
 import { Menu, Clock, LogOut } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext-new';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { logoutUser } from '@/lib/auth';
+import { logoutUser } from '@/lib/auth-new';
+import { useLocation } from 'wouter';
 
 interface HeaderProps {
   title: string;
@@ -12,7 +13,8 @@ interface HeaderProps {
 }
 
 export const Header = ({ title, onMenuClick }: HeaderProps) => {
-  const { userData, trialDaysLeft } = useAuth();
+  const { userData, trialDaysLeft, refreshUser } = useAuth();
+  const [, navigate] = useLocation();
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase();
@@ -28,7 +30,8 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
-      // Redirect will be handled by the AuthContext
+      await refreshUser();
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }

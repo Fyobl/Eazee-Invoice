@@ -1,11 +1,43 @@
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
-import { customers, products, invoices, quotes, statements, companies, recycleBin, users } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, companies, recycleBin, users, type User } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
 import Stripe from "stripe";
 import { storage } from "./storage";
+
+// Authentication middleware
+interface AuthenticatedRequest extends Request {
+  user?: User;
+}
+
+const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const sessionId = req.session?.userId;
+  
+  if (!sessionId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const user = await storage.getUser(sessionId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+  
+  if (user.isSuspended) {
+    return res.status(403).json({ error: 'Account suspended' });
+  }
+  
+  req.user = user;
+  next();
+};
+
+const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.user?.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -22,6 +54,96 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 export async function setupRoutes(app: Express) {
+  
+  // Authentication routes
+  app.post('/api/register', async (req, res) => {
+    try {
+      const { email, password, firstName, lastName, companyName } = req.body;
+      
+      if (!email || !password || !firstName || !lastName || !companyName) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+      
+      const user = await storage.registerUser(email, password, firstName, lastName, companyName);
+      
+      // Create session
+      req.session.userId = user.uid;
+      
+      res.json({ user: { ...user, passwordHash: undefined } });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Registration failed' });
+    }
+  });
+  
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+      
+      const user = await storage.loginUser(email, password);
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // Set session
+      req.session.userId = user.uid;
+      
+      res.json({ user: { ...user, passwordHash: undefined } });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+  
+  app.post('/api/logout', async (req, res) => {
+    try {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Session destruction error:', err);
+          return res.status(500).json({ error: 'Logout failed' });
+        }
+        res.clearCookie('connect.sid');
+        res.json({ success: true });
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ error: 'Logout failed' });
+    }
+  });
+  
+  app.post('/api/change-password', requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current and new passwords are required' });
+      }
+      
+      const success = await storage.updatePassword(req.user!.uid, currentPassword, newPassword);
+      if (!success) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Password change error:', error);
+      res.status(500).json({ error: 'Password change failed' });
+    }
+  });
+  
+  app.get('/api/me', requireAuth, async (req, res) => {
+    res.json({ user: { ...req.user!, passwordHash: undefined } });
+  });
   
   // Customers routes
   app.get('/api/customers', async (req, res) => {

@@ -2,10 +2,31 @@ import express, { type Request, Response, NextFunction } from "express";
 import { setupRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import session from "express-session";
+import ConnectPgSimple from "connect-pg-simple";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session middleware
+const PgSession = ConnectPgSimple(session);
+app.use(session({
+  store: new PgSession({
+    pool,
+    tableName: 'sessions',
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();

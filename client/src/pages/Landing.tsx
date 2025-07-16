@@ -1,17 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-react';
-import { Modal } from '@/components/ui/modal';
-import { Login } from './Auth/Login';
-import { Register } from './Auth/Register';
+import { Link } from 'wouter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext-new';
 import { useLocation } from 'wouter';
 
 export const Landing = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
   const { currentUser, hasAccess, loading } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -59,12 +55,12 @@ export const Landing = () => {
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Button variant="ghost" onClick={() => setShowLogin(true)}>
-                Login
-              </Button>
-              <Button onClick={() => setShowRegister(true)}>
-                Sign Up
-              </Button>
+              <Link href="/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Sign Up</Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -227,31 +223,14 @@ export const Landing = () => {
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority support</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Cancel anytime</li>
                 </ul>
-                <Button className="w-full" onClick={() => setShowRegister(true)}>
-                  Start with Trial
-                </Button>
+                <Link href="/register">
+                  <Button className="w-full">Start with Trial</Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
-      {/* Modals */}
-      <Modal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        title="Welcome Back"
-        description="Sign in to your account to continue"
-      >
-        <Login onSuccess={() => setShowLogin(false)} />
-      </Modal>
-      <Modal
-        isOpen={showRegister}
-        onClose={() => setShowRegister(false)}
-        title="Create Your Account"
-        description="Start your 7-day free trial today"
-      >
-        <Register onSuccess={() => setShowRegister(false)} />
-      </Modal>
     </div>
   );
 };

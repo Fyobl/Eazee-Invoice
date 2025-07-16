@@ -6,6 +6,7 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   email: text('email').notNull().unique(),
+  passwordHash: text('password_hash'),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   companyName: text('company_name').notNull(),
@@ -21,6 +22,12 @@ export const users = pgTable('users', {
   subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const sessions = pgTable('sessions', {
+  sid: text('sid').primaryKey(),
+  sess: jsonb('sess').notNull(),
+  expire: timestamp('expire').notNull(),
 });
 
 export const companies = pgTable('companies', {
@@ -162,6 +169,7 @@ export const insertInvoiceSchema = createInsertSchema(invoices);
 export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertStatementSchema = createInsertSchema(statements);
 export const insertRecycleBinSchema = createInsertSchema(recycleBin);
+export const insertSessionSchema = createInsertSchema(sessions);
 
 // Select schemas
 export const selectUserSchema = createSelectSchema(users);
@@ -172,6 +180,7 @@ export const selectInvoiceSchema = createSelectSchema(invoices);
 export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectStatementSchema = createSelectSchema(statements);
 export const selectRecycleBinSchema = createSelectSchema(recycleBin);
+export const selectSessionSchema = createSelectSchema(sessions);
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -190,6 +199,8 @@ export type Statement = typeof statements.$inferSelect;
 export type InsertStatement = typeof statements.$inferInsert;
 export type RecycleBinItem = typeof recycleBin.$inferSelect;
 export type InsertRecycleBinItem = typeof recycleBin.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type InsertSession = typeof sessions.$inferInsert;
 
 export interface InvoiceItem {
   id: string;
