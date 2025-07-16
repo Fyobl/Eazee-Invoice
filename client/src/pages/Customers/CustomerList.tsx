@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCustomers } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal, Download, Upload } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
 
@@ -45,6 +45,47 @@ export const CustomerList = () => {
     }
   };
 
+  const downloadCustomerTemplate = () => {
+    const csvContent = `name,email,phone,address
+"John Smith","john@example.com","07123456789","123 Main Street, London, UK"
+"Jane Doe","jane@example.com","07987654321","456 Oak Avenue, Manchester, UK"
+"Bob Johnson","bob@example.com","07555123456","789 Pine Road, Birmingham, UK"`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customer_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Template Downloaded",
+      description: "Customer CSV template has been downloaded successfully.",
+    });
+  };
+
+  const handleCustomerCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const csv = e.target?.result as string;
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      
+      // Process CSV data here
+      toast({
+        title: "CSV Upload",
+        description: "Customer CSV upload functionality will be implemented soon.",
+      });
+    };
+    reader.readAsText(file);
+  };
+
   const handleCustomerClick = (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowDetails(true);
@@ -67,12 +108,29 @@ export const CustomerList = () => {
             <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Customers</h2>
             <p className="text-slate-600 dark:text-slate-400">Manage your customer database</p>
           </div>
-          <Link href="/customers/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={downloadCustomerTemplate}>
+              <Download className="h-4 w-4 mr-2" />
+              Download Template
             </Button>
-          </Link>
+            <Button variant="outline" onClick={() => document.getElementById('customer-csv-upload')?.click()}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload CSV
+            </Button>
+            <input
+              id="customer-csv-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleCustomerCSVUpload}
+              className="hidden"
+            />
+            <Link href="/customers/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customer
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Search */}

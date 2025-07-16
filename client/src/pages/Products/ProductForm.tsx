@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useProducts } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { Product } from '@shared/schema';
 
 const productSchema = z.object({
@@ -25,11 +25,17 @@ type ProductForm = z.infer<typeof productSchema>;
 
 export const ProductForm = () => {
   const [, setLocation] = useLocation();
+  const [match, params] = useRoute('/products/:id/edit');
   const { currentUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { add: addProduct, addMutation: { isPending: loading } } = useProducts();
+  const { data: products, add: addProduct, update: updateProduct, addMutation: { isPending: addLoading }, updateMutation: { isPending: updateLoading } } = useProducts();
+  
+  const isEditing = !!match && !!params?.id;
+  const productId = params?.id ? parseInt(params.id) : null;
+  const existingProduct = products?.find((p: Product) => p.id === productId);
+  const loading = addLoading || updateLoading;
 
   const form = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
@@ -41,6 +47,18 @@ export const ProductForm = () => {
     }
   });
 
+  // Load existing product data when editing
+  useEffect(() => {
+    if (isEditing && existingProduct) {
+      form.reset({
+        name: existingProduct.name,
+        description: existingProduct.description || '',
+        unitPrice: parseFloat(existingProduct.unitPrice),
+        taxRate: parseFloat(existingProduct.taxRate)
+      });
+    }
+  }, [isEditing, existingProduct, form]);
+
   const onSubmit = async (data: ProductForm) => {
     if (!currentUser) return;
     
@@ -48,28 +66,42 @@ export const ProductForm = () => {
     setSuccess(null);
 
     try {
-      const product: Partial<Product> = {
-        uid: currentUser.uid,
-        name: data.name,
-        description: data.description,
-        unitPrice: data.unitPrice,
-        taxRate: data.taxRate,
-        isDeleted: false
-      };
+      if (isEditing && productId) {
+        // Update existing product
+        const updateData: Partial<Product> = {
+          name: data.name,
+          description: data.description,
+          unitPrice: data.unitPrice,
+          taxRate: data.taxRate,
+        };
+        
+        updateProduct({ id: productId, data: updateData });
+        setSuccess('Product updated successfully!');
+      } else {
+        // Add new product
+        const product: Partial<Product> = {
+          uid: currentUser.uid,
+          name: data.name,
+          description: data.description,
+          unitPrice: data.unitPrice,
+          taxRate: data.taxRate,
+          isDeleted: false
+        };
 
-      addProduct(product);
-      setSuccess('Product added successfully!');
+        addProduct(product);
+        setSuccess('Product added successfully!');
+      }
       
       setTimeout(() => {
         setLocation('/products');
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add product');
+      setError(err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} product`);
     }
   };
 
   return (
-    <Layout title="Add Product">
+    <Layout title={isEditing ? "Edit Product" : "Add Product"}>
       <div className="space-y-6">
         {error && (
           <Banner variant="error" onClose={() => setError(null)}>
@@ -85,7 +117,7 @@ export const ProductForm = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Product Information</CardTitle>
+            <CardTitle>{isEditing ? 'Edit Product Information' : 'Product Information'}</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -172,7 +204,7 @@ export const ProductForm = () => {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Adding...' : 'Add Product'}
+                    {loading ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Product' : 'Add Product')}
                   </Button>
                 </div>
               </form>

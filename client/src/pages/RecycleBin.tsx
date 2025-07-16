@@ -142,8 +142,8 @@ export const RecycleBin = () => {
 
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Recycle Bin</h2>
-          <p className="text-slate-600">Restore or permanently delete items within 7 days</p>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Recycle Bin</h2>
+          <p className="text-slate-600 dark:text-slate-400">Restore or permanently delete items within 7 days</p>
         </div>
 
         {/* Recycle Bin Items */}

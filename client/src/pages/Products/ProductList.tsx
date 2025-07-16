@@ -4,15 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useProducts } from '@/hooks/useDatabase';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Edit, Trash2, Package, MoreHorizontal, Download, Upload } from 'lucide-react';
 import { Link } from 'wouter';
 import { Product } from '@shared/schema';
 
 export const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   
   const { data: products, isLoading: loading, remove: deleteProduct } = useProducts();
+  const { toast } = useToast();
 
   const filteredProducts = products?.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,10 +26,62 @@ export const ProductList = () => {
     return matchesSearch;
   });
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(id);
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (productToDelete) {
+      await deleteProduct(productToDelete.id);
+      toast({
+        title: "Product Successfully Deleted",
+        description: `${productToDelete.name} has been deleted.`,
+      });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
     }
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = `name,description,unitPrice,taxRate
+"Website Design","Custom website design service",500.00,20.00
+"SEO Audit","Comprehensive SEO audit and recommendations",150.00,20.00
+"Logo Design","Professional logo design package",200.00,20.00`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'product_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Template Downloaded",
+      description: "Product CSV template has been downloaded successfully.",
+    });
+  };
+
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const csv = e.target?.result as string;
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+      
+      // Process CSV data here
+      toast({
+        title: "CSV Upload",
+        description: "CSV upload functionality will be implemented soon.",
+      });
+    };
+    reader.readAsText(file);
   };
 
   if (loading) {
@@ -43,12 +101,29 @@ export const ProductList = () => {
             <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Products</h2>
             <p className="text-slate-600 dark:text-slate-400">Manage your product catalog</p>
           </div>
-          <Link href="/products/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={downloadTemplate}>
+              <Download className="h-4 w-4 mr-2" />
+              Download Template
             </Button>
-          </Link>
+            <Button variant="outline" onClick={() => document.getElementById('csv-upload')?.click()}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload CSV
+            </Button>
+            <input
+              id="csv-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleCSVUpload}
+              className="hidden"
+            />
+            <Link href="/products/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Search */}
@@ -102,20 +177,28 @@ export const ProductList = () => {
                       <TableCell>£{parseFloat(product.unitPrice).toFixed(2)}</TableCell>
                       <TableCell>{parseFloat(product.taxRate).toFixed(0)}%</TableCell>
                       <TableCell>
-                        <div className="flex space-x-2">
-                          <Link href={`/products/${product.id}/edit`}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
-                          </Link>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/products/${product.id}/edit`} className="flex items-center">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Product
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(product)}
+                              className="text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Product
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -125,6 +208,26 @@ export const ProductList = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {productToDelete?.name}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

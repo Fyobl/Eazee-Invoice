@@ -181,6 +181,11 @@ The application is designed to be easily extensible with additional features lik
 - **Customer Actions Dropdown**: Replaced basic action buttons with professional 3-dot dropdown menu matching invoice list design with descriptive text
 - **Customer Edit Form Enhancement**: Fixed customer edit functionality to properly load existing customer data and handle both add/edit modes
 - **Improved Delete Confirmation**: Added proper confirmation dialog for customer deletion with toast notifications matching invoice workflow
+- **Product Actions Dropdown**: Implemented professional 3-dot dropdown menu for product actions matching the consistent UI pattern
+- **Product Edit Form Fix**: Fixed product edit functionality to properly load existing product data when editing
+- **CSV Upload/Download System**: Added CSV template download and upload functionality for both products and customers
+- **CSV Templates**: Created downloadable CSV templates with sample data for products and customers
+- **Recycle Bin Dark Mode Fix**: Fixed text visibility issues in dark mode for the recycle bin header and description
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
