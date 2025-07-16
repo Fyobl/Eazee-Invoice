@@ -89,21 +89,38 @@ export const replaceVariables = (template: string, variables: Record<string, str
 
 // Generate email content for invoice
 export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, company: Company): { subject: string; body: string } => {
-  const settings = getEmailSettings();
-  
-  const variables = {
-    invoiceNumber: invoice.number,
-    customerName: customer.name,
-    companyName: company.name,
-    issueDate: new Date(invoice.date).toLocaleDateString('en-GB'),
-    dueDate: new Date(invoice.dueDate).toLocaleDateString('en-GB'),
-    total: formatCurrency(invoice.total, company.currency),
-  };
+  try {
+    console.log('Generating invoice email with data:', { 
+      invoiceNumber: invoice.number,
+      customerName: customer.name,
+      companyName: company.name,
+      invoiceDate: invoice.date,
+      dueDate: invoice.dueDate,
+      total: invoice.total
+    });
+    
+    const settings = getEmailSettings();
+    console.log('Email settings loaded:', settings);
+    
+    const variables = {
+      invoiceNumber: invoice.number,
+      customerName: customer.name,
+      companyName: company.name,
+      issueDate: new Date(invoice.date).toLocaleDateString('en-GB'),
+      dueDate: new Date(invoice.dueDate).toLocaleDateString('en-GB'),
+      total: formatCurrency(invoice.total, company.currency),
+    };
 
-  return {
-    subject: replaceVariables(settings.invoiceSubject, variables),
-    body: replaceVariables(settings.invoiceBody, variables),
-  };
+    console.log('Template variables:', variables);
+
+    return {
+      subject: replaceVariables(settings.invoiceSubject, variables),
+      body: replaceVariables(settings.invoiceBody, variables),
+    };
+  } catch (error) {
+    console.error('Error generating invoice email:', error);
+    throw error;
+  }
 };
 
 // Generate email content for quote

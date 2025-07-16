@@ -172,6 +172,10 @@ export const InvoiceList = () => {
     }
 
     try {
+      console.log('Attempting to send email for invoice:', invoice);
+      console.log('Customer found:', customer);
+      console.log('Company found:', company);
+      
       await openMailApp(invoice, customer, company, 'invoice');
       toast({
         title: "Email Prepared",
@@ -179,9 +183,10 @@ export const InvoiceList = () => {
       });
     } catch (error) {
       console.error('Error preparing email:', error);
+      console.error('Error details:', error.message, error.stack);
       toast({
         title: "Error",
-        description: "Failed to prepare email. Please try again.",
+        description: `Failed to prepare email: ${error.message}. Please try again.`,
         variant: "destructive",
       });
     }

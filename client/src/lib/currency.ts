@@ -10,7 +10,17 @@ export const getCurrencySymbol = (currency: string): string => {
 };
 
 export const formatCurrency = (amount: number | string, currency: string): string => {
-  const symbol = getCurrencySymbol(currency);
-  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  return `${symbol}${numAmount.toFixed(2)}`;
+  try {
+    const symbol = getCurrencySymbol(currency);
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    if (isNaN(numAmount)) {
+      console.error('Invalid amount for currency formatting:', amount);
+      return `${symbol}0.00`;
+    }
+    return `${symbol}${numAmount.toFixed(2)}`;
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    const symbol = getCurrencySymbol(currency);
+    return `${symbol}0.00`;
+  }
 };
