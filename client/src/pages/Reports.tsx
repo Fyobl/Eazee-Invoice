@@ -17,7 +17,7 @@ export const Reports = () => {
 
   const totalRevenue = invoices?.reduce((sum: number, invoice: Invoice) => sum + parseFloat(invoice.total), 0) || 0;
   const paidInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'paid').length || 0;
-  const pendingInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'sent').length || 0;
+  const unpaidInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'unpaid').length || 0;
   const overdueInvoices = invoices?.filter((invoice: Invoice) => invoice.status === 'overdue').length || 0;
 
   const acceptedQuotes = quotes?.filter((quote: QuoteType) => quote.status === 'accepted').length || 0;
@@ -132,8 +132,8 @@ export const Reports = () => {
                   <span className="text-sm font-medium text-green-600 dark:text-green-400">{paidInvoices}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Pending</span>
-                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{pendingInvoices}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Unpaid</span>
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{unpaidInvoices}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600 dark:text-slate-400">Overdue</span>

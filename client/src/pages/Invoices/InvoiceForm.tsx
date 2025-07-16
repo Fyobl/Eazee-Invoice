@@ -23,7 +23,7 @@ const invoiceSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   date: z.string().min(1, 'Date is required'),
   dueDate: z.string().min(1, 'Due date is required'),
-  status: z.enum(['draft', 'sent', 'paid', 'overdue']),
+  status: z.enum(['unpaid', 'paid', 'overdue']),
   notes: z.string().optional()
 });
 
@@ -48,7 +48,7 @@ export const InvoiceForm = () => {
       customerId: '',
       date: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: 'draft',
+      status: 'unpaid',
       notes: ''
     }
   });
@@ -216,8 +216,7 @@ export const InvoiceForm = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="unpaid">Unpaid</SelectItem>
                             <SelectItem value="paid">Paid</SelectItem>
                             <SelectItem value="overdue">Overdue</SelectItem>
                           </SelectContent>

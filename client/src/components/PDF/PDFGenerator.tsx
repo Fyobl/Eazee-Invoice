@@ -31,7 +31,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         const statementEnd = new Date(document.endDate);
         
         return invoice.customerId === document.customerId &&
-               invoice.status !== 'paid' &&
+               (invoice.status === 'unpaid' || invoice.status === 'overdue') &&
                invoiceDate >= statementStart &&
                invoiceDate <= statementEnd;
       });

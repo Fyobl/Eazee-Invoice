@@ -160,6 +160,15 @@ The application is designed to be easily extensible with additional features lik
 - **Settings Page Database Migration**: Updated Settings page from Firestore to PostgreSQL database with proper logo upload functionality
 - **Company Data Fixes**: Fixed company name typo and improved PDF margin settings to prevent content cut-off
 
+### January 16, 2025 - Status System Update & Statement PDF Enhancement
+- **Invoice Status Simplification**: Updated invoice status options from "Draft/Sent/Paid/Overdue" to "Unpaid/Paid/Overdue" for clearer user experience
+- **Database Status Migration**: Updated all existing invoices from "draft" and "sent" statuses to "unpaid" status (3 invoices updated)
+- **Statement PDF Enhancement**: Statement PDFs now display actual unpaid invoices from the database for the selected customer and period
+- **PDF Data Integration**: Statements fetch real invoice data and show invoice number, date, due date, status, and amounts in a professional table format
+- **Statement Logic Update**: Updated statement filtering logic to show invoices with "unpaid" or "overdue" status instead of checking for "not paid"
+- **UI Component Updates**: Updated invoice forms, lists, and reports to reflect the new three-status system
+- **Status Badge Styling**: Updated status color coding throughout the application for the new status values
+
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
 - **GitHub Integration**: Created comprehensive GitHub setup guide and documentation
