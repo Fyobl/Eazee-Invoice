@@ -28,7 +28,9 @@ export const AdminPanel = () => {
     lastName: '',
     email: '',
     companyName: '',
-    password: 'temp123456'
+    password: 'temp123456',
+    accountType: 'trial' as 'trial' | 'subscription',
+    subscriptionMonths: '1'
   });
   
   const { toast } = useToast();
@@ -82,7 +84,9 @@ export const AdminPanel = () => {
         lastName: '',
         email: '',
         companyName: '',
-        password: 'temp123456'
+        password: 'temp123456',
+        accountType: 'trial',
+        subscriptionMonths: '1'
       });
     },
     onError: (error: any) => {
@@ -159,6 +163,11 @@ export const AdminPanel = () => {
   };
 
   const handleCreateUser = async () => {
+    const isSubscriber = newUserData.accountType === 'subscription';
+    const subscriptionEndDate = isSubscriber ? 
+      new Date(Date.now() + (parseInt(newUserData.subscriptionMonths) * 30 * 24 * 60 * 60 * 1000)) : 
+      null;
+
     await createUserMutation.mutateAsync({
       uid: `user_${Date.now()}`,
       email: newUserData.email,
@@ -166,10 +175,11 @@ export const AdminPanel = () => {
       lastName: newUserData.lastName,
       companyName: newUserData.companyName,
       displayName: `${newUserData.firstName} ${newUserData.lastName}`,
-      isSubscriber: false,
+      isSubscriber,
       isSuspended: false,
       isAdmin: false,
-      trialStartDate: new Date().toISOString()
+      trialStartDate: new Date().toISOString(),
+      subscriptionEndDate: subscriptionEndDate?.toISOString() || null
     });
   };
 
@@ -400,6 +410,43 @@ export const AdminPanel = () => {
                 value={newUserData.companyName}
                 onChange={(e) => setNewUserData(prev => ({ ...prev, companyName: e.target.value }))}
               />
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Account Type</label>
+                <Select 
+                  value={newUserData.accountType} 
+                  onValueChange={(value) => setNewUserData(prev => ({ ...prev, accountType: value as 'trial' | 'subscription' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trial">Trial (7 days)</SelectItem>
+                    <SelectItem value="subscription">Subscription</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {newUserData.accountType === 'subscription' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Subscription Duration</label>
+                  <Select 
+                    value={newUserData.subscriptionMonths} 
+                    onValueChange={(value) => setNewUserData(prev => ({ ...prev, subscriptionMonths: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Month</SelectItem>
+                      <SelectItem value="3">3 Months</SelectItem>
+                      <SelectItem value="6">6 Months</SelectItem>
+                      <SelectItem value="12">12 Months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
               <div className="text-sm text-slate-500 dark:text-slate-400">
                 Default password: temp123456 (user should change on first login)
               </div>
@@ -409,7 +456,8 @@ export const AdminPanel = () => {
                 Cancel
               </Button>
               <Button onClick={handleCreateUser} disabled={createUserMutation.isPending}>
-                {createUserMutation.isPending ? 'Creating...' : 'Create User'}
+                {createUserMutation.isPending ? 'Creating...' : 
+                  newUserData.accountType === 'subscription' ? 'Create Subscriber' : 'Create Trial User'}
               </Button>
             </DialogFooter>
           </DialogContent>
