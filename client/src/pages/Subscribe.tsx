@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle, CreditCard, Shield, Clock, Users } from 'lucide-react';
 import { Layout } from '@/components/Layout/Layout';
+
+// Initialize Stripe
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
@@ -303,7 +310,9 @@ export const Subscribe = () => {
           </CardHeader>
           <CardContent>
             {clientSecret ? (
-              <SubscribeForm clientSecret={clientSecret} />
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <SubscribeForm clientSecret={clientSecret} />
+              </Elements>
             ) : (
               <div className="text-center py-8">
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
