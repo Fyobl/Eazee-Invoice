@@ -389,11 +389,21 @@ export async function setupRoutes(app: Express) {
       const statementNumber = `STM-${nextNumber}`;
       
       const statementData = {
-        ...req.body,
+        uid: req.body.uid,
         number: statementNumber,
+        customerId: req.body.customerId,
+        customerName: req.body.customerName,
+        date: new Date(req.body.date),
+        startDate: new Date(req.body.startDate),
+        endDate: new Date(req.body.endDate),
+        period: req.body.period,
+        notes: req.body.notes || '',
+        isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date()
       };
+      
+      console.log('Processed statement data:', statementData);
       
       const [statement] = await db.insert(statements).values(statementData).returning();
       console.log('Statement created successfully:', statement);

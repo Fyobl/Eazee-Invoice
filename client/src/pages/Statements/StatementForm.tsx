@@ -109,9 +109,9 @@ export const StatementForm = () => {
         // Server will generate the statement number automatically
         customerId: data.customerId,
         customerName: selectedCustomer.name,
-        date: new Date(data.date),
-        startDate,
-        endDate,
+        date: data.date,
+        startDate: data.period === 'custom' ? data.startDate! : calculateDates(data.period).startDate,
+        endDate: data.period === 'custom' ? data.endDate! : calculateDates(data.period).endDate,
         period: data.period,
         notes: data.notes || '',
         isDeleted: false
