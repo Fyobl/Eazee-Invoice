@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-react';
 import { Link } from 'wouter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useAuth } from '@/contexts/AuthContext-new';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 
 export const Landing = () => {

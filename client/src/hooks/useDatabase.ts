@@ -1,78 +1,109 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Customer, Product, Invoice, Quote, Statement, Company, RecycleBinItem } from "@shared/schema";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 export const useDatabase = (collectionName: string) => {
-  const { currentUser } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: [`/api/${collectionName}`, currentUser?.uid],
+  const { data, isLoading, error } = useQuery({
+    queryKey: [collectionName],
     queryFn: async () => {
-      if (!currentUser?.uid) return [];
-      const response = await apiRequest('GET', `/api/${collectionName}?uid=${currentUser.uid}`);
+      const response = await apiRequest('GET', `/api/${collectionName}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${collectionName}`);
+      }
       return response.json();
     },
-    enabled: !!currentUser?.uid,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 10 * 60 * 1000, // 10 minutes (cacheTime is now gcTime in v5)
   });
 
-  const addMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', `/api/${collectionName}`, { ...data, uid: currentUser?.uid });
+  const createMutation = useMutation({
+    mutationFn: async (newData: any) => {
+      const response = await apiRequest('POST', `/api/${collectionName}`, newData);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Failed to create ${collectionName.slice(0, -1)}`);
+      }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
-    }
+      queryClient.invalidateQueries({ queryKey: [collectionName] });
+      toast({
+        title: 'Success',
+        description: `${collectionName.slice(0, -1)} created successfully`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string | number, data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await apiRequest('PUT', `/api/${collectionName}/${id}`, data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Failed to update ${collectionName.slice(0, -1)}`);
+      }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
-    }
+      queryClient.invalidateQueries({ queryKey: [collectionName] });
+      toast({
+        title: 'Success',
+        description: `${collectionName.slice(0, -1)} updated successfully`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string | number) => {
+    mutationFn: async (id: string) => {
       const response = await apiRequest('DELETE', `/api/${collectionName}/${id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Failed to delete ${collectionName.slice(0, -1)}`);
+      }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${collectionName}`] });
-    }
+      queryClient.invalidateQueries({ queryKey: [collectionName] });
+      toast({
+        title: 'Success',
+        description: `${collectionName.slice(0, -1)} deleted successfully`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
-  const add = (data: any) => addMutation.mutate(data);
-  const update = (id: string | number, data: any) => updateMutation.mutate({ id, data });
-  const remove = (id: string | number) => deleteMutation.mutate(id);
-
   return {
-    data,
+    data: data || [],
     isLoading,
     error,
-    refetch,
-    add,
-    update,
-    remove,
-    addMutation,
-    updateMutation,
-    deleteMutation
+    loading: isLoading,
+    add: createMutation.mutate,
+    create: createMutation.mutate,
+    update: updateMutation.mutate,
+    remove: deleteMutation.mutate,
   };
 };
 
-// Specific hooks for each collection
 export const useCustomers = () => useDatabase('customers');
 export const useProducts = () => useDatabase('products');
 export const useInvoices = () => useDatabase('invoices');

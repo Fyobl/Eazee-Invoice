@@ -1,10 +1,10 @@
 import { Menu, Clock, LogOut } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext-new';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { logoutUser } from '@/lib/auth-new';
+import { logoutUser } from '@/lib/auth';
 import { useLocation } from 'wouter';
 
 interface HeaderProps {

@@ -1,132 +1,149 @@
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  updatePassword,
-  deleteUser,
-  reauthenticateWithCredential,
-  EmailAuthProvider
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from './firebase';
 import { User } from '@shared/schema';
+import { apiRequest } from './queryClient';
 
-export const registerUser = async (email: string, password: string, firstName: string, lastName: string, companyName: string) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-  
-  const userData: User = {
-    uid: user.uid,
-    email: user.email!,
+export interface AuthUser {
+  uid: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  companyName: string;
+  isAdmin: boolean;
+  isSubscriber: boolean;
+  isSuspended: boolean;
+  mustChangePassword: boolean;
+  trialStartDate: Date;
+  subscriptionStatus?: string;
+  subscriptionCurrentPeriodEnd?: Date;
+}
+
+export const registerUser = async (
+  email: string, 
+  password: string, 
+  firstName: string, 
+  lastName: string, 
+  companyName: string
+): Promise<AuthUser> => {
+  const response = await apiRequest('POST', '/api/register', {
+    email,
+    password,
     firstName,
     lastName,
-    companyName,
-    displayName: `${firstName} ${lastName}`,
-    trialStartDate: new Date(),
-    isSubscriber: false,
-    isSuspended: false,
-    isAdmin: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
+    companyName
+  });
   
-  await setDoc(doc(db, 'users', user.uid), userData);
-  return userData;
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Registration failed');
+  }
+  
+  return data.user;
 };
 
-export const loginUser = async (email: string, password: string) => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
+export const loginUser = async (email: string, password: string): Promise<AuthUser> => {
+  const response = await apiRequest('POST', '/api/login', {
+    email,
+    password
+  });
+  
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Login failed');
+  }
+  
+  return data.user;
 };
 
-export const logoutUser = async () => {
-  console.log('Logging out user...');
-  // Clear localStorage before signing out
+export const logoutUser = async (): Promise<void> => {
+  const response = await apiRequest('POST', '/api/logout');
+  
+  if (!response.ok) {
+    throw new Error('Logout failed');
+  }
+  
+  // Clear localStorage
   localStorage.removeItem('userData');
   localStorage.removeItem('authUser');
-  await signOut(auth);
-  console.log('User logged out successfully');
 };
 
-export const changePassword = async (currentPassword: string, newPassword: string) => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('No user logged in');
-  
-  const credential = EmailAuthProvider.credential(user.email!, currentPassword);
-  await reauthenticateWithCredential(user, credential);
-  await updatePassword(user, newPassword);
+export const getCurrentUser = async (): Promise<AuthUser | null> => {
+  try {
+    const response = await apiRequest('GET', '/api/me');
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        return null;
+      }
+      throw new Error('Failed to get current user');
+    }
+    
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
 };
 
-export const deleteAccount = async (password: string) => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('No user logged in');
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  const response = await apiRequest('POST', '/api/change-password', {
+    currentPassword,
+    newPassword
+  });
   
-  const credential = EmailAuthProvider.credential(user.email!, password);
-  await reauthenticateWithCredential(user, credential);
-  
-  // Delete user data from Firestore
-  await deleteDoc(doc(db, 'users', user.uid));
-  
-  // Delete user account
-  await deleteUser(user);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Password change failed');
+  }
 };
 
-export const getUserData = async (uid: string): Promise<User | null> => {
-  const docRef = doc(db, 'users', uid);
-  const docSnap = await getDoc(docRef);
+export const deleteAccount = async (password: string): Promise<void> => {
+  const response = await apiRequest('POST', '/api/delete-account', {
+    password
+  });
   
-  if (docSnap.exists()) {
-    return docSnap.data() as User;
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Account deletion failed');
   }
-  return null;
 };
 
-export const checkTrialStatus = (user: User): boolean => {
-  if (user.isAdmin) {
-    return true;
-  }
+export const checkTrialStatus = (user: AuthUser): boolean => {
+  if (!user.trialStartDate) return false;
   
-  // Check if subscription is active based on current time
-  const hasActiveSubscription = user.subscriptionCurrentPeriodEnd && 
-    new Date(user.subscriptionCurrentPeriodEnd) > new Date();
-  
-  if (hasActiveSubscription) {
-    return true;
-  }
-  
-  let trialStart: Date;
-  
-  // Handle Firestore Timestamp objects
-  if (user.trialStartDate && typeof user.trialStartDate === 'object' && 'seconds' in user.trialStartDate) {
-    trialStart = new Date((user.trialStartDate as any).seconds * 1000);
-  } else {
-    trialStart = new Date(user.trialStartDate);
-  }
-  
+  const trialStart = new Date(user.trialStartDate);
   const now = new Date();
   const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
   
-  return daysDiff < 7;
+  return daysDiff < 7; // 7-day trial
 };
 
-export const makeUserAdmin = async (uid: string) => {
-  const userRef = doc(db, 'users', uid);
-  await setDoc(userRef, {
-    isAdmin: true,
-    isSubscriber: true,
-    isSuspended: false,
-    updatedAt: new Date()
-  }, { merge: true });
-};
-
-export const getUserByEmail = async (email: string): Promise<User | null> => {
-  const usersRef = collection(db, 'users');
-  const q = query(usersRef, where('email', '==', email));
-  const querySnapshot = await getDocs(q);
+export const getTrialDaysLeft = (user: AuthUser): number => {
+  if (!user.trialStartDate) return 0;
   
-  if (!querySnapshot.empty) {
-    const userDoc = querySnapshot.docs[0];
-    return userDoc.data() as User;
+  const trialStart = new Date(user.trialStartDate);
+  const now = new Date();
+  const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+  
+  return Math.max(0, 7 - daysDiff);
+};
+
+export const hasActiveSubscription = (user: AuthUser): boolean => {
+  if (!user.isSubscriber) return false;
+  if (user.subscriptionStatus === 'cancelled') return false;
+  
+  if (user.subscriptionCurrentPeriodEnd) {
+    const now = new Date();
+    const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
+    return periodEnd > now;
   }
-  return null;
+  
+  return false;
+};
+
+export const hasAccess = (user: AuthUser): boolean => {
+  if (user.isSuspended) return false;
+  if (user.isAdmin) return true;
+  
+  return hasActiveSubscription(user) || checkTrialStatus(user);
 };

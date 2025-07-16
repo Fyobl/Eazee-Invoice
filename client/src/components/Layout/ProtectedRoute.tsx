@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext-new';
+import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PasswordChangeDialog } from '../PasswordChangeDialog';

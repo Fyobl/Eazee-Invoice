@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { registerUser } from '@/lib/auth-new';
-import { useAuth } from '@/contexts/AuthContext-new';
+import { registerUser } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),

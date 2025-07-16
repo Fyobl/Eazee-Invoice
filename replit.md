@@ -20,16 +20,16 @@ Preferred communication style: Simple, everyday language.
 - **Forms**: React Hook Form with Zod validation
 
 ### Backend Architecture
-- **Database**: Firebase Firestore for document storage
-- **Authentication**: Firebase Auth with email/password
-- **API Layer**: Express.js server (currently minimal, ready for expansion)
-- **Database ORM**: Drizzle ORM configured for PostgreSQL (for future expansion)
+- **Database**: PostgreSQL with Drizzle ORM for all data storage
+- **Authentication**: PostgreSQL-based authentication with bcrypt password hashing
+- **API Layer**: Express.js server with comprehensive authentication endpoints
+- **Session Management**: express-session with connect-pg-simple for database-backed sessions
 
 ### Authentication & Authorization
-- **Provider**: Firebase Authentication
+- **Provider**: PostgreSQL-based authentication with bcrypt password hashing
 - **User Roles**: Trial users (7-day access), subscribers (full access), and admins (platform control)
 - **Access Control**: Context-based with route protection and trial expiration checks
-- **Session Management**: Firebase Auth state persistence
+- **Session Management**: express-session with PostgreSQL session store
 
 ## Key Components
 
@@ -286,6 +286,19 @@ The application is designed to be easily extensible with additional features lik
 - **Permanent Subscription System**: Added permanent subscription functionality to admin panel with infinity icon and checkbox
 - **API Date Handling Fix**: Fixed user update API to properly handle date string conversions for timestamp fields
 - **Ben Smith Permanent Subscription**: Applied permanent subscription to Ben Smith (expires 2099-12-31) through admin panel functionality
+
+### January 16, 2025 - Complete Firebase to PostgreSQL Authentication Migration
+- **Authentication System Overhaul**: Successfully migrated from Firebase Auth to PostgreSQL-based authentication
+- **Database Schema Enhancement**: Added password_hash column and session management tables for secure authentication
+- **Server-Side Authentication**: Implemented comprehensive authentication endpoints (/api/register, /api/login, /api/logout, /api/change-password)
+- **Session Management**: Added express-session with connect-pg-simple for database-backed session persistence
+- **Password Security**: Implemented bcrypt password hashing with salt rounds for secure password storage
+- **Frontend Migration**: Updated all authentication contexts and components to use PostgreSQL authentication
+- **Firebase Dependency Removal**: Completely removed Firebase and firebase-admin packages from the project
+- **Remember Me Feature**: Added "Remember me" functionality to login form with email persistence and checkbox state
+- **Route-Based Navigation**: Updated landing page to use route-based authentication instead of modal dialogs
+- **Authentication Context**: Consolidated authentication system into single AuthContext with PostgreSQL integration
+- **Error Handling**: Enhanced authentication error handling and user feedback throughout the application
 
 ### January 16, 2025 - Account Management Enhancement
 - **Personal Information Update**: Added ability for users to update their first name and last name in Account settings
