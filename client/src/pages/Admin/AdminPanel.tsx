@@ -364,10 +364,10 @@ export const AdminPanel = () => {
         {/* User Management */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <CardTitle className="text-slate-900 dark:text-slate-100">User Management</CardTitle>
-              <div className="flex space-x-2">
-                <Button onClick={() => setCreateUserDialog(true)}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => setCreateUserDialog(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Create User
                 </Button>
@@ -375,10 +375,10 @@ export const AdminPanel = () => {
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-64"
+                  className="w-full sm:w-64"
                 />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="All Users" />
                   </SelectTrigger>
                   <SelectContent>
@@ -485,16 +485,16 @@ export const AdminPanel = () => {
         {/* CSV Upload Management */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <CardTitle className="text-slate-900 dark:text-slate-100">CSV Data Upload</CardTitle>
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={() => setCsvUploadDialog(true)}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setCsvUploadDialog(true)} className="w-full sm:w-auto">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload CSV
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
+                    <Button variant="outline" className="w-full sm:w-auto">
                       <Download className="h-4 w-4 mr-2" />
                       Download Templates
                     </Button>
