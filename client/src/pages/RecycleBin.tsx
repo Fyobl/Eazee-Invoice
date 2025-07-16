@@ -4,7 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/contexts/AuthContext';
 import { RotateCcw, Trash2, Clock } from 'lucide-react';
 import { RecycleBinItem } from '@shared/schema';
 import { Banner } from '@/components/ui/banner';
@@ -12,13 +15,61 @@ import { Banner } from '@/components/ui/banner';
 export const RecycleBin = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  const { documents: recycleBinItems, loading, deleteDocument: permanentDelete } = useFirestore('recycle_bin');
-  const { addDocument: restoreInvoice } = useFirestore('invoices');
-  const { addDocument: restoreQuote } = useFirestore('quotes');
-  const { addDocument: restoreStatement } = useFirestore('statements');
-  const { addDocument: restoreCustomer } = useFirestore('customers');
-  const { addDocument: restoreProduct } = useFirestore('products');
+  // Fetch recycle bin items from PostgreSQL
+  const { data: recycleBinItems, isLoading: loading } = useQuery({
+    queryKey: ['/api/recycle-bin'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/recycle-bin?uid=${currentUser?.uid}`, { method: 'GET' });
+      return response.json();
+    },
+    enabled: !!currentUser?.uid
+  });
+
+  // Permanent delete mutation
+  const permanentDeleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest(`/api/recycle-bin/${id}`, { method: 'DELETE' });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/recycle-bin'] });
+      toast({ title: 'Item permanently deleted' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error deleting item', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Restore mutation
+  const restoreMutation = useMutation({
+    mutationFn: async ({ item, restoreEndpoint }: { item: RecycleBinItem; restoreEndpoint: string }) => {
+      // Update the original item to restore it
+      const response = await apiRequest(`/api/${restoreEndpoint}/${item.originalId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isDeleted: false, updatedAt: new Date() })
+      });
+      
+      // Remove from recycle bin
+      await apiRequest(`/api/recycle-bin/${item.id}`, { method: 'DELETE' });
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/recycle-bin'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({ title: 'Item restored successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error restoring item', description: error.message, variant: 'destructive' });
+    }
+  });
 
   // Auto-cleanup items older than 7 days
   useEffect(() => {
@@ -29,7 +80,7 @@ export const RecycleBin = () => {
         const daysDiff = Math.floor((now.getTime() - deletedDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (daysDiff > 7) {
-          permanentDelete(item.id);
+          permanentDeleteMutation.mutate(item.id);
         }
       });
     };
@@ -37,51 +88,32 @@ export const RecycleBin = () => {
     if (recycleBinItems) {
       cleanupOldItems();
     }
-  }, [recycleBinItems, permanentDelete]);
+  }, [recycleBinItems, permanentDeleteMutation]);
 
-  const getRestoreFunction = (type: string) => {
+  const getRestoreEndpoint = (type: string) => {
     switch (type) {
-      case 'invoice': return restoreInvoice;
-      case 'quote': return restoreQuote;
-      case 'statement': return restoreStatement;
-      case 'customer': return restoreCustomer;
-      case 'product': return restoreProduct;
+      case 'invoice': return 'invoices';
+      case 'quote': return 'quotes';
+      case 'statement': return 'statements';
+      case 'customer': return 'customers';
+      case 'product': return 'products';
       default: return null;
     }
   };
 
   const handleRestore = async (item: RecycleBinItem) => {
-    try {
-      const restoreFunction = getRestoreFunction(item.type);
-      if (!restoreFunction) {
-        setError('Cannot restore this item type');
-        return;
-      }
-
-      // Restore the item to its original collection
-      const restoredData = {
-        ...item.data,
-        isDeleted: false,
-        updatedAt: new Date()
-      };
-      
-      await restoreFunction(restoredData);
-      await permanentDelete(item.id);
-      
-      setSuccess(`${item.type} restored successfully`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to restore item');
+    const restoreEndpoint = getRestoreEndpoint(item.type);
+    if (!restoreEndpoint) {
+      toast({ title: 'Cannot restore this item type', variant: 'destructive' });
+      return;
     }
+
+    restoreMutation.mutate({ item, restoreEndpoint });
   };
 
-  const handlePermanentDelete = async (id: string) => {
+  const handlePermanentDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
-      try {
-        await permanentDelete(id);
-        setSuccess('Item permanently deleted');
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to delete item');
-      }
+      permanentDeleteMutation.mutate(id);
     }
   };
 
@@ -93,16 +125,20 @@ export const RecycleBin = () => {
   };
 
   const getItemName = (item: RecycleBinItem) => {
+    const data = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
     switch (item.type) {
       case 'invoice':
+        return `Invoice ${data.number}`;
       case 'quote':
+        return `Quote ${data.number}`;
       case 'statement':
-        return item.data.number || 'Unknown';
+        return `Statement ${data.number}`;
       case 'customer':
+        return `Customer ${data.name}`;
       case 'product':
-        return item.data.name || 'Unknown';
+        return `Product ${data.name}`;
       default:
-        return 'Unknown';
+        return 'Unknown item';
     }
   };
 
