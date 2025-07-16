@@ -121,17 +121,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         }
       } else {
-        // If no Firebase user and no stored data, clear everything
-        if (!storedUserData || !storedAuthUser) {
-          console.log('No user found, clearing data');
-          if (isMounted) {
-            setCurrentUser(null);
-            setUserData(null);
-            localStorage.removeItem('userData');
-            localStorage.removeItem('authUser');
-          }
-        } else {
-          console.log('No Firebase user but keeping stored data');
+        // No Firebase user - clear everything (user logged out)
+        console.log('No Firebase user found, clearing all data');
+        if (isMounted) {
+          setCurrentUser(null);
+          setUserData(null);
+          localStorage.removeItem('userData');
+          localStorage.removeItem('authUser');
         }
       }
       
@@ -153,18 +149,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     new Date(userData.subscriptionCurrentPeriodEnd) > new Date()
   ) : false;
   
-  // Debug logging for access control
-  if (userData) {
-    console.log('=== AUTH DEBUG ===');
-    console.log('User data:', userData);
-    console.log('Current time:', new Date().toISOString());
-    console.log('Subscription end:', userData.subscriptionCurrentPeriodEnd);
-    console.log('Has active subscription:', hasActiveSubscription);
-    console.log('Is admin:', userData.isAdmin);
-    console.log('Is suspended:', userData.isSuspended);
-    console.log('Trial status check:', checkTrialStatus(userData));
-    console.log('==================');
-  }
+  // Authentication access control logic now working properly
   
   const hasAccess = userData ? (userData.isAdmin || hasActiveSubscription || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;

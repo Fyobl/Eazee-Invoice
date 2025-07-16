@@ -751,22 +751,13 @@ export async function setupRoutes(app: Express) {
         const hasActiveSubscription = user.subscriptionCurrentPeriodEnd && 
           new Date(user.subscriptionCurrentPeriodEnd) > now;
         
-        console.log(`Sync-user status check for ${email}:`);
-        console.log(`Current time: ${now.toISOString()}`);
-        console.log(`Subscription end: ${user.subscriptionCurrentPeriodEnd}`);
-        console.log(`Has active subscription: ${hasActiveSubscription}`);
-        console.log(`Current isSubscriber: ${user.isSubscriber}`);
-        
         // Only update if subscription status has changed
         if (user.isSubscriber !== hasActiveSubscription) {
-          console.log(`Updating subscription status for ${email}: ${user.isSubscriber} -> ${hasActiveSubscription}`);
           user = await storage.updateUserSubscriptionStatus(
             uid, 
             hasActiveSubscription ? 'active' : 'expired', 
             user.subscriptionCurrentPeriodEnd
           );
-        } else {
-          console.log(`No subscription status change needed for ${email}`);
         }
       }
 
