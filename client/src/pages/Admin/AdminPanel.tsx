@@ -13,7 +13,7 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 
@@ -23,7 +23,9 @@ export const AdminPanel = () => {
   const [createUserDialog, setCreateUserDialog] = useState(false);
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
   const [csvUploadDialog, setCsvUploadDialog] = useState(false);
+  const [deleteUserDialog, setDeleteUserDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
   const [subscriptionDuration, setSubscriptionDuration] = useState('1');
   const [isPermanentSubscription, setIsPermanentSubscription] = useState(false);
   const [csvUploadType, setCsvUploadType] = useState<'customers' | 'products'>('customers');
@@ -211,6 +213,43 @@ export const AdminPanel = () => {
       userId,
       data: { isSuspended: false }
     });
+  };
+
+  const handleDeleteUser = (user: any) => {
+    setUserToDelete(user);
+    setDeleteUserDialog(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      const response = await apiRequest('DELETE', `/api/users/${userToDelete.uid}`);
+      
+      if (response.ok) {
+        toast({
+          title: "User Deleted",
+          description: `${userToDelete.firstName} ${userToDelete.lastName} has been permanently deleted along with all their data.`
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to delete user",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive"
+      });
+    }
+    
+    setDeleteUserDialog(false);
+    setUserToDelete(null);
   };
 
   const handleCreateUser = async () => {
@@ -464,6 +503,13 @@ export const AdminPanel = () => {
                                 Unsuspend User
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteUser(user)} 
+                              className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete User
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -792,6 +838,48 @@ export const AdminPanel = () => {
                 disabled={!csvFile || !csvUploadUser || csvUploadMutation.isPending}
               >
                 {csvUploadMutation.isPending ? 'Uploading...' : 'Upload CSV'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete User Confirmation Dialog */}
+        <Dialog open={deleteUserDialog} onOpenChange={setDeleteUserDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-red-600 dark:text-red-400">Delete User</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to permanently delete {userToDelete?.firstName} {userToDelete?.lastName} ({userToDelete?.email})?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
+                  ⚠️ This action cannot be undone
+                </h4>
+                <div className="text-sm text-red-800 dark:text-red-200 space-y-1">
+                  <p>This will permanently delete:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>User account and profile</li>
+                    <li>All invoices and quotes</li>
+                    <li>All customers and products</li>
+                    <li>All statements and documents</li>
+                    <li>All company information</li>
+                    <li>All data in recycle bin</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteUserDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleConfirmDeleteUser}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete User Permanently
               </Button>
             </DialogFooter>
           </DialogContent>

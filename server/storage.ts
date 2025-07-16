@@ -11,6 +11,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserStripeInfo(uid: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   updateUserSubscriptionStatus(uid: string, status: string, currentPeriodEnd?: Date): Promise<User>;
+  deleteUser(uid: string): Promise<boolean>;
   // Authentication methods
   registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string): Promise<User>;
   loginUser(email: string, password: string): Promise<User | null>;
@@ -139,6 +140,26 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
+  async deleteUser(uid: string): Promise<boolean> {
+    try {
+      // Delete all user's data in the correct order to avoid foreign key conflicts
+      await db.delete(recycleBin).where(eq(recycleBin.uid, uid));
+      await db.delete(statements).where(eq(statements.uid, uid));
+      await db.delete(quotes).where(eq(quotes.uid, uid));
+      await db.delete(invoices).where(eq(invoices.uid, uid));
+      await db.delete(products).where(eq(products.uid, uid));
+      await db.delete(customers).where(eq(customers.uid, uid));
+      await db.delete(companies).where(eq(companies.uid, uid));
+      
+      // Finally delete the user
+      const result = await db.delete(users).where(eq(users.uid, uid));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
 
 }
 

@@ -681,7 +681,7 @@ export async function setupRoutes(app: Express) {
   });
 
   // User management routes for admin panel
-  app.get('/api/users', async (req, res) => {
+  app.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
     try {
       const result = await db.select().from(users)
         .orderBy(desc(users.createdAt));
@@ -692,7 +692,7 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/users', async (req, res) => {
+  app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
     try {
       const userData = {
         ...req.body,
@@ -714,7 +714,7 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/users/:uid', async (req, res) => {
+  app.put('/api/users/:uid', requireAuth, requireAdmin, async (req, res) => {
     try {
       const uid = req.params.uid;
       const updateData = { ...req.body, updatedAt: new Date() };
@@ -738,11 +738,22 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/users/:uid', async (req, res) => {
+  app.delete('/api/users/:uid', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const uid = req.params.uid;
-      await db.delete(users).where(eq(users.uid, uid));
-      res.json({ success: true });
+      
+      // Prevent admin from deleting themselves
+      if (req.user?.uid === uid) {
+        return res.status(400).json({ error: 'Cannot delete your own account' });
+      }
+      
+      const success = await storage.deleteUser(uid);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: 'Failed to delete user' });
+      }
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Failed to delete user' });

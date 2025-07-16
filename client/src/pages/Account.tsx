@@ -91,7 +91,10 @@ export const Account = () => {
 
     try {
       await changePassword(data.currentPassword, data.newPassword);
-      setSuccess('Password updated successfully!');
+      toast({
+        title: "Success",
+        description: "Password updated successfully!"
+      });
       passwordForm.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update password');
