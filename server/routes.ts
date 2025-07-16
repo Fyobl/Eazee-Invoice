@@ -733,10 +733,15 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/users/:uid', requireAuth, requireAdmin, async (req, res) => {
+  app.put('/api/users/:uid', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const uid = req.params.uid;
       const updateData = { ...req.body, updatedAt: new Date() };
+      
+      // Check if user is updating their own profile or if they're an admin
+      if (req.user!.uid !== uid && !req.user!.isAdmin) {
+        return res.status(403).json({ error: 'You can only update your own profile' });
+      }
       
       // Convert date strings to Date objects for timestamp fields
       const dateFields = ['subscriptionCurrentPeriodEnd', 'trialStartDate', 'createdAt', 'updatedAt'];
