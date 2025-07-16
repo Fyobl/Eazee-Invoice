@@ -826,16 +826,19 @@ export async function setupRoutes(app: Express) {
         });
       }
 
+      // First create a product
+      const product = await stripe.products.create({
+        name: 'Eazee Invoice Pro',
+        description: 'Monthly subscription to Eazee Invoice Pro'
+      });
+
       // Create subscription
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomer.id,
         items: [{
           price_data: {
             currency: 'gbp',
-            product_data: {
-              name: 'Eazee Invoice Pro',
-              description: 'Monthly subscription to Eazee Invoice Pro'
-            },
+            product: product.id,
             unit_amount: 1999, // £19.99 in pence
             recurring: {
               interval: 'month'
