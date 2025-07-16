@@ -709,24 +709,18 @@ export async function setupRoutes(app: Express) {
       // Create user using storage interface for proper password hashing
       const user = await storage.registerUser(email, password, firstName, lastName, companyName);
       
-      // Update additional fields if provided
-      if (isSubscriber || subscriptionEndDate) {
-        const updateData: any = {};
-        if (isSubscriber) updateData.isSubscriber = isSubscriber;
-        if (subscriptionEndDate) updateData.subscriptionCurrentPeriodEnd = new Date(subscriptionEndDate);
-        
-        if (Object.keys(updateData).length > 0) {
-          const [updatedUser] = await db.update(users)
-            .set({ ...updateData, updatedAt: new Date() })
-            .where(eq(users.uid, user.uid))
-            .returning();
-          res.json(updatedUser);
-        } else {
-          res.json(user);
-        }
-      } else {
-        res.json(user);
-      }
+      // Update additional fields for admin-created users
+      const updateData: any = {
+        mustChangePassword: true  // Force password change for admin-created users
+      };
+      if (isSubscriber) updateData.isSubscriber = isSubscriber;
+      if (subscriptionEndDate) updateData.subscriptionCurrentPeriodEnd = new Date(subscriptionEndDate);
+      
+      const [updatedUser] = await db.update(users)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(users.uid, user.uid))
+        .returning();
+      res.json(updatedUser);
     } catch (error) {
       console.error('Error creating user:', error);
       res.status(500).json({ error: 'Failed to create user' });
