@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -27,6 +28,20 @@ interface SidebarProps {
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [location] = useLocation();
   const { isAdmin, isSubscriber } = useAuth();
+
+  // Prevent background scroll when sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const mainNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -69,10 +84,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-gray-700">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <FileText className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">Eazee Invoice</span>
@@ -82,7 +97,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </button>
         </div>
         
-        <nav className="mt-8">
+        <nav className="flex-1 overflow-y-auto py-4">
           <div className="px-4 space-y-2">
             {mainNavItems.map((item) => {
               const Icon = item.icon;
@@ -108,7 +123,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </div>
           
           <div className="mt-8 px-4 space-y-2">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
               Account
             </div>
             {accountNavItems.map((item) => {
