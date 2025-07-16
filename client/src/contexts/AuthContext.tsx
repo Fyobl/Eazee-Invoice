@@ -146,7 +146,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
-  const hasAccess = userData ? (userData.isAdmin || userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
+  // Check if user has active subscription (not just isSubscriber flag)
+  const hasActiveSubscription = userData ? (
+    userData.isSubscriber && 
+    userData.subscriptionStatus === 'active' && 
+    userData.subscriptionCurrentPeriodEnd && 
+    new Date(userData.subscriptionCurrentPeriodEnd) > new Date()
+  ) : false;
+  
+  const hasAccess = userData ? (userData.isAdmin || hasActiveSubscription || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;
   const mustChangePassword = userData?.mustChangePassword || false;
   
@@ -174,7 +182,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAdmin,
     trialDaysLeft,
     mustChangePassword,
-    isSubscriber: userData?.isSubscriber || false
+    isSubscriber: hasActiveSubscription
   };
 
   return (

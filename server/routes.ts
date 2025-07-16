@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { db } from "./db";
+import { db, executeWithRetry } from "./db";
 import { customers, products, invoices, quotes, statements, companies, recycleBin, users } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import multer from "multer";
@@ -982,8 +982,15 @@ export async function setupRoutes(app: Express) {
         }
       }
 
+      // Check if subscription is still active
+      const now = new Date();
+      const isActiveSubscription = user.isSubscriber && 
+        user.subscriptionStatus === 'active' && 
+        user.subscriptionCurrentPeriodEnd && 
+        new Date(user.subscriptionCurrentPeriodEnd) > now;
+
       let subscriptionInfo = {
-        isSubscriber: user.isSubscriber,
+        isSubscriber: isActiveSubscription,
         status: user.subscriptionStatus,
         currentPeriodEnd: user.subscriptionCurrentPeriodEnd,
         stripeCustomerId: user.stripeCustomerId,
@@ -1034,7 +1041,20 @@ export async function setupRoutes(app: Express) {
       const currentPeriodEnd = new Date();
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1); // Add 1 month
 
+      // Update both subscription status and isSubscriber flag
       await storage.updateUserSubscriptionStatus(uid, 'active', currentPeriodEnd);
+      
+      // Also update the isSubscriber flag in the database
+      await executeWithRetry(async () => {
+        await db.update(users)
+          .set({ 
+            isSubscriber: true,
+            subscriptionStatus: 'active',
+            subscriptionCurrentPeriodEnd: currentPeriodEnd,
+            updatedAt: new Date()
+          })
+          .where(eq(users.uid, uid));
+      });
 
       res.json({ 
         success: true, 
