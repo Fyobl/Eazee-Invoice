@@ -23,7 +23,8 @@ import {
   CreditCard,
   Upload,
   FileDown,
-  Copy
+  Copy,
+  BarChart3
 } from "lucide-react";
 
 export const Help = () => {
