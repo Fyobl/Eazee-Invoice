@@ -79,6 +79,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (user) {
         setCurrentUser(user);
         try {
+          // First, ensure user is synced to PostgreSQL
+          const syncResponse = await fetch('/api/sync-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              email: user.email || '',
+              firstName: user.displayName?.split(' ')[0] || '',
+              lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+              displayName: user.displayName || user.email || 'User'
+            })
+          });
+
+          if (syncResponse.ok) {
+            const syncedUser = await syncResponse.json();
+            console.log('User synced to PostgreSQL:', syncedUser);
+          }
+
+          // Then load user data
           const data = await getUserData(user.uid);
           if (isMounted) {
             setUserData(data);

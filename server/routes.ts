@@ -717,6 +717,43 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // User synchronization endpoint
+  app.post('/api/sync-user', async (req, res) => {
+    try {
+      const { uid, email, firstName, lastName, companyName, displayName } = req.body;
+      
+      if (!uid || !email) {
+        return res.status(400).json({ error: 'uid and email are required' });
+      }
+
+      let user = await storage.getUser(uid);
+      if (!user) {
+        // Create user in PostgreSQL if not exists
+        const userData = {
+          uid,
+          email,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          companyName: companyName || '',
+          displayName: displayName || email,
+          trialStartDate: new Date(),
+          isSubscriber: false,
+          isSuspended: false,
+          isAdmin: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        user = await storage.createUser(userData);
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error('Error syncing user:', error);
+      res.status(500).json({ error: 'Failed to sync user' });
+    }
+  });
+
   // Stripe subscription endpoints
   
   // Create or retrieve subscription
@@ -729,8 +766,33 @@ export async function setupRoutes(app: Express) {
       }
 
       let user = await storage.getUser(uid);
+      console.log('Create subscription - looking for user:', uid, 'found:', !!user);
+      
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        console.log('User not found, creating new user with data:', { uid, email, firstName, lastName });
+        // Auto-create user if not exists
+        const userData = {
+          uid,
+          email,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          companyName: '',
+          displayName: `${firstName || ''} ${lastName || ''}`.trim() || email,
+          trialStartDate: new Date(),
+          isSubscriber: false,
+          isSuspended: false,
+          isAdmin: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        try {
+          user = await storage.createUser(userData);
+          console.log('User created successfully:', user);
+        } catch (createError) {
+          console.error('Error creating user:', createError);
+          return res.status(500).json({ error: 'Failed to create user' });
+        }
       }
 
       // If user already has a subscription, return existing subscription info
@@ -887,9 +949,34 @@ export async function setupRoutes(app: Express) {
         return res.status(400).json({ error: 'uid is required' });
       }
 
-      const user = await storage.getUser(uid);
+      let user = await storage.getUser(uid);
+      console.log('Subscription status - looking for user:', uid, 'found:', !!user);
+      
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        console.log('User not found in subscription status, creating minimal user');
+        // Auto-create user if not exists - this can happen during authentication
+        const userData = {
+          uid,
+          email: '', // Will be updated when more info is available
+          firstName: '',
+          lastName: '',
+          companyName: '',
+          displayName: 'User',
+          trialStartDate: new Date(),
+          isSubscriber: false,
+          isSuspended: false,
+          isAdmin: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        try {
+          user = await storage.createUser(userData);
+          console.log('Minimal user created successfully:', user);
+        } catch (createError) {
+          console.error('Error creating minimal user:', createError);
+          return res.status(500).json({ error: 'Failed to create user' });
+        }
       }
 
       let subscriptionInfo = {
