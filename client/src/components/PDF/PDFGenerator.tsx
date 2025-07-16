@@ -25,7 +25,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
-      console.log('Statement customer ID:', document.customerId);
+      console.log('Statement document:', { customerId: document.customerId, customerName: document.customerName, startDate: document.startDate, endDate: document.endDate });
       console.log('All invoices:', allInvoices.map(inv => ({ id: inv.id, customerId: inv.customerId, customerName: inv.customerName, status: inv.status, date: inv.date })));
       
       unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
@@ -41,7 +41,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         
         const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEndOfDay;
         
-        console.log(`Invoice ${invoice.number}: customer=${customerMatch} (${invoice.customerId} === ${document.customerId}), status=${statusMatch} (${invoice.status}), date=${dateMatch} (${invoiceDate.toDateString()} >= ${statementStart.toDateString()} && <= ${statementEnd.toDateString()})`);
+        console.log(`Invoice ${invoice.number}: customer=${customerMatch} (${invoice.customerId} === ${document.customerId}), status=${statusMatch} (${invoice.status}), date=${dateMatch} (${invoiceDate.toISOString()} >= ${statementStart.toISOString()} && <= ${statementEndOfDay.toISOString()})`);
         
         return customerMatch && statusMatch && dateMatch;
       });
