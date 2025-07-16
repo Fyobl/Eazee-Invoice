@@ -237,6 +237,12 @@ export const Subscribe = () => {
           description: data.message,
         });
         fetchSubscriptionStatus();
+        
+        // Force a page refresh to update the auth context immediately
+        // This will cause the user to be redirected to the subscription warning page
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         throw new Error(data.error || 'Failed to cancel subscription');
       }

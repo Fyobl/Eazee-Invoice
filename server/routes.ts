@@ -1110,19 +1110,26 @@ export async function setupRoutes(app: Express) {
         return res.status(404).json({ error: 'No subscription found' });
       }
 
+      // Cancel the subscription immediately on Stripe
       const subscription = await stripe.subscriptions.update(user.stripeSubscriptionId, {
         cancel_at_period_end: true
       });
 
-      await storage.updateUserSubscriptionStatus(
-        uid,
-        subscription.status,
-        new Date(subscription.current_period_end * 1000)
-      );
+      // Immediately revoke access by setting subscription status to cancelled and isSubscriber to false
+      await executeWithRetry(async () => {
+        await db.update(users)
+          .set({ 
+            isSubscriber: false,
+            subscriptionStatus: 'cancelled',
+            subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            updatedAt: new Date()
+          })
+          .where(eq(users.uid, uid));
+      });
 
       res.json({ 
         success: true, 
-        message: 'Subscription will be canceled at the end of the current period',
+        message: 'Subscription has been cancelled. Access has been revoked immediately.',
         cancelAt: new Date(subscription.current_period_end * 1000)
       });
     } catch (error) {

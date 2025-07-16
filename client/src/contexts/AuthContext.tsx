@@ -143,8 +143,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
-  // Check if user has active subscription based on current time
+  // Check if user has active subscription based on current time and status
   const hasActiveSubscription = userData ? (
+    userData.isSubscriber && 
+    userData.subscriptionStatus !== 'cancelled' && 
     userData.subscriptionCurrentPeriodEnd && 
     new Date(userData.subscriptionCurrentPeriodEnd) > new Date()
   ) : false;
