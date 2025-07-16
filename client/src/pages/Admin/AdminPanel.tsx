@@ -21,7 +21,7 @@ export const AdminPanel = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [createUserDialog, setCreateUserDialog] = useState(false);
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [subscriptionDuration, setSubscriptionDuration] = useState('1');
   const [newUserData, setNewUserData] = useState({
     firstName: '',
@@ -96,30 +96,30 @@ export const AdminPanel = () => {
     }
   });
 
-  const filteredUsers = users?.filter((user: User) => {
+  const filteredUsers = users?.filter((user: any) => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     let matchesStatus = true;
     if (statusFilter === 'trial') {
-      matchesStatus = !user.isSubscriber && !user.isSuspended;
+      matchesStatus = !user.is_subscriber && !user.is_suspended;
     } else if (statusFilter === 'subscriber') {
-      matchesStatus = user.isSubscriber;
+      matchesStatus = user.is_subscriber;
     } else if (statusFilter === 'suspended') {
-      matchesStatus = user.isSuspended;
+      matchesStatus = user.is_suspended;
     }
     
     return matchesSearch && matchesStatus;
   });
 
   const totalUsers = users?.length || 0;
-  const activeTrials = users?.filter((user: User) => !user.isSubscriber && !user.isSuspended).length || 0;
-  const subscribers = users?.filter((user: User) => user.isSubscriber).length || 0;
-  const suspendedUsers = users?.filter((user: User) => user.isSuspended).length || 0;
+  const activeTrials = users?.filter((user: any) => !user.is_subscriber && !user.is_suspended).length || 0;
+  const subscribers = users?.filter((user: any) => user.is_subscriber).length || 0;
+  const suspendedUsers = users?.filter((user: any) => user.is_suspended).length || 0;
   const mockRevenue = subscribers * 29; // Assuming £29/month
 
-  const handleGrantSubscription = async (user: User) => {
+  const handleGrantSubscription = async (user: any) => {
     setSelectedUser(user);
     setSubscriptionDialog(true);
   };
@@ -133,9 +133,9 @@ export const AdminPanel = () => {
     await updateUserMutation.mutateAsync({
       userId: selectedUser.uid,
       data: {
-        isSubscriber: true,
-        isSuspended: false,
-        subscriptionEndDate: subscriptionEndDate.toISOString()
+        is_subscriber: true,
+        is_suspended: false,
+        subscription_end_date: subscriptionEndDate.toISOString()
       }
     });
     
@@ -146,60 +146,64 @@ export const AdminPanel = () => {
   const handleRevokeSubscription = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { isSubscriber: false, subscriptionEndDate: null }
+      data: { is_subscriber: false, subscription_end_date: null }
     });
   };
 
   const handleSuspendUser = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { isSuspended: true }
+      data: { is_suspended: true }
     });
   };
 
   const handleUnsuspendUser = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { isSuspended: false }
+      data: { is_suspended: false }
     });
   };
 
   const handleCreateUser = async () => {
     await createUserMutation.mutateAsync({
-      ...newUserData,
       uid: `user_${Date.now()}`,
-      isSubscriber: false,
-      isSuspended: false,
-      isAdmin: false,
-      trialStartDate: new Date().toISOString()
+      email: newUserData.email,
+      first_name: newUserData.firstName,
+      last_name: newUserData.lastName,
+      company_name: newUserData.companyName,
+      display_name: `${newUserData.firstName} ${newUserData.lastName}`,
+      is_subscriber: false,
+      is_suspended: false,
+      is_admin: false,
+      trial_start_date: new Date().toISOString()
     });
   };
 
-  const getUserStatus = (user: User) => {
-    if (user.isSuspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
-    if (user.isSubscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+  const getUserStatus = (user: any) => {
+    if (user.is_suspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+    if (user.is_subscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
     return { text: 'Trial', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' };
   };
 
-  const getTrialEndDate = (user: User) => {
-    if (user.isSubscriber) return 'N/A';
-    if (user.isSuspended) return 'Suspended';
+  const getTrialEndDate = (user: any) => {
+    if (user.is_subscriber) return 'N/A';
+    if (user.is_suspended) return 'Suspended';
     
-    const trialStart = new Date(user.trialStartDate);
+    const trialStart = new Date(user.trial_start_date);
     const trialEnd = new Date(trialStart.getTime() + (7 * 24 * 60 * 60 * 1000));
     return trialEnd.toLocaleDateString();
   };
 
-  const getInitials = (user: User) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  const getInitials = (user: any) => {
+    if (user.first_name && user.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
     }
     return user.email.substring(0, 2).toUpperCase();
   };
 
-  const getUserDisplayName = (user: User) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+  const getUserDisplayName = (user: any) => {
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
     }
     return user.email;
   };
@@ -290,7 +294,7 @@ export const AdminPanel = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers?.map((user: User) => {
+                {filteredUsers?.map((user: any) => {
                   const status = getUserStatus(user);
                   return (
                     <TableRow key={user.uid}>
@@ -315,7 +319,7 @@ export const AdminPanel = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-slate-900 dark:text-slate-100">
-                        {new Date(user.trialStartDate).toLocaleDateString()}
+                        {new Date(user.trial_start_date).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-slate-900 dark:text-slate-100">
                         {getTrialEndDate(user)}
@@ -328,19 +332,19 @@ export const AdminPanel = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {!user.isSubscriber && (
+                            {!user.is_subscriber && (
                               <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
                                 <Shield className="h-4 w-4 mr-2" />
                                 Grant Subscription
                               </DropdownMenuItem>
                             )}
-                            {user.isSubscriber && (
+                            {user.is_subscriber && (
                               <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
                                 <Ban className="h-4 w-4 mr-2" />
                                 Revoke Subscription
                               </DropdownMenuItem>
                             )}
-                            {!user.isSuspended ? (
+                            {!user.is_suspended ? (
                               <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
                                 <Ban className="h-4 w-4 mr-2" />
                                 Suspend User
