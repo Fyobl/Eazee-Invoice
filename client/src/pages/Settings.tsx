@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useDatabase } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
+import { Progress } from '@/components/ui/progress';
 import { Upload, Image, X } from 'lucide-react';
 import { User } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -35,6 +36,7 @@ export const Settings = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,18 +97,28 @@ export const Settings = () => {
     if (!logoFile || !currentUser) return;
 
     setLogoUploading(true);
+    setUploadProgress(0);
     setError(null);
 
     try {
+      // Simulate progress during file reading
+      setUploadProgress(10);
+      
       // Convert file to base64 for database storage
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
+        reader.onload = () => {
+          setUploadProgress(50);
+          resolve(reader.result as string);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(logoFile);
       });
 
       const base64Data = await base64Promise;
+      
+      // Simulate progress during upload
+      setUploadProgress(70);
       
       // Update user record with logo data
       const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
@@ -117,7 +129,10 @@ export const Settings = () => {
         throw new Error('Failed to update logo');
       }
       
+      setUploadProgress(90);
       await refreshUser();
+      setUploadProgress(100);
+      
       setSuccess('Logo uploaded successfully!');
       setLogoFile(null);
       if (fileInputRef.current) {
@@ -127,6 +142,7 @@ export const Settings = () => {
       setError('Failed to upload logo');
     } finally {
       setLogoUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -134,9 +150,12 @@ export const Settings = () => {
     if (!currentUser?.companyLogo) return;
 
     setLogoUploading(true);
+    setUploadProgress(0);
     setError(null);
 
     try {
+      setUploadProgress(30);
+      
       const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
         companyLogo: null
       });
@@ -145,13 +164,17 @@ export const Settings = () => {
         throw new Error('Failed to remove logo');
       }
       
+      setUploadProgress(70);
       await refreshUser();
+      setUploadProgress(100);
+      
       setLogoPreview(null);
       setSuccess('Logo removed successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove logo');
     } finally {
       setLogoUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -251,39 +274,52 @@ export const Settings = () => {
                           className="hidden"
                         />
                         
-                        <div className="flex gap-2">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={logoUploading}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {logoFile ? 'Change Logo' : 'Upload Logo'}
-                          </Button>
-                          
-                          {logoFile && (
-                            <Button 
-                              type="button" 
-                              onClick={handleLogoUpload}
-                              disabled={logoUploading}
-                              size="sm"
-                            >
-                              {logoUploading ? 'Uploading...' : 'Save'}
-                            </Button>
-                          )}
-                          
-                          {logoPreview && !logoFile && (
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
                             <Button 
                               type="button" 
                               variant="outline" 
-                              size="sm"
-                              onClick={handleLogoRemove}
+                              onClick={() => fileInputRef.current?.click()}
                               disabled={logoUploading}
                             >
-                              <X className="h-4 w-4 mr-2" />
-                              Remove
+                              <Upload className="h-4 w-4 mr-2" />
+                              {logoFile ? 'Change Logo' : 'Upload Logo'}
                             </Button>
+                            
+                            {logoFile && (
+                              <Button 
+                                type="button" 
+                                onClick={handleLogoUpload}
+                                disabled={logoUploading}
+                                size="sm"
+                              >
+                                {logoUploading ? 'Uploading...' : 'Save'}
+                              </Button>
+                            )}
+                            
+                            {logoPreview && !logoFile && (
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleLogoRemove}
+                                disabled={logoUploading}
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          {logoUploading && (
+                            <div className="w-full max-w-xs">
+                              <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300 mb-2">
+                                <span>{uploadProgress < 100 ? 'Uploading...' : 'Complete!'}</span>
+                                <span>{uploadProgress}%</span>
+                              </div>
+                              <Progress value={uploadProgress} className="h-2" />
+                            </div>
                           )}
                         </div>
                       </div>
