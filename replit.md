@@ -176,6 +176,8 @@ The application is designed to be easily extensible with additional features lik
 - **Enhanced Bill To Positioning**: Further refined "Bill To" section positioning to the far right of PDF documents with improved spacing
 - **Customer List UX Enhancement**: Transformed customer list to hide address column and make customer rows clickable for popup detail views
 - **Customer Details Dialog**: Implemented modal popup showing comprehensive customer information including name, email, phone, and address with action buttons
+- **404 Error Fix**: Added missing edit routes for all document types (customers, products, invoices, quotes, statements) to resolve navigation errors
+- **Dark Mode 404 Page**: Updated 404 not found page with proper dark mode text colors for better visibility
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
