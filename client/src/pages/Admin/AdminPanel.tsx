@@ -98,25 +98,25 @@ export const AdminPanel = () => {
 
   const filteredUsers = users?.filter((user: any) => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
     
     let matchesStatus = true;
     if (statusFilter === 'trial') {
-      matchesStatus = !user.is_subscriber && !user.is_suspended;
+      matchesStatus = !user.isSubscriber && !user.isSuspended;
     } else if (statusFilter === 'subscriber') {
-      matchesStatus = user.is_subscriber;
+      matchesStatus = user.isSubscriber;
     } else if (statusFilter === 'suspended') {
-      matchesStatus = user.is_suspended;
+      matchesStatus = user.isSuspended;
     }
     
     return matchesSearch && matchesStatus;
   });
 
   const totalUsers = users?.length || 0;
-  const activeTrials = users?.filter((user: any) => !user.is_subscriber && !user.is_suspended).length || 0;
-  const subscribers = users?.filter((user: any) => user.is_subscriber).length || 0;
-  const suspendedUsers = users?.filter((user: any) => user.is_suspended).length || 0;
+  const activeTrials = users?.filter((user: any) => !user.isSubscriber && !user.isSuspended).length || 0;
+  const subscribers = users?.filter((user: any) => user.isSubscriber).length || 0;
+  const suspendedUsers = users?.filter((user: any) => user.isSuspended).length || 0;
   const mockRevenue = subscribers * 29; // Assuming £29/month
 
   const handleGrantSubscription = async (user: any) => {
@@ -133,9 +133,9 @@ export const AdminPanel = () => {
     await updateUserMutation.mutateAsync({
       userId: selectedUser.uid,
       data: {
-        is_subscriber: true,
-        is_suspended: false,
-        subscription_end_date: subscriptionEndDate.toISOString()
+        isSubscriber: true,
+        isSuspended: false,
+        subscriptionEndDate: subscriptionEndDate.toISOString()
       }
     });
     
@@ -146,21 +146,21 @@ export const AdminPanel = () => {
   const handleRevokeSubscription = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { is_subscriber: false, subscription_end_date: null }
+      data: { isSubscriber: false, subscriptionEndDate: null }
     });
   };
 
   const handleSuspendUser = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { is_suspended: true }
+      data: { isSuspended: true }
     });
   };
 
   const handleUnsuspendUser = async (userId: string) => {
     await updateUserMutation.mutateAsync({
       userId,
-      data: { is_suspended: false }
+      data: { isSuspended: false }
     });
   };
 
@@ -168,42 +168,42 @@ export const AdminPanel = () => {
     await createUserMutation.mutateAsync({
       uid: `user_${Date.now()}`,
       email: newUserData.email,
-      first_name: newUserData.firstName,
-      last_name: newUserData.lastName,
-      company_name: newUserData.companyName,
-      display_name: `${newUserData.firstName} ${newUserData.lastName}`,
-      is_subscriber: false,
-      is_suspended: false,
-      is_admin: false,
-      trial_start_date: new Date().toISOString()
+      firstName: newUserData.firstName,
+      lastName: newUserData.lastName,
+      companyName: newUserData.companyName,
+      displayName: `${newUserData.firstName} ${newUserData.lastName}`,
+      isSubscriber: false,
+      isSuspended: false,
+      isAdmin: false,
+      trialStartDate: new Date().toISOString()
     });
   };
 
   const getUserStatus = (user: any) => {
-    if (user.is_suspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
-    if (user.is_subscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+    if (user.isSuspended) return { text: 'Suspended', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+    if (user.isSubscriber) return { text: 'Subscriber', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
     return { text: 'Trial', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' };
   };
 
   const getTrialEndDate = (user: any) => {
-    if (user.is_subscriber) return 'N/A';
-    if (user.is_suspended) return 'Suspended';
+    if (user.isSubscriber) return 'N/A';
+    if (user.isSuspended) return 'Suspended';
     
-    const trialStart = new Date(user.trial_start_date);
+    const trialStart = new Date(user.trialStartDate);
     const trialEnd = new Date(trialStart.getTime() + (7 * 24 * 60 * 60 * 1000));
     return trialEnd.toLocaleDateString();
   };
 
   const getInitials = (user: any) => {
-    if (user.first_name && user.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+    if (user.firstName && user.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     }
     return user.email.substring(0, 2).toUpperCase();
   };
 
   const getUserDisplayName = (user: any) => {
-    if (user.first_name && user.last_name) {
-      return `${user.first_name} ${user.last_name}`;
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
     }
     return user.email;
   };
@@ -319,7 +319,7 @@ export const AdminPanel = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-slate-900 dark:text-slate-100">
-                        {new Date(user.trial_start_date).toLocaleDateString()}
+                        {new Date(user.trialStartDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-slate-900 dark:text-slate-100">
                         {getTrialEndDate(user)}
@@ -332,19 +332,19 @@ export const AdminPanel = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {!user.is_subscriber && (
+                            {!user.isSubscriber && (
                               <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
                                 <Shield className="h-4 w-4 mr-2" />
                                 Grant Subscription
                               </DropdownMenuItem>
                             )}
-                            {user.is_subscriber && (
+                            {user.isSubscriber && (
                               <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
                                 <Ban className="h-4 w-4 mr-2" />
                                 Revoke Subscription
                               </DropdownMenuItem>
                             )}
-                            {!user.is_suspended ? (
+                            {!user.isSuspended ? (
                               <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
                                 <Ban className="h-4 w-4 mr-2" />
                                 Suspend User
