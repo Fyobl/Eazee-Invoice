@@ -6,8 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle, CreditCard, Shield, Clock, Users } from 'lucide-react';
+import { CheckCircle, CreditCard, Shield, Clock, Users, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout/Layout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // Initialize Stripe
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
@@ -289,13 +300,38 @@ export const Subscribe = () => {
               </div>
             )}
             <div className="pt-4 border-t">
-              <Button 
-                onClick={handleCancelSubscription}
-                variant="outline"
-                className="w-full"
-              >
-                Cancel Subscription
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Cancel Subscription
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      Cancel Subscription
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel your subscription? Your subscription will remain active until the end of the current billing period, after which you'll lose access to all Pro features.
+                      <br /><br />
+                      <strong>This action cannot be undone.</strong>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleCancelSubscription}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Yes, Cancel Subscription
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>
