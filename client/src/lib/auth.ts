@@ -123,9 +123,23 @@ export const getTrialDaysLeft = (user: AuthUser): number => {
   
   const trialStart = new Date(user.trialStartDate);
   const now = new Date();
-  const daysDiff = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
   
-  return Math.max(0, 7 - daysDiff);
+  // Calculate days passed since trial started
+  const daysPassed = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Trial is 7 days total, so days left = 7 - days passed
+  const daysLeft = Math.max(0, 7 - daysPassed);
+  
+  // Debug logging for the issue
+  console.log('Trial calculation debug:', {
+    trialStartDate: user.trialStartDate,
+    trialStart: trialStart.toISOString(),
+    now: now.toISOString(),
+    daysPassed,
+    daysLeft
+  });
+  
+  return daysLeft;
 };
 
 export const hasActiveSubscription = (user: AuthUser): boolean => {
