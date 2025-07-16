@@ -9,20 +9,28 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/hooks/useFirestore';
+import { useDatabase } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
-import { Plus, Trash2 } from 'lucide-react';
+import { FileText, Calendar } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { Statement, InvoiceItem } from '@shared/schema';
-import { formatCurrency } from '@/lib/currency';
+import { Statement } from '@shared/schema';
 
 const statementSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   date: z.string().min(1, 'Date is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
+  period: z.enum(['7', '30', 'custom'], { required_error: 'Period is required' }),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   notes: z.string().optional()
+}).refine((data) => {
+  if (data.period === 'custom') {
+    return data.startDate && data.endDate;
+  }
+  return true;
+}, {
+  message: 'Start and end dates are required for custom period',
+  path: ['startDate']
 });
 
 type StatementForm = z.infer<typeof statementSchema>;
@@ -30,62 +38,46 @@ type StatementForm = z.infer<typeof statementSchema>;
 export const StatementForm = () => {
   const [, setLocation] = useLocation();
   const { currentUser } = useAuth();
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { id: '1', description: '', quantity: 1, unitPrice: 0, taxRate: 0, amount: 0 }
-  ]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { documents: customers } = useFirestore('customers');
-  const { addDocument, loading } = useFirestore('statements');
+  const { data: customers } = useDatabase('customers');
+  const { add: addStatement, loading } = useDatabase('statements');
 
   const form = useForm<StatementForm>({
     resolver: zodResolver(statementSchema),
     defaultValues: {
       customerId: '',
       date: new Date().toISOString().split('T')[0],
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      period: '30',
+      startDate: '',
+      endDate: '',
       notes: ''
     }
   });
 
-  const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+  const watchedPeriod = form.watch('period');
+
+  // Calculate dates based on period selection
+  const calculateDates = (period: string) => {
+    const endDate = new Date();
+    let startDate = new Date();
     
-    if (field === 'quantity' || field === 'unitPrice' || field === 'taxRate') {
-      const item = newItems[index];
-      const subtotal = item.quantity * item.unitPrice;
-      const tax = subtotal * (item.taxRate / 100);
-      newItems[index].amount = subtotal + tax;
+    switch (period) {
+      case '7':
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case '30':
+        startDate.setDate(endDate.getDate() - 30);
+        break;
+      default:
+        return { startDate: '', endDate: '' };
     }
     
-    setItems(newItems);
-  };
-
-  const addItem = () => {
-    setItems([...items, { 
-      id: String(items.length + 1), 
-      description: '', 
-      quantity: 1, 
-      unitPrice: 0, 
-      taxRate: 0, 
-      amount: 0 
-    }]);
-  };
-
-  const removeItem = (index: number) => {
-    if (items.length > 1) {
-      setItems(items.filter((_, i) => i !== index));
-    }
-  };
-
-  const calculateTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    const taxAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice * item.taxRate / 100), 0);
-    const total = subtotal + taxAmount;
-    return { subtotal, taxAmount, total };
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    };
   };
 
   const onSubmit = async (data: StatementForm) => {
@@ -95,32 +87,37 @@ export const StatementForm = () => {
     setSuccess(null);
 
     try {
-      const selectedCustomer = customers?.find(c => c.id === data.customerId);
+      const selectedCustomer = customers?.find(c => c.id.toString() === data.customerId);
       if (!selectedCustomer) {
         setError('Selected customer not found');
         return;
       }
 
-      const { subtotal, taxAmount, total } = calculateTotals();
-      const statementNumber = `STM-${Date.now().toString().slice(-6)}`;
+      let startDate, endDate;
+      
+      if (data.period === 'custom') {
+        startDate = new Date(data.startDate!);
+        endDate = new Date(data.endDate!);
+      } else {
+        const dates = calculateDates(data.period);
+        startDate = new Date(dates.startDate);
+        endDate = new Date(dates.endDate);
+      }
 
       const statement: Partial<Statement> = {
         uid: currentUser.uid,
-        number: statementNumber,
+        // Server will generate the statement number automatically
         customerId: data.customerId,
         customerName: selectedCustomer.name,
         date: new Date(data.date),
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-        items,
-        subtotal,
-        taxAmount,
-        total,
-        notes: data.notes,
+        startDate,
+        endDate,
+        period: data.period,
+        notes: data.notes || '',
         isDeleted: false
       };
 
-      await addDocument(statement);
+      await addStatement(statement);
       setSuccess('Statement created successfully!');
       
       setTimeout(() => {
@@ -130,8 +127,6 @@ export const StatementForm = () => {
       setError(err instanceof Error ? err.message : 'Failed to create statement');
     }
   };
-
-  const { subtotal, taxAmount, total } = calculateTotals();
 
   return (
     <Layout title="Create Statement">
@@ -152,7 +147,10 @@ export const StatementForm = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Statement Details</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Statement Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -170,7 +168,7 @@ export const StatementForm = () => {
                           </FormControl>
                           <SelectContent>
                             {customers?.map((customer) => (
-                              <SelectItem key={customer.id} value={customer.id}>
+                              <SelectItem key={customer.id} value={customer.id.toString()}>
                                 {customer.name}
                               </SelectItem>
                             ))}
@@ -196,137 +194,72 @@ export const StatementForm = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Period Start</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="period"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Statement Period
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select period" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Period End</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                        <SelectContent>
+                          <SelectItem value="7">Last 7 days</SelectItem>
+                          <SelectItem value="30">Last 30 days</SelectItem>
+                          <SelectItem value="custom">Custom period</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Items</CardTitle>
-                  <Button type="button" onClick={addItem}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">Description</label>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateItem(index, 'description', e.target.value)}
-                          placeholder="Item description"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Quantity</label>
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Unit Price</label>
-                        <Input
-                          type="number"
-                          value={item.unitPrice}
-                          onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Tax Rate (%)</label>
-                        <Input
-                          type="number"
-                          value={item.taxRate}
-                          onChange={(e) => updateItem(index, 'taxRate', parseFloat(e.target.value) || 0)}
-                          min="0"
-                          max="100"
-                          step="0.1"
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">Amount</label>
-                          <Input
-                            value={formatCurrency(item.amount, 'GBP')}
-                            readOnly
-                            className="bg-gray-50"
-                          />
-                        </div>
-                        {items.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeItem(index)}
-                            className="ml-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                {watchedPeriod === 'custom' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Period Start</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Period End</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Totals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-right">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>{formatCurrency(subtotal, 'GBP')}</span>
+                {watchedPeriod !== 'custom' && (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      This statement will include all invoices and transactions for the customer 
+                      from the last {watchedPeriod} days.
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Tax:</span>
-                    <span>{formatCurrency(taxAmount, 'GBP')}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span>{formatCurrency(total, 'GBP')}</span>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -342,7 +275,7 @@ export const StatementForm = () => {
                     <FormItem>
                       <FormControl>
                         <Textarea
-                          placeholder="Add any notes..."
+                          placeholder="Add any notes for this statement..."
                           className="min-h-[100px]"
                           {...field}
                         />

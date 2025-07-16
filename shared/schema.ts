@@ -103,10 +103,7 @@ export const statements = pgTable('statements', {
   date: timestamp('date').notNull(),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
-  items: jsonb('items').notNull(),
-  subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
-  taxAmount: decimal('tax_amount', { precision: 10, scale: 2 }).notNull(),
-  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  period: text('period').notNull(), // '7', '30', or 'custom'
   notes: text('notes'),
   isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),

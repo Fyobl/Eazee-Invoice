@@ -140,6 +140,31 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           font-size: 12px;
           margin-top: 40px;
         }
+        .statement-content {
+          margin: 30px 0;
+          padding: 20px;
+          background-color: #f8fafc;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+        .statement-content h3 {
+          margin: 0 0 15px 0;
+          color: #1e293b;
+          font-size: 18px;
+        }
+        .statement-content p {
+          margin: 10px 0;
+          line-height: 1.6;
+        }
+        .statement-placeholder {
+          padding: 20px;
+          background-color: #ffffff;
+          border-radius: 4px;
+          border: 1px dashed #cbd5e1;
+          margin-top: 20px;
+          text-align: center;
+          color: #64748b;
+        }
         @media print {
           body { margin: 0; padding: 15px; }
           .header { page-break-inside: avoid; }
@@ -165,6 +190,7 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         <strong>Date:</strong> ${new Date(document.date).toLocaleDateString()}<br>
         ${type === 'quote' && 'validUntil' in document ? `<strong>Valid Until:</strong> ${new Date(document.validUntil).toLocaleDateString()}<br>` : ''}
         ${type === 'invoice' && 'dueDate' in document ? `<strong>Due Date:</strong> ${new Date(document.dueDate).toLocaleDateString()}<br>` : ''}
+        ${type === 'statement' && 'startDate' in document && 'endDate' in document ? `<strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}<br>` : ''}
       </div>
       
       <div class="customer-info">
@@ -172,45 +198,57 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         ${document.customerName}
       </div>
       
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Quantity</th>
-            <th>Unit Price</th>
-            <th>Tax Rate</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${document.items.map(item => `
+      ${type === 'statement' ? `
+        <div class="statement-content">
+          <h3>Customer Statement</h3>
+          <p>This statement shows all transactions for the selected period.</p>
+          <p><strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}</p>
+          <p><strong>Statement Type:</strong> ${document.period === '7' ? 'Weekly' : document.period === '30' ? 'Monthly' : 'Custom Period'}</p>
+          <div class="statement-placeholder">
+            <p>Statement details will be populated based on invoices and transactions within this period.</p>
+          </div>
+        </div>
+      ` : `
+        <table class="table">
+          <thead>
             <tr>
-              <td>${item.description}</td>
-              <td>${item.quantity}</td>
-              <td>${formatPrice(item.unitPrice)}</td>
-              <td>${item.taxRate}%</td>
-              <td>${formatPrice(item.amount)}</td>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Tax Rate</th>
+              <th>Amount</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      
-      <div class="totals">
-        <table class="totals-table">
-          <tr>
-            <td class="label">Subtotal:</td>
-            <td class="amount">${formatPrice(document.subtotal)}</td>
-          </tr>
-          <tr>
-            <td class="label">Tax:</td>
-            <td class="amount">${formatPrice(document.taxAmount)}</td>
-          </tr>
-          <tr class="total-row">
-            <td class="label">Total:</td>
-            <td class="amount">${formatPrice(document.total)}</td>
-          </tr>
+          </thead>
+          <tbody>
+            ${document.items.map(item => `
+              <tr>
+                <td>${item.description}</td>
+                <td>${item.quantity}</td>
+                <td>${formatPrice(item.unitPrice)}</td>
+                <td>${item.taxRate}%</td>
+                <td>${formatPrice(item.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
         </table>
-      </div>
+        
+        <div class="totals">
+          <table class="totals-table">
+            <tr>
+              <td class="label">Subtotal:</td>
+              <td class="amount">${formatPrice(document.subtotal)}</td>
+            </tr>
+            <tr>
+              <td class="label">Tax:</td>
+              <td class="amount">${formatPrice(document.taxAmount)}</td>
+            </tr>
+            <tr class="total-row">
+              <td class="label">Total:</td>
+              <td class="amount">${formatPrice(document.total)}</td>
+            </tr>
+          </table>
+        </div>
+      `}
       
       ${document.notes ? `<div class="notes"><strong>Notes:</strong><br>${document.notes}</div>` : ''}
       

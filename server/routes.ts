@@ -365,9 +365,41 @@ export async function setupRoutes(app: Express) {
 
   app.post('/api/statements', async (req, res) => {
     try {
-      const [statement] = await db.insert(statements).values(req.body).returning();
+      console.log('Creating statement with data:', req.body);
+      
+      // Generate statement number
+      const existingStatements = await db.select({ number: statements.number })
+        .from(statements)
+        .where(eq(statements.uid, req.body.uid))
+        .orderBy(desc(statements.createdAt));
+      
+      // Find the highest number >= 100000 for this user
+      let nextNumber = 100000;
+      if (existingStatements.length > 0) {
+        for (const stmt of existingStatements) {
+          if (stmt.number && stmt.number.startsWith('STM-')) {
+            const numberPart = parseInt(stmt.number.substring(4));
+            if (numberPart >= 100000 && numberPart >= nextNumber) {
+              nextNumber = numberPart + 1;
+            }
+          }
+        }
+      }
+      
+      const statementNumber = `STM-${nextNumber}`;
+      
+      const statementData = {
+        ...req.body,
+        number: statementNumber,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const [statement] = await db.insert(statements).values(statementData).returning();
+      console.log('Statement created successfully:', statement);
       res.json(statement);
     } catch (error) {
+      console.error('Error creating statement:', error);
       res.status(500).json({ error: 'Failed to create statement' });
     }
   });
