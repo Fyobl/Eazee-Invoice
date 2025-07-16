@@ -94,6 +94,12 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/customers/:id/edit">
+        <ProtectedRoute>
+          <CustomerForm />
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/products">
         <ProtectedRoute>
           <ProductList />
@@ -103,6 +109,30 @@ function Router() {
       <Route path="/products/new">
         <ProtectedRoute>
           <ProductForm />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/products/:id/edit">
+        <ProtectedRoute>
+          <ProductForm />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/invoices/:id/edit">
+        <ProtectedRoute>
+          <InvoiceForm />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/quotes/:id/edit">
+        <ProtectedRoute>
+          <QuoteForm />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/statements/:id/edit">
+        <ProtectedRoute>
+          <StatementForm />
         </ProtectedRoute>
       </Route>
       
