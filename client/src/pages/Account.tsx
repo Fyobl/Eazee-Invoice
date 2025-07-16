@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { changePassword, deleteAccount } from '@/lib/auth';
-import { Clock, Crown, AlertTriangle } from 'lucide-react';
+import { Clock, Crown, AlertTriangle, User } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -30,16 +32,24 @@ const deleteAccountSchema = z.object({
   path: ["confirmPassword"]
 });
 
+const personalInfoSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters'),
+  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name must be less than 50 characters')
+});
+
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteAccountForm = z.infer<typeof deleteAccountSchema>;
+type PersonalInfoForm = z.infer<typeof personalInfoSchema>;
 
 export const Account = () => {
   const [, setLocation] = useLocation();
-  const { userData, trialDaysLeft } = useAuth();
+  const { userData, trialDaysLeft, currentUser } = useAuth();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [personalInfoLoading, setPersonalInfoLoading] = useState(false);
 
   const passwordForm = useForm<PasswordForm>({
     resolver: zodResolver(passwordSchema),
@@ -57,6 +67,22 @@ export const Account = () => {
       confirmPassword: ''
     }
   });
+
+  const personalInfoForm = useForm<PersonalInfoForm>({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: {
+      firstName: userData?.firstName || '',
+      lastName: userData?.lastName || ''
+    }
+  });
+
+  // Update form when userData changes
+  useEffect(() => {
+    if (userData) {
+      personalInfoForm.setValue('firstName', userData.firstName || '');
+      personalInfoForm.setValue('lastName', userData.lastName || '');
+    }
+  }, [userData, personalInfoForm]);
 
   const onPasswordSubmit = async (data: PasswordForm) => {
     setError(null);
@@ -86,6 +112,33 @@ export const Account = () => {
       setError(err instanceof Error ? err.message : 'Failed to delete account');
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const onPersonalInfoSubmit = async (data: PersonalInfoForm) => {
+    if (!currentUser) return;
+    
+    setPersonalInfoLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
+        firstName: data.firstName,
+        lastName: data.lastName
+      });
+      
+      toast({
+        title: "Success",
+        description: "Your personal information has been updated successfully!"
+      });
+      
+      // The auth context will sync automatically to get the updated user data
+      window.location.reload(); // Simple refresh to get updated data
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update personal information');
+    } finally {
+      setPersonalInfoLoading(false);
     }
   };
 
@@ -159,6 +212,53 @@ export const Account = () => {
           </CardHeader>
           <CardContent>
             {getSubscriptionStatus()}
+          </CardContent>
+        </Card>
+
+        {/* Personal Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>Personal Information</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...personalInfoForm}>
+              <form onSubmit={personalInfoForm.handleSubmit(onPersonalInfoSubmit)} className="space-y-4 max-w-md">
+                <FormField
+                  control={personalInfoForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your first name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={personalInfoForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your last name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" disabled={personalInfoLoading}>
+                  {personalInfoLoading ? 'Updating...' : 'Update Personal Information'}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 

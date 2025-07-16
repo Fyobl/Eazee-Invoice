@@ -287,6 +287,13 @@ The application is designed to be easily extensible with additional features lik
 - **API Date Handling Fix**: Fixed user update API to properly handle date string conversions for timestamp fields
 - **Ben Smith Permanent Subscription**: Applied permanent subscription to Ben Smith (expires 2099-12-31) through admin panel functionality
 
+### January 16, 2025 - Account Management Enhancement
+- **Personal Information Update**: Added ability for users to update their first name and last name in Account settings
+- **Enhanced Account Page**: Added new "Personal Information" section with form validation and user-friendly interface
+- **Real-time Updates**: Form automatically updates when user data changes and provides success feedback via toast notifications
+- **API Integration**: Connected to existing user update endpoint for seamless data persistence
+- **UI Improvements**: Added User icon and professional styling to match existing account sections
+
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
 - **GitHub Integration**: Created comprehensive GitHub setup guide and documentation
