@@ -774,7 +774,7 @@ export async function setupRoutes(app: Express) {
               name: 'Eazee Invoice Pro',
               description: 'Monthly subscription to Eazee Invoice Pro'
             },
-            unit_amount: 997, // £9.97 in pence
+            unit_amount: 1999, // £19.99 in pence
             recurring: {
               interval: 'month'
             }

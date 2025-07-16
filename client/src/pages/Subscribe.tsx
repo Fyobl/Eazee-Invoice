@@ -54,7 +54,7 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
         className="w-full"
         size="lg"
       >
-        {isLoading ? 'Processing...' : 'Subscribe to Pro - £9.97/month'}
+        {isLoading ? 'Processing...' : 'Subscribe to Pro - £19.99/month'}
       </Button>
     </form>
   );
@@ -190,7 +190,7 @@ export const Subscribe = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span>Plan:</span>
-              <Badge>Eazee Invoice Pro - £9.97/month</Badge>
+              <Badge>Eazee Invoice Pro - £19.99/month</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>Status:</span>
@@ -294,7 +294,7 @@ export const Subscribe = () => {
           <CardHeader>
             <CardTitle>Subscribe Now</CardTitle>
             <CardDescription>
-              Only £9.97/month - Cancel anytime
+              Only £19.99/month - Cancel anytime
             </CardDescription>
           </CardHeader>
           <CardContent>
