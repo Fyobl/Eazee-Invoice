@@ -245,13 +245,13 @@ export const QuoteList = () => {
     <Layout title="Quotes">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Quotes</h2>
             <p className="text-slate-600 dark:text-slate-400">Create and manage your quotes</p>
           </div>
-          <Link href="/quotes/new">
-            <Button>
+          <Link href="/quotes/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               New Quote
             </Button>

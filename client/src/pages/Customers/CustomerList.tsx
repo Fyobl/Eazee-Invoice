@@ -195,17 +195,17 @@ export const CustomerList = () => {
     <Layout title="Customers">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Customers</h2>
             <p className="text-slate-600 dark:text-slate-400">Manage your customer database</p>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={downloadCustomerTemplate}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={downloadCustomerTemplate} className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
               Download Template
             </Button>
-            <Button variant="outline" onClick={() => document.getElementById('customer-csv-upload')?.click()}>
+            <Button variant="outline" onClick={() => document.getElementById('customer-csv-upload')?.click()} className="w-full sm:w-auto">
               <Upload className="h-4 w-4 mr-2" />
               Upload CSV
             </Button>
@@ -216,8 +216,8 @@ export const CustomerList = () => {
               onChange={handleCustomerCSVUpload}
               className="hidden"
             />
-            <Link href="/customers/new">
-              <Button>
+            <Link href="/customers/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Customer
               </Button>
