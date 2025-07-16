@@ -551,7 +551,19 @@ export async function setupRoutes(app: Express) {
 
   app.post('/api/users', async (req, res) => {
     try {
-      const [user] = await db.insert(users).values(req.body).returning();
+      const userData = {
+        ...req.body,
+        trialStartDate: new Date(req.body.trialStartDate),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Handle subscriptionEndDate if provided
+      if (req.body.subscriptionEndDate) {
+        userData.subscriptionEndDate = new Date(req.body.subscriptionEndDate);
+      }
+      
+      const [user] = await db.insert(users).values(userData).returning();
       res.json(user);
     } catch (error) {
       console.error('Error creating user:', error);
