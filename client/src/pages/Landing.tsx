@@ -11,6 +11,13 @@ export const Landing = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
+  const scrollToFeatures = () => {
+    const featuresSection = document.getElementById('features-section');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const features = [
     {
       icon: FileText,
@@ -68,7 +75,7 @@ export const Landing = () => {
               <Button size="lg" onClick={() => setShowRegister(true)}>
                 Start 7-Day Free Trial
               </Button>
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" onClick={scrollToFeatures}>
                 View Features
               </Button>
             </div>
@@ -108,7 +115,7 @@ export const Landing = () => {
       </section>
 
       {/* Additional Features Section */}
-      <section className="py-20 bg-white dark:bg-gray-900">
+      <section id="features-section" className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
