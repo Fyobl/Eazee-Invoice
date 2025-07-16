@@ -3,18 +3,84 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDatabase } from '@/hooks/useDatabase';
-import { FileText, Quote, FileBarChart, Users, Plus, TrendingUp } from 'lucide-react';
+import { FileText, Quote, FileBarChart, Users, Plus, TrendingUp, Sun, Cloud, CloudRain, Thermometer, Wind, Droplets } from 'lucide-react';
 import { Link } from 'wouter';
+import { useState, useEffect } from 'react';
 
 export const Dashboard = () => {
   const { userData } = useAuth();
   const { data: invoices } = useDatabase('invoices');
   const { data: quotes } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
+  const [weather, setWeather] = useState<any>(null);
+  const [location, setLocation] = useState<string>('');
+  const [weatherLoading, setWeatherLoading] = useState(true);
 
   const totalRevenue = invoices?.reduce((sum, invoice) => sum + parseFloat(invoice.total), 0) || 0;
 
+  // Weather functionality
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        // Get user's location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Get weather from Open-Meteo API (no API key required)
+            const weatherResponse = await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto`
+            );
+            const weatherData = await weatherResponse.json();
+            
+            // Get location name from reverse geocoding
+            const locationResponse = await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
+            );
+            
+            // For location name, we'll use a simple approach
+            setLocation('Current Location');
+            setWeather(weatherData);
+            setWeatherLoading(false);
+          }, (error) => {
+            console.error('Geolocation error:', error);
+            setWeatherLoading(false);
+          });
+        } else {
+          setWeatherLoading(false);
+        }
+      } catch (error) {
+        console.error('Weather fetch error:', error);
+        setWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
+  const getWeatherIcon = (weatherCode: number) => {
+    if (weatherCode === 0) return Sun; // Clear sky
+    if (weatherCode <= 3) return Cloud; // Partly cloudy
+    if (weatherCode <= 67) return CloudRain; // Rain
+    return Cloud; // Default
+  };
+
+  const getWeatherDescription = (weatherCode: number) => {
+    if (weatherCode === 0) return 'Clear';
+    if (weatherCode <= 3) return 'Partly Cloudy';
+    if (weatherCode <= 67) return 'Rainy';
+    return 'Cloudy';
+  };
+
   const stats = [
+    {
+      title: 'Welcome Back!',
+      value: userData?.firstName || userData?.displayName || 'User',
+      subtitle: "Here's what's happening with your business today.",
+      icon: Users,
+      color: 'text-blue-600 dark:text-blue-400',
+      type: 'welcome'
+    },
     {
       title: 'Total Invoices',
       value: invoices?.length || 0,
@@ -40,6 +106,16 @@ export const Dashboard = () => {
       color: 'text-green-600 dark:text-green-400'
     }
   ];
+
+  // Weather widget data
+  const weatherWidget = {
+    title: 'Local Weather',
+    loading: weatherLoading,
+    location: location,
+    weather: weather,
+    icon: weather ? getWeatherIcon(weather.current?.weather_code || 0) : Sun,
+    color: 'text-amber-600 dark:text-amber-400'
+  };
 
   const quickActions = [
     { label: 'Create New Invoice', href: '/invoices/new', icon: Plus },
@@ -102,34 +178,73 @@ export const Dashboard = () => {
 
   return (
     <Layout title="Dashboard">
-      {/* Welcome Section */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            Welcome back, {userData?.firstName || userData?.displayName || 'User'}!
-          </h2>
-          <p className="text-slate-600 dark:text-slate-200">Here's what's happening with your business today.</p>
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      {/* Enhanced Stats Grid with Welcome and Weather */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index}>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
-                    <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
+                {stat.type === 'welcome' ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
+                        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}!</p>
+                      </div>
+                      <Icon className={`h-8 w-8 ${stat.color}`} />
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{stat.subtitle}</p>
                   </div>
-                  <Icon className={`h-8 w-8 ${stat.color}`} />
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
+                      <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
+                    </div>
+                    <Icon className={`h-8 w-8 ${stat.color}`} />
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
+        
+        {/* Weather Widget */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{weatherWidget.title}</p>
+                {weatherWidget.loading ? (
+                  <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Loading...</p>
+                ) : weather ? (
+                  <div className="space-y-1">
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                      {Math.round(weather.current?.temperature_2m || 0)}°C
+                    </p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {getWeatherDescription(weather.current?.weather_code || 0)}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center">
+                        <Wind className="h-3 w-3 mr-1" />
+                        {Math.round(weather.current?.wind_speed_10m || 0)}km/h
+                      </div>
+                      <div className="flex items-center">
+                        <Droplets className="h-3 w-3 mr-1" />
+                        {Math.round(weather.current?.relative_humidity_2m || 0)}%
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Unavailable</p>
+                )}
+              </div>
+              <weatherWidget.icon className={`h-8 w-8 ${weatherWidget.color}`} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions & Recent Activity */}
