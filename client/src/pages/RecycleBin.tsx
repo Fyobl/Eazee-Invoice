@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
-import { RotateCcw, Trash2, Clock } from 'lucide-react';
+import { RotateCcw, Trash2, Clock, MoreHorizontal } from 'lucide-react';
 import { RecycleBinItem } from '@shared/schema';
 import { Banner } from '@/components/ui/banner';
 
@@ -132,11 +133,27 @@ export const RecycleBin = () => {
       case 'statement':
         return `Statement ${data.number}`;
       case 'customer':
-        return `Customer ${data.name}`;
+        return data.name;
       case 'product':
-        return `Product ${data.name}`;
+        return data.name;
       default:
         return 'Unknown item';
+    }
+  };
+
+  const getCustomerName = (item: RecycleBinItem) => {
+    const data = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
+    switch (item.type) {
+      case 'invoice':
+      case 'quote':
+      case 'statement':
+        return data.customerName || 'Unknown Customer';
+      case 'customer':
+        return data.name;
+      case 'product':
+        return 'N/A';
+      default:
+        return 'N/A';
     }
   };
 
@@ -196,6 +213,7 @@ export const RecycleBin = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Item</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Deleted</TableHead>
                     <TableHead>Time Left</TableHead>
@@ -208,6 +226,7 @@ export const RecycleBin = () => {
                     return (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{getItemName(item)}</TableCell>
+                        <TableCell>{getCustomerName(item)}</TableCell>
                         <TableCell>
                           <Badge className={getTypeColor(item.type)}>
                             {item.type}
@@ -223,23 +242,29 @@ export const RecycleBin = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRestore(item)}
-                              disabled={daysRemaining <= 0}
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handlePermanentDelete(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                onClick={() => handleRestore(item)}
+                                disabled={daysRemaining <= 0}
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                Restore Item
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handlePermanentDelete(item.id)}
+                                className="text-red-600 dark:text-red-400"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Permanently
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );
