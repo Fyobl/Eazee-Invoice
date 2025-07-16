@@ -153,11 +153,18 @@ export const Register = () => {
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500">
-              Sign in
-            </Link>
+          <div className="mt-4 text-center text-sm space-y-2">
+            <div>
+              <Link href="/" className="text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300">
+                ← Back to Home
+              </Link>
+            </div>
+            <div>
+              Already have an account?{' '}
+              <Link href="/login" className="text-blue-600 hover:text-blue-500">
+                Sign in
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
