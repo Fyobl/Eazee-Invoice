@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   subscriptionStatus: text('subscription_status'),
   subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
+  isAdminGrantedSubscription: boolean('is_admin_granted_subscription').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

@@ -15,6 +15,7 @@ export interface AuthUser {
   trialStartDate: Date;
   subscriptionStatus?: string;
   subscriptionCurrentPeriodEnd?: Date;
+  isAdminGrantedSubscription?: boolean;
 }
 
 export const registerUser = async (
@@ -141,6 +142,19 @@ export const hasActiveSubscription = (user: AuthUser): boolean => {
     const now = new Date();
     const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
     return periodEnd > now;
+  }
+  
+  return false;
+};
+
+export const isAdminGrantedSubscriptionExpired = (user: AuthUser): boolean => {
+  if (!user.isAdminGrantedSubscription) return false;
+  if (user.subscriptionStatus === 'cancelled') return false;
+  
+  if (user.subscriptionCurrentPeriodEnd) {
+    const now = new Date();
+    const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
+    return periodEnd <= now;
   }
   
   return false;

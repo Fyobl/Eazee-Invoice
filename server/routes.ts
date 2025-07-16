@@ -713,7 +713,10 @@ export async function setupRoutes(app: Express) {
       const updateData: any = {
         mustChangePassword: true  // Force password change for admin-created users
       };
-      if (isSubscriber) updateData.isSubscriber = isSubscriber;
+      if (isSubscriber) {
+        updateData.isSubscriber = isSubscriber;
+        updateData.isAdminGrantedSubscription = true;  // Mark as admin-granted subscription
+      }
       if (subscriptionEndDate) updateData.subscriptionCurrentPeriodEnd = new Date(subscriptionEndDate);
       
       const [updatedUser] = await db.update(users)
@@ -1233,6 +1236,7 @@ export async function setupRoutes(app: Express) {
             isSubscriber: true,
             subscriptionStatus: 'active',
             subscriptionCurrentPeriodEnd: currentPeriodEnd,
+            isAdminGrantedSubscription: false,  // Mark as paid subscription
             updatedAt: new Date()
           })
           .where(eq(users.uid, uid));

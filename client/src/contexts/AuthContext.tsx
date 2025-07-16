@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { AuthUser, getCurrentUser, hasAccess, hasActiveSubscription, checkTrialStatus, getTrialDaysLeft } from '@/lib/auth';
+import { AuthUser, getCurrentUser, hasAccess, hasActiveSubscription, checkTrialStatus, getTrialDaysLeft, isAdminGrantedSubscriptionExpired } from '@/lib/auth';
 
 interface AuthContextType {
   currentUser: AuthUser | null;
@@ -10,6 +10,7 @@ interface AuthContextType {
   trialDaysLeft: number;
   mustChangePassword: boolean;
   isSubscriber: boolean;
+  isAdminGrantedSubscriptionExpired: boolean;
   refreshUser: () => Promise<void>;
 }
 
@@ -78,6 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     trialDaysLeft: currentUser ? getTrialDaysLeft(currentUser) : 0,
     mustChangePassword: currentUser?.mustChangePassword || false,
     isSubscriber: currentUser ? hasActiveSubscription(currentUser) : false,
+    isAdminGrantedSubscriptionExpired: currentUser ? isAdminGrantedSubscriptionExpired(currentUser) : false,
     refreshUser,
   };
 

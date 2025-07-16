@@ -317,6 +317,16 @@ The application is designed to be easily extensible with additional features lik
 - **Self-Deletion Prevention**: Admins cannot delete their own accounts
 - **Admin User Creation Fix**: Fixed password hashing for users created through admin panel (default password: temp123456)
 
+### January 16, 2025 - Admin-Granted Subscription Expiration System
+- **Database Schema Enhancement**: Added `isAdminGrantedSubscription` field to distinguish between admin-granted and paid subscriptions
+- **Subscription Expiration Logic**: Implemented separate handling for admin-granted subscription expiration vs paid subscription expiration
+- **Payment Flow Redirection**: Users with expired admin-granted subscriptions are redirected to `/subscribe` page instead of trial expired page
+- **Special UI Messaging**: Added dedicated warning message on subscription page for users with expired admin-granted subscriptions
+- **Admin Panel Integration**: Admin-created users with subscriptions are automatically marked as admin-granted subscriptions
+- **Subscription Status Differentiation**: Admin-granted subscriptions transition to paid subscriptions when users complete payment
+- **Database Migration**: Updated all existing admin-granted subscriptions to have proper `isAdminGrantedSubscription` flag
+- **Forced Password Change**: All admin-created users now have `mustChangePassword` flag set to true with default password "temp123456"
+
 ### January 16, 2025 - Account Management Enhancement
 - **Personal Information Update**: Added ability for users to update their first name and last name in Account settings
 - **Enhanced Account Page**: Added new "Personal Information" section with form validation and user-friendly interface

@@ -153,7 +153,7 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
 };
 
 export const Subscribe = () => {
-  const { userData, currentUser } = useAuth();
+  const { userData, currentUser, isAdminGrantedSubscriptionExpired } = useAuth();
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
@@ -356,6 +356,29 @@ export const Subscribe = () => {
           Continue enjoying all features with our monthly subscription
         </p>
       </div>
+
+      {/* Special message for expired admin-granted subscriptions */}
+      {isAdminGrantedSubscriptionExpired && (
+        <div className="mb-8">
+          <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200">
+                  Your complimentary subscription has expired
+                </h3>
+              </div>
+              <p className="text-orange-700 dark:text-orange-300 mb-4">
+                Your admin-granted subscription has reached its expiration date. To continue using Eazee Invoice Pro, 
+                please subscribe with your payment details below.
+              </p>
+              <div className="text-sm text-orange-600 dark:text-orange-400">
+                <strong>Note:</strong> This will be a recurring subscription at £19.99/month
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Features */}

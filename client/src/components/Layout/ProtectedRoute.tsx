@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { currentUser, userData, loading, hasAccess, mustChangePassword, isSubscriber, trialDaysLeft } = useAuth();
+  const { currentUser, userData, loading, hasAccess, mustChangePassword, isSubscriber, trialDaysLeft, isAdminGrantedSubscriptionExpired } = useAuth();
   const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   
   // Check if subscription is expired and user is not on trial
@@ -55,6 +55,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (userData?.isSuspended) {
     return <Redirect to="/suspended" />;
+  }
+
+  // Check if admin-granted subscription has expired
+  if (isAdminGrantedSubscriptionExpired) {
+    return <Redirect to="/subscribe" />;
   }
 
   if (!hasAccess) {
