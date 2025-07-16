@@ -101,6 +101,10 @@ export const useDatabase = (collectionName: string) => {
     create: createMutation.mutate,
     update: updateMutation.mutate,
     remove: deleteMutation.mutate,
+    addMutation: createMutation,
+    createMutation: createMutation,
+    updateMutation: updateMutation,
+    deleteMutation: deleteMutation,
   };
 };
 
