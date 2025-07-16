@@ -130,15 +130,6 @@ export const getTrialDaysLeft = (user: AuthUser): number => {
   // Trial is 7 days total, so days left = 7 - days passed
   const daysLeft = Math.max(0, 7 - daysPassed);
   
-  // Debug logging for the issue
-  console.log('Trial calculation debug:', {
-    trialStartDate: user.trialStartDate,
-    trialStart: trialStart.toISOString(),
-    now: now.toISOString(),
-    daysPassed,
-    daysLeft
-  });
-  
   return daysLeft;
 };
 

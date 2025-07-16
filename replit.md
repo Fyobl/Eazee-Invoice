@@ -307,6 +307,7 @@ The application is designed to be easily extensible with additional features lik
 - **Fresh Start Authentication**: Reset all user passwords to "password123" with mustChangePassword flag for clean testing
 - **Data Isolation Verification**: Confirmed each user can only access their own data through authenticated API calls
 - **Security Testing**: Verified unauthenticated requests are properly rejected with 401 errors
+- **Password Change Persistence Fix**: Fixed mustChangePassword flag to properly persist after password changes, preventing repeated prompts after app restarts
 
 ### January 16, 2025 - Account Management Enhancement
 - **Personal Information Update**: Added ability for users to update their first name and last name in Account settings
