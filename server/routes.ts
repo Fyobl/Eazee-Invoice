@@ -1006,9 +1006,10 @@ export async function setupRoutes(app: Express) {
         }
       }
 
-      // Check if subscription is still active
+      // Check if subscription is still active (must not be cancelled and must be within period)
       const now = new Date();
       const isActiveSubscription = user.isSubscriber && 
+        user.subscriptionStatus !== 'cancelled' &&
         user.subscriptionCurrentPeriodEnd && 
         new Date(user.subscriptionCurrentPeriodEnd) > now;
 

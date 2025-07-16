@@ -171,8 +171,8 @@ export const Subscribe = () => {
       const data = await response.json();
       setSubscriptionStatus(data);
       
-      if (!data.isSubscriber) {
-        // Create subscription if user is not a subscriber
+      // If user is not a subscriber OR has cancelled subscription, show re-subscribe form
+      if (!data.isSubscriber || data.status === 'cancelled') {
         createSubscription();
       } else {
         setLoading(false);
@@ -264,8 +264,8 @@ export const Subscribe = () => {
     );
   }
 
-  // If user is already subscribed, show subscription management
-  if (subscriptionStatus?.isSubscriber) {
+  // If user is already subscribed and not cancelled, show subscription management
+  if (subscriptionStatus?.isSubscriber && subscriptionStatus?.status !== 'cancelled') {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8 max-w-4xl">

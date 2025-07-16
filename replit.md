@@ -299,6 +299,9 @@ The application is designed to be easily extensible with additional features lik
 - **Enhanced Security**: Users with cancelled subscriptions are immediately redirected to trial expired/subscription warning page
 - **Updated API Logic**: Cancel subscription endpoint now sets isSubscriber to false and subscription status to 'cancelled' immediately
 - **Auth Context Enhancement**: Updated authentication logic to properly handle cancelled subscription status
+- **Cancelled Subscription Handling**: Users with cancelled subscriptions now see the re-subscribe form instead of subscription management interface
+- **Subscription Status API Fix**: Enhanced subscription status endpoint to properly identify cancelled subscriptions as inactive
+- **Database Consistency**: Ensured cancelled subscriptions have both isSubscriber = false and subscriptionStatus = 'cancelled'
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
