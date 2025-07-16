@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCustomers } from '@/hooks/useDatabase';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
 
@@ -14,8 +16,11 @@ export const CustomerList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   
   const { data: customers, isLoading: loading, remove: deleteCustomer } = useCustomers();
+  const { toast } = useToast();
 
   const filteredCustomers = customers?.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,9 +28,20 @@ export const CustomerList = () => {
     return matchesSearch;
   });
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(id);
+  const handleDeleteClick = (customer: Customer) => {
+    setCustomerToDelete(customer);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (customerToDelete) {
+      await deleteCustomer(customerToDelete.id);
+      toast({
+        title: "Customer Successfully Deleted",
+        description: `${customerToDelete.name} has been deleted.`,
+      });
+      setDeleteDialogOpen(false);
+      setCustomerToDelete(null);
     }
   };
 
@@ -112,19 +128,33 @@ export const CustomerList = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
-                        <Link href={`/customers/${customer.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDelete(customer.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleCustomerClick(customer)}>
+                              <User className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/customers/${customer.id}/edit`} className="flex items-center">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Customer
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(customer)}
+                              className="text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Customer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -187,6 +217,26 @@ export const CustomerList = () => {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Customer</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete {customerToDelete?.name}? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete Customer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

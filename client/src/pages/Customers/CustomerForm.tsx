@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCustomers } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { Customer } from '@shared/schema';
 
 const customerSchema = z.object({
@@ -25,11 +25,17 @@ type CustomerForm = z.infer<typeof customerSchema>;
 
 export const CustomerForm = () => {
   const [, setLocation] = useLocation();
+  const [match, params] = useRoute('/customers/:id/edit');
   const { currentUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { add: addCustomer, addMutation: { isPending: loading } } = useCustomers();
+  const { data: customers, add: addCustomer, update: updateCustomer, addMutation: { isPending: addLoading }, updateMutation: { isPending: updateLoading } } = useCustomers();
+  
+  const isEditing = !!match && !!params?.id;
+  const customerId = params?.id ? parseInt(params.id) : null;
+  const existingCustomer = customers?.find((c: Customer) => c.id === customerId);
+  const loading = addLoading || updateLoading;
 
   const form = useForm<CustomerForm>({
     resolver: zodResolver(customerSchema),
@@ -41,6 +47,18 @@ export const CustomerForm = () => {
     }
   });
 
+  // Load existing customer data when editing
+  useEffect(() => {
+    if (isEditing && existingCustomer) {
+      form.reset({
+        name: existingCustomer.name,
+        email: existingCustomer.email,
+        phone: existingCustomer.phone || '',
+        address: existingCustomer.address
+      });
+    }
+  }, [isEditing, existingCustomer, form]);
+
   const onSubmit = async (data: CustomerForm) => {
     if (!currentUser) return;
     
@@ -48,28 +66,42 @@ export const CustomerForm = () => {
     setSuccess(null);
 
     try {
-      const customer: Partial<Customer> = {
-        uid: currentUser.uid,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        isDeleted: false
-      };
+      if (isEditing && customerId) {
+        // Update existing customer
+        const updateData: Partial<Customer> = {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+        };
+        
+        updateCustomer({ id: customerId, data: updateData });
+        setSuccess('Customer updated successfully!');
+      } else {
+        // Add new customer
+        const customer: Partial<Customer> = {
+          uid: currentUser.uid,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          isDeleted: false
+        };
 
-      addCustomer(customer);
-      setSuccess('Customer added successfully!');
+        addCustomer(customer);
+        setSuccess('Customer added successfully!');
+      }
       
       setTimeout(() => {
         setLocation('/customers');
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add customer');
+      setError(err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} customer`);
     }
   };
 
   return (
-    <Layout title="Add Customer">
+    <Layout title={isEditing ? "Edit Customer" : "Add Customer"}>
       <div className="space-y-6">
         {error && (
           <Banner variant="error" onClose={() => setError(null)}>
@@ -85,7 +117,7 @@ export const CustomerForm = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Customer Information</CardTitle>
+            <CardTitle>{isEditing ? 'Edit Customer Information' : 'Customer Information'}</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -157,7 +189,7 @@ export const CustomerForm = () => {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Adding...' : 'Add Customer'}
+                    {loading ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Customer' : 'Add Customer')}
                   </Button>
                 </div>
               </form>
