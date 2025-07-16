@@ -58,7 +58,7 @@ export const QuoteList = () => {
       await deleteDocument(quoteToDelete.id);
       toast({
         title: "Quote Successfully Deleted",
-        description: `Quote ${quoteToDelete.number} has been deleted.`,
+        description: `Quote ${quoteToDelete.number} has been moved to the recycle bin. You can restore it within 7 days.`,
       });
       setDeleteDialogOpen(false);
       setQuoteToDelete(null);

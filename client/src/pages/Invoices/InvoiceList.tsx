@@ -55,7 +55,7 @@ export const InvoiceList = () => {
       await deleteDocument(invoiceToDelete.id);
       toast({
         title: "Invoice Successfully Deleted",
-        description: `Invoice ${invoiceToDelete.number} has been deleted.`,
+        description: `Invoice ${invoiceToDelete.number} has been moved to the recycle bin. You can restore it within 7 days.`,
       });
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);

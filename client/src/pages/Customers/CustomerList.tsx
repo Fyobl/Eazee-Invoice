@@ -40,7 +40,7 @@ export const CustomerList = () => {
       await deleteCustomer(customerToDelete.id);
       toast({
         title: "Customer Successfully Deleted",
-        description: `${customerToDelete.name} has been deleted.`,
+        description: `${customerToDelete.name} has been moved to the recycle bin. You can restore it within 7 days.`,
       });
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);

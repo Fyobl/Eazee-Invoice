@@ -50,12 +50,32 @@ export async function setupRoutes(app: Express) {
   app.delete('/api/customers/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const [customer] = await db.update(customers)
+      
+      // First, get the customer data before soft deleting
+      const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+      
+      if (!customer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+
+      // Add to recycle bin
+      await db.insert(recycleBin).values({
+        uid: customer.uid,
+        type: 'customer',
+        originalId: id,
+        data: customer,
+        deletedAt: new Date()
+      });
+
+      // Soft delete the customer
+      const [deletedCustomer] = await db.update(customers)
         .set({ isDeleted: true, updatedAt: new Date() })
         .where(eq(customers.id, id))
         .returning();
-      res.json(customer);
+      
+      res.json(deletedCustomer);
     } catch (error) {
+      console.error('Error deleting customer:', error);
       res.status(500).json({ error: 'Failed to delete customer' });
     }
   });
@@ -241,12 +261,32 @@ export async function setupRoutes(app: Express) {
   app.delete('/api/invoices/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const [invoice] = await db.update(invoices)
+      
+      // First, get the invoice data before soft deleting
+      const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+      
+      if (!invoice) {
+        return res.status(404).json({ error: 'Invoice not found' });
+      }
+
+      // Add to recycle bin
+      await db.insert(recycleBin).values({
+        uid: invoice.uid,
+        type: 'invoice',
+        originalId: id,
+        data: invoice,
+        deletedAt: new Date()
+      });
+
+      // Soft delete the invoice
+      const [deletedInvoice] = await db.update(invoices)
         .set({ isDeleted: true, updatedAt: new Date() })
         .where(eq(invoices.id, id))
         .returning();
-      res.json(invoice);
+      
+      res.json(deletedInvoice);
     } catch (error) {
+      console.error('Error deleting invoice:', error);
       res.status(500).json({ error: 'Failed to delete invoice' });
     }
   });
@@ -335,12 +375,32 @@ export async function setupRoutes(app: Express) {
   app.delete('/api/quotes/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const [quote] = await db.update(quotes)
+      
+      // First, get the quote data before soft deleting
+      const [quote] = await db.select().from(quotes).where(eq(quotes.id, id));
+      
+      if (!quote) {
+        return res.status(404).json({ error: 'Quote not found' });
+      }
+
+      // Add to recycle bin
+      await db.insert(recycleBin).values({
+        uid: quote.uid,
+        type: 'quote',
+        originalId: id,
+        data: quote,
+        deletedAt: new Date()
+      });
+
+      // Soft delete the quote
+      const [deletedQuote] = await db.update(quotes)
         .set({ isDeleted: true, updatedAt: new Date() })
         .where(eq(quotes.id, id))
         .returning();
-      res.json(quote);
+      
+      res.json(deletedQuote);
     } catch (error) {
+      console.error('Error deleting quote:', error);
       res.status(500).json({ error: 'Failed to delete quote' });
     }
   });

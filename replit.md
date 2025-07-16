@@ -189,6 +189,9 @@ The application is designed to be easily extensible with additional features lik
 - **CSV Data Validation**: Added comprehensive validation for required fields, data types, and format requirements
 - **Import Success Tracking**: Added detailed success/error reporting with specific row-level error messages
 - **Recycle Bin Dark Mode Fix**: Fixed text visibility issues in dark mode for the recycle bin header and description
+- **Soft Delete Implementation**: Added complete soft delete functionality for invoices, quotes, and customers
+- **Recycle Bin Integration**: All deleted items now go to recycle bin with 7-day recovery period instead of permanent deletion
+- **Enhanced Delete Feedback**: Updated toast messages to inform users about recycle bin availability and 7-day recovery option
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience
