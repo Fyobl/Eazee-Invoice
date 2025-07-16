@@ -309,6 +309,14 @@ The application is designed to be easily extensible with additional features lik
 - **Security Testing**: Verified unauthenticated requests are properly rejected with 401 errors
 - **Password Change Persistence Fix**: Fixed mustChangePassword flag to properly persist after password changes, preventing repeated prompts after app restarts
 
+### January 16, 2025 - Toast Notifications & User Deletion Enhancement
+- **Password Change Toast Notification**: Replaced browser alert with bottom-right toast notification for password changes in Account settings
+- **Admin User Deletion**: Added complete user deletion functionality to admin panel with confirmation dialog
+- **Comprehensive Data Cleanup**: User deletion removes all associated data (customers, products, invoices, quotes, statements, company info, recycle bin)
+- **Enhanced Security**: Added admin authentication checks to all user management endpoints
+- **Self-Deletion Prevention**: Admins cannot delete their own accounts
+- **Admin User Creation Fix**: Fixed password hashing for users created through admin panel (default password: temp123456)
+
 ### January 16, 2025 - Account Management Enhancement
 - **Personal Information Update**: Added ability for users to update their first name and last name in Account settings
 - **Enhanced Account Page**: Added new "Personal Information" section with form validation and user-friendly interface
