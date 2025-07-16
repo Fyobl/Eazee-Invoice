@@ -592,8 +592,18 @@ export async function setupRoutes(app: Express) {
   app.put('/api/users/:uid', async (req, res) => {
     try {
       const uid = req.params.uid;
+      const updateData = { ...req.body, updatedAt: new Date() };
+      
+      // Convert date strings to Date objects for timestamp fields
+      const dateFields = ['subscriptionCurrentPeriodEnd', 'trialStartDate', 'createdAt', 'updatedAt'];
+      for (const field of dateFields) {
+        if (updateData[field] && typeof updateData[field] === 'string') {
+          updateData[field] = new Date(updateData[field]);
+        }
+      }
+      
       const [user] = await db.update(users)
-        .set({ ...req.body, updatedAt: new Date() })
+        .set(updateData)
         .where(eq(users.uid, uid))
         .returning();
       res.json(user);

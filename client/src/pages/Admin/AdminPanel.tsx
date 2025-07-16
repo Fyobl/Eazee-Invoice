@@ -13,7 +13,8 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 
 export const AdminPanel = () => {
@@ -24,6 +25,7 @@ export const AdminPanel = () => {
   const [csvUploadDialog, setCsvUploadDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [subscriptionDuration, setSubscriptionDuration] = useState('1');
+  const [isPermanentSubscription, setIsPermanentSubscription] = useState(false);
   const [csvUploadType, setCsvUploadType] = useState<'customers' | 'products'>('customers');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvUploadUser, setCsvUploadUser] = useState<any>(null);
@@ -171,20 +173,23 @@ export const AdminPanel = () => {
   const handleConfirmSubscription = async () => {
     if (!selectedUser) return;
     
-    const subscriptionEndDate = new Date();
-    subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + parseInt(subscriptionDuration));
+    // Set subscription end date to far future (year 2099) for permanent subscriptions
+    const subscriptionEndDate = isPermanentSubscription 
+      ? new Date('2099-12-31T23:59:59Z') 
+      : new Date(Date.now() + (parseInt(subscriptionDuration) * 30 * 24 * 60 * 60 * 1000));
     
     await updateUserMutation.mutateAsync({
       userId: selectedUser.uid,
       data: {
         isSubscriber: true,
         isSuspended: false,
-        subscriptionEndDate: subscriptionEndDate.toISOString()
+        subscriptionCurrentPeriodEnd: subscriptionEndDate.toISOString()
       }
     });
     
     setSubscriptionDialog(false);
     setSelectedUser(null);
+    setIsPermanentSubscription(false);
   };
 
   const handleRevokeSubscription = async (userId: string) => {
@@ -637,22 +642,36 @@ export const AdminPanel = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Subscription Duration
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="permanent-subscription"
+                  checked={isPermanentSubscription}
+                  onCheckedChange={(checked) => setIsPermanentSubscription(checked as boolean)}
+                />
+                <label htmlFor="permanent-subscription" className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center space-x-1">
+                  <Infinity className="h-4 w-4" />
+                  <span>Permanent Subscription (Never Expires)</span>
                 </label>
-                <Select value={subscriptionDuration} onValueChange={setSubscriptionDuration}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 Month</SelectItem>
-                    <SelectItem value="3">3 Months</SelectItem>
-                    <SelectItem value="6">6 Months</SelectItem>
-                    <SelectItem value="12">12 Months</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
+              
+              {!isPermanentSubscription && (
+                <div>
+                  <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    Subscription Duration
+                  </label>
+                  <Select value={subscriptionDuration} onValueChange={setSubscriptionDuration}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Month</SelectItem>
+                      <SelectItem value="3">3 Months</SelectItem>
+                      <SelectItem value="6">6 Months</SelectItem>
+                      <SelectItem value="12">12 Months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setSubscriptionDialog(false)}>
