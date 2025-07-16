@@ -4,13 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCustomers } from '@/hooks/useDatabase';
-import { Plus, Edit, Trash2, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, User } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
 
 export const CustomerList = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   
   const { data: customers, isLoading: loading, remove: deleteCustomer } = useCustomers();
 
@@ -24,6 +27,11 @@ export const CustomerList = () => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       deleteCustomer(id);
     }
+  };
+
+  const handleCustomerClick = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowDetails(true);
   };
 
   if (loading) {
@@ -78,13 +86,16 @@ export const CustomerList = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Address</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCustomers?.map((customer: Customer) => (
-                  <TableRow key={customer.id}>
+                  <TableRow 
+                    key={customer.id} 
+                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+                    onClick={() => handleCustomerClick(customer)}
+                  >
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -100,9 +111,8 @@ export const CustomerList = () => {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{customer.address}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/customers/${customer.id}/edit`}>
                           <Button variant="ghost" size="sm">
                             <Edit className="h-4 w-4" />
@@ -123,6 +133,62 @@ export const CustomerList = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Customer Details Dialog */}
+        <Dialog open={showDetails} onOpenChange={setShowDetails}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <User className="h-5 w-5" />
+                <span>Customer Details</span>
+              </DialogTitle>
+            </DialogHeader>
+            {selectedCustomer && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
+                    {selectedCustomer.name}
+                  </h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-4 w-4 text-blue-500" />
+                    <span className="text-slate-600 dark:text-slate-400">{selectedCustomer.email}</span>
+                  </div>
+                  
+                  {selectedCustomer.phone && (
+                    <div className="flex items-center space-x-3">
+                      <Phone className="h-4 w-4 text-green-500" />
+                      <span className="text-slate-600 dark:text-slate-400">{selectedCustomer.phone}</span>
+                    </div>
+                  )}
+                  
+                  {selectedCustomer.address && (
+                    <div className="flex items-start space-x-3">
+                      <MapPin className="h-4 w-4 text-red-500 mt-1" />
+                      <span className="text-slate-600 dark:text-slate-400 whitespace-pre-line">
+                        {selectedCustomer.address}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Link href={`/customers/${selectedCustomer.id}/edit`}>
+                    <Button variant="outline" size="sm" onClick={() => setShowDetails(false)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button variant="outline" onClick={() => setShowDetails(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

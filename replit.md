@@ -173,6 +173,9 @@ The application is designed to be easily extensible with additional features lik
 - **Compact Design Implementation**: Reduced margins, padding, and font sizes throughout PDF documents to fit more content per page
 - **Statement PDF Bug Fix**: Resolved API request error that prevented statement PDFs from displaying unpaid invoices correctly
 - **PDF Content Density**: Optimized table spacing, section margins, and text sizing for better space utilization while maintaining readability
+- **Enhanced Bill To Positioning**: Further refined "Bill To" section positioning to the far right of PDF documents with improved spacing
+- **Customer List UX Enhancement**: Transformed customer list to hide address column and make customer rows clickable for popup detail views
+- **Customer Details Dialog**: Implemented modal popup showing comprehensive customer information including name, email, phone, and address with action buttons
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience

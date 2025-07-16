@@ -107,13 +107,14 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
           margin-bottom: 15px;
         }
         .document-details {
-          flex: 1;
-          padding-right: 20px;
+          flex: 2;
+          padding-right: 40px;
         }
         .customer-info { 
           flex: 1;
           font-size: 14px;
           line-height: 1.4;
+          text-align: right;
         }
         .table { 
           width: 100%; 
