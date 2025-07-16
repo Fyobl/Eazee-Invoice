@@ -38,27 +38,24 @@ export const AdminPanel = () => {
   const { data: users, isLoading: loading } = useQuery({
     queryKey: ['/api/users'],
     queryFn: async () => {
-      const response = await apiRequest('/api/users', { method: 'GET' });
+      const response = await apiRequest('GET', '/api/users');
       return response.json();
     }
   });
 
-  // Fetch stats
-  const { data: invoices } = useQuery({
-    queryKey: ['/api/invoices'],
-    queryFn: async () => {
-      const response = await apiRequest('/api/invoices', { method: 'GET' });
-      return response.json();
-    }
-  });
+  // Don't fetch invoices for admin panel since they're user-specific
+  // const { data: invoices } = useQuery({
+  //   queryKey: ['/api/invoices'],
+  //   queryFn: async () => {
+  //     const response = await apiRequest('GET', '/api/invoices');
+  //     return response.json();
+  //   }
+  // });
 
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, data }: { userId: string; data: any }) => {
-      const response = await apiRequest(`/api/users/${userId}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('PUT', `/api/users/${userId}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -73,10 +70,7 @@ export const AdminPanel = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const response = await apiRequest('/api/users', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
+      const response = await apiRequest('POST', '/api/users', userData);
       return response.json();
     },
     onSuccess: () => {

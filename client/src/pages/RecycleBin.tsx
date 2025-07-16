@@ -23,7 +23,7 @@ export const RecycleBin = () => {
   const { data: recycleBinItems, isLoading: loading } = useQuery({
     queryKey: ['/api/recycle-bin'],
     queryFn: async () => {
-      const response = await apiRequest(`/api/recycle-bin?uid=${currentUser?.uid}`, { method: 'GET' });
+      const response = await apiRequest('GET', `/api/recycle-bin?uid=${currentUser?.uid}`);
       return response.json();
     },
     enabled: !!currentUser?.uid
@@ -32,7 +32,7 @@ export const RecycleBin = () => {
   // Permanent delete mutation
   const permanentDeleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/recycle-bin/${id}`, { method: 'DELETE' });
+      const response = await apiRequest('DELETE', `/api/recycle-bin/${id}`);
       return response.json();
     },
     onSuccess: () => {
@@ -48,13 +48,11 @@ export const RecycleBin = () => {
   const restoreMutation = useMutation({
     mutationFn: async ({ item, restoreEndpoint }: { item: RecycleBinItem; restoreEndpoint: string }) => {
       // Update the original item to restore it
-      const response = await apiRequest(`/api/${restoreEndpoint}/${item.originalId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ isDeleted: false, updatedAt: new Date() })
-      });
+      const response = await apiRequest('PUT', `/api/${restoreEndpoint}/${item.originalId}`, 
+        { isDeleted: false, updatedAt: new Date() });
       
       // Remove from recycle bin
-      await apiRequest(`/api/recycle-bin/${item.id}`, { method: 'DELETE' });
+      await apiRequest('DELETE', `/api/recycle-bin/${item.id}`);
       
       return response.json();
     },
