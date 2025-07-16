@@ -125,23 +125,40 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, compa
 
 // Generate email content for quote
 export const generateQuoteEmail = (quote: Quote, customer: Customer, company: Company): { subject: string; body: string } => {
-  const settings = getEmailSettings();
-  
-  const validUntil = new Date(quote.validUntil);
-  
-  const variables = {
-    quoteNumber: quote.number,
-    customerName: customer.name,
-    companyName: company.name,
-    issueDate: new Date(quote.date).toLocaleDateString('en-GB'),
-    validUntil: validUntil.toLocaleDateString('en-GB'),
-    total: formatCurrency(quote.total, company.currency),
-  };
+  try {
+    console.log('Generating quote email with data:', { 
+      quoteNumber: quote.number,
+      customerName: customer.name,
+      companyName: company.name,
+      quoteDate: quote.date,
+      validUntil: quote.validUntil,
+      total: quote.total
+    });
+    
+    const settings = getEmailSettings();
+    console.log('Email settings for quote:', settings);
+    
+    const validUntil = new Date(quote.validUntil);
+    
+    const variables = {
+      quoteNumber: quote.number,
+      customerName: customer.name,
+      companyName: company.name,
+      issueDate: new Date(quote.date).toLocaleDateString('en-GB'),
+      validUntil: validUntil.toLocaleDateString('en-GB'),
+      total: formatCurrency(quote.total, company.currency),
+    };
 
-  return {
-    subject: replaceVariables(settings.quoteSubject, variables),
-    body: replaceVariables(settings.quoteBody, variables),
-  };
+    console.log('Quote email variables:', variables);
+
+    return {
+      subject: replaceVariables(settings.quoteSubject, variables),
+      body: replaceVariables(settings.quoteBody, variables),
+    };
+  } catch (error) {
+    console.error('Error generating quote email:', error);
+    throw error;
+  }
 };
 
 // Generate email content for statement

@@ -212,16 +212,22 @@ export const QuoteList = () => {
     }
 
     try {
+      console.log('Quote email process starting for quote:', quote.number);
+      console.log('Quote data:', quote);
+      console.log('Customer data:', customer);
+      console.log('Company data:', company);
+      
       await openMailApp(quote, customer, company, 'quote');
       toast({
         title: "Email Prepared",
         description: `Email template opened for quote ${quote.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
       });
     } catch (error) {
-      console.error('Error preparing email:', error);
+      console.error('Error preparing email for quote:', error);
+      console.error('Error details:', error.message, error.stack);
       toast({
         title: "Error",
-        description: "Failed to prepare email. Please try again.",
+        description: `Failed to prepare email for quote: ${error.message}. Please try again.`,
         variant: "destructive",
       });
     }

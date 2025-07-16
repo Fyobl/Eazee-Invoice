@@ -9,6 +9,12 @@ interface PDFGeneratorProps {
 }
 
 export const generatePDF = async ({ document, company, type }: PDFGeneratorProps): Promise<Blob> => {
+  console.log(`Starting PDF generation for ${type}:`, { 
+    documentId: document.id, 
+    documentNumber: document.number,
+    companyName: company.name 
+  });
+  
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
   
   // Format currency values properly
@@ -384,9 +390,12 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
 
   // Generate PDF and return as blob with better error handling
   try {
-    return html2pdf().from(html).set(options).outputPdf('blob');
+    console.log(`Generating PDF for ${type} with options:`, options);
+    const result = html2pdf().from(html).set(options).outputPdf('blob');
+    console.log(`PDF generation completed for ${type}`);
+    return result;
   } catch (error) {
-    console.error('Error in PDF generation:', error);
-    throw new Error(`PDF generation failed: ${error.message}`);
+    console.error(`Error in PDF generation for ${type}:`, error);
+    throw new Error(`PDF generation failed for ${type}: ${error.message}`);
   }
 };
