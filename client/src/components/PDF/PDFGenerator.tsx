@@ -25,16 +25,24 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
+      console.log('Statement customer ID:', document.customerId);
+      console.log('All invoices:', allInvoices.map(inv => ({ id: inv.id, customerId: inv.customerId, customerName: inv.customerName, status: inv.status, date: inv.date })));
+      
       unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
         const invoiceDate = new Date(invoice.date);
         const statementStart = new Date(document.startDate);
         const statementEnd = new Date(document.endDate);
         
-        return invoice.customerId === document.customerId &&
-               (invoice.status === 'unpaid' || invoice.status === 'overdue') &&
-               invoiceDate >= statementStart &&
-               invoiceDate <= statementEnd;
+        const customerMatch = invoice.customerId === document.customerId;
+        const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
+        const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEnd;
+        
+        console.log(`Invoice ${invoice.number}: customer=${customerMatch} (${invoice.customerId} === ${document.customerId}), status=${statusMatch} (${invoice.status}), date=${dateMatch} (${invoiceDate.toDateString()} >= ${statementStart.toDateString()} && <= ${statementEnd.toDateString()})`);
+        
+        return customerMatch && statusMatch && dateMatch;
       });
+      
+      console.log('Filtered unpaid invoices:', unpaidInvoices.length);
     } catch (error) {
       console.error('Error fetching unpaid invoices:', error);
     }
