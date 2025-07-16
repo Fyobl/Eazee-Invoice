@@ -25,6 +25,19 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
+      console.log('DEBUG: Statement data', {
+        customerId: document.customerId,
+        startDate: document.startDate,
+        endDate: document.endDate
+      });
+      
+      console.log('DEBUG: Available invoices', allInvoices.map(inv => ({
+        number: inv.number,
+        customerId: inv.customerId,
+        status: inv.status,
+        date: inv.date
+      })));
+      
       unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
         const invoiceDate = new Date(invoice.date);
         const statementStart = new Date(document.startDate);
@@ -38,8 +51,12 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
         const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
         const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEndOfDay;
         
+        console.log(`DEBUG: ${invoice.number} - Customer: ${customerMatch}, Status: ${statusMatch}, Date: ${dateMatch}`);
+        
         return customerMatch && statusMatch && dateMatch;
       });
+      
+      console.log('DEBUG: Filtered invoices count:', unpaidInvoices.length);
     } catch (error) {
       console.error('Error fetching unpaid invoices:', error);
     }
