@@ -184,11 +184,20 @@ export async function setupRoutes(app: Express) {
         .where(eq(invoices.uid, bodyData.uid))
         .orderBy(desc(invoices.id));
       
-      const nextNumber = existingInvoices.length > 0 ? 
-        Math.max(...existingInvoices.map(inv => {
+      // Find the highest number from INV-100000 format only, ignore old format
+      const newFormatNumbers = existingInvoices
+        .map(inv => {
           const match = inv.number.match(/INV-(\d+)/);
-          return match ? parseInt(match[1]) : 99999;
-        })) + 1 : 100000;
+          if (match) {
+            const num = parseInt(match[1]);
+            return num >= 100000 ? num : null; // Only count numbers >= 100000
+          }
+          return null;
+        })
+        .filter(num => num !== null);
+      
+      const nextNumber = newFormatNumbers.length > 0 ? 
+        Math.max(...newFormatNumbers) + 1 : 100000;
       
       const invoiceData = {
         ...bodyData,
@@ -273,11 +282,20 @@ export async function setupRoutes(app: Express) {
         .where(eq(quotes.uid, bodyData.uid))
         .orderBy(desc(quotes.id));
       
-      const nextNumber = existingQuotes.length > 0 ? 
-        Math.max(...existingQuotes.map(quote => {
+      // Find the highest number from QUO-100000 format only, ignore old format
+      const newFormatNumbers = existingQuotes
+        .map(quote => {
           const match = quote.number.match(/QUO-(\d+)/);
-          return match ? parseInt(match[1]) : 99999;
-        })) + 1 : 100000;
+          if (match) {
+            const num = parseInt(match[1]);
+            return num >= 100000 ? num : null; // Only count numbers >= 100000
+          }
+          return null;
+        })
+        .filter(num => num !== null);
+      
+      const nextNumber = newFormatNumbers.length > 0 ? 
+        Math.max(...newFormatNumbers) + 1 : 100000;
       
       const quoteData = {
         ...bodyData,
