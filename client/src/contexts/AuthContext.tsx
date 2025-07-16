@@ -11,6 +11,7 @@ interface AuthContextType {
   hasAccess: boolean;
   isAdmin: boolean;
   trialDaysLeft: number;
+  mustChangePassword: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,6 +126,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const hasAccess = userData ? (userData.isAdmin || userData.isSubscriber || checkTrialStatus(userData)) && !userData.isSuspended : false;
   const isAdmin = userData?.isAdmin || false;
+  const mustChangePassword = userData?.mustChangePassword || false;
   
   const trialDaysLeft = userData && !userData.isSubscriber ? 
     (() => {
@@ -148,7 +150,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     hasAccess,
     isAdmin,
-    trialDaysLeft
+    trialDaysLeft,
+    mustChangePassword
   };
 
   return (

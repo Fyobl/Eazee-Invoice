@@ -178,6 +178,7 @@ export const AdminPanel = () => {
       isSubscriber,
       isSuspended: false,
       isAdmin: false,
+      mustChangePassword: true,
       trialStartDate: new Date().toISOString(),
       subscriptionEndDate: subscriptionEndDate?.toISOString() || null
     });

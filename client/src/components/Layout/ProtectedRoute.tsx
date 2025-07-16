@@ -1,13 +1,15 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PasswordChangeDialog } from '../PasswordChangeDialog';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { currentUser, userData, loading, hasAccess } = useAuth();
+  const { currentUser, userData, loading, hasAccess, mustChangePassword } = useAuth();
 
   // Check if we have stored auth data while Firebase Auth is initializing
   const storedAuthUser = localStorage.getItem('authUser');
@@ -49,6 +51,19 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!hasAccess) {
     return <Redirect to="/trial-expired" />;
+  }
+
+  // Check if user needs to change password
+  if (mustChangePassword) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
+        <PasswordChangeDialog 
+          open={true} 
+          onClose={() => {}} 
+        />
+        {children}
+      </div>
+    );
   }
 
   return <>{children}</>;

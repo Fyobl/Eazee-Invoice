@@ -14,6 +14,7 @@ export const users = pgTable('users', {
   isSubscriber: boolean('is_subscriber').default(false),
   isSuspended: boolean('is_suspended').default(false),
   isAdmin: boolean('is_admin').default(false),
+  mustChangePassword: boolean('must_change_password').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
