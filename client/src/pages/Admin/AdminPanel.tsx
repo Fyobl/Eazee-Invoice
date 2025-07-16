@@ -105,6 +105,8 @@ export const AdminPanel = () => {
   // CSV Upload mutation
   const csvUploadMutation = useMutation({
     mutationFn: async ({ file, type, userId }: { file: File; type: 'customers' | 'products'; userId: string }) => {
+      console.log('CSV Upload - Starting upload:', { fileName: file.name, type, userId });
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
@@ -115,20 +117,26 @@ export const AdminPanel = () => {
         body: formData
       });
       
+      console.log('CSV Upload - Response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('CSV Upload - Error response:', errorData);
         throw new Error(errorData.error || 'CSV upload failed');
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('CSV Upload - Success response:', result);
+      return result;
     },
     onSuccess: (data) => {
       if (data.errorCount > 0) {
         toast({ 
           title: 'CSV Upload Completed with Errors', 
-          description: `Successfully imported ${data.successCount} items. ${data.errorCount} errors encountered. Check console for details.`
+          description: `Successfully imported ${data.successCount} items. ${data.errorCount} errors encountered.`
         });
         console.error('CSV upload errors:', data.errors);
+        console.error('Error details:', data.errors.join('\n'));
       } else {
         toast({ 
           title: 'CSV Upload Successful', 
@@ -140,6 +148,7 @@ export const AdminPanel = () => {
       setCsvUploadUser(null);
     },
     onError: (error: any) => {
+      console.error('CSV upload error:', error);
       toast({ title: 'CSV Upload Failed', description: error.message, variant: 'destructive' });
     }
   });
@@ -281,8 +290,8 @@ export const AdminPanel = () => {
   const downloadCustomersTemplate = () => {
     const csvContent = [
       'name,email,phone,address,city,country,taxNumber',
-      'John Doe,john@example.com,+44 123 456 7890,"123 Main St",London,United Kingdom,GB123456789',
-      'Jane Smith,jane@example.com,+44 987 654 3210,"456 Oak Ave",Manchester,United Kingdom,GB987654321'
+      'John Doe,john@example.com,+44 123 456 7890,123 Main St,London,United Kingdom,GB123456789',
+      'Jane Smith,jane@example.com,+44 987 654 3210,456 Oak Ave,Manchester,United Kingdom,GB987654321'
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });

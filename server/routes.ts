@@ -818,16 +818,25 @@ export async function setupRoutes(app: Express) {
               throw new Error(`Row ${index + 1}: Name and email are required`);
             }
 
+            // Additional validation
+            if (!customerData.name.trim()) {
+              throw new Error(`Row ${index + 1}: Name cannot be empty`);
+            }
+            
+            if (!customerData.email.trim()) {
+              throw new Error(`Row ${index + 1}: Email cannot be empty`);
+            }
+
             // Insert customer
             await db.insert(customers).values({
               uid: userId,
-              name: customerData.name,
-              email: customerData.email,
-              phone: customerData.phone || '',
-              address: customerData.address || '',
-              city: customerData.city || '',
-              country: customerData.country || '',
-              taxNumber: customerData.taxNumber || '',
+              name: customerData.name.trim(),
+              email: customerData.email.trim(),
+              phone: customerData.phone?.trim() || '',
+              address: customerData.address?.trim() || '',
+              city: customerData.city?.trim() || '',
+              country: customerData.country?.trim() || '',
+              taxNumber: customerData.taxNumber?.trim() || '',
               createdAt: new Date(),
               updatedAt: new Date(),
               isDeleted: false
