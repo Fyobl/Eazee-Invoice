@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -6,10 +6,21 @@ import { Modal } from '@/components/ui/modal';
 import { Login } from './Auth/Login';
 import { Register } from './Auth/Register';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'wouter';
 
 export const Landing = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const { currentUser, hasAccess, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && currentUser && hasAccess) {
+      setLocation('/dashboard');
+    }
+  }, [currentUser, hasAccess, loading, setLocation]);
 
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features-section');
