@@ -13,7 +13,7 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { User } from '@shared/schema';
 
 export const AdminPanel = () => {
@@ -21,8 +21,12 @@ export const AdminPanel = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [createUserDialog, setCreateUserDialog] = useState(false);
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
+  const [csvUploadDialog, setCsvUploadDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [subscriptionDuration, setSubscriptionDuration] = useState('1');
+  const [csvUploadType, setCsvUploadType] = useState<'customers' | 'products'>('customers');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvUploadUser, setCsvUploadUser] = useState<any>(null);
   const [newUserData, setNewUserData] = useState({
     firstName: '',
     lastName: '',
@@ -91,6 +95,48 @@ export const AdminPanel = () => {
     },
     onError: (error: any) => {
       toast({ title: 'Error creating user', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // CSV Upload mutation
+  const csvUploadMutation = useMutation({
+    mutationFn: async ({ file, type, userId }: { file: File; type: 'customers' | 'products'; userId: string }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+      formData.append('userId', userId);
+      
+      const response = await fetch('/api/csv-upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'CSV upload failed');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.errorCount > 0) {
+        toast({ 
+          title: 'CSV Upload Completed with Errors', 
+          description: `Successfully imported ${data.successCount} items. ${data.errorCount} errors encountered. Check console for details.`
+        });
+        console.error('CSV upload errors:', data.errors);
+      } else {
+        toast({ 
+          title: 'CSV Upload Successful', 
+          description: `Successfully imported ${data.successCount} items.` 
+        });
+      }
+      setCsvUploadDialog(false);
+      setCsvFile(null);
+      setCsvUploadUser(null);
+    },
+    onError: (error: any) => {
+      toast({ title: 'CSV Upload Failed', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -182,6 +228,59 @@ export const AdminPanel = () => {
       trialStartDate: new Date().toISOString(),
       subscriptionEndDate: subscriptionEndDate?.toISOString() || null
     });
+  };
+
+  // CSV Template Download Functions
+  const downloadCustomersTemplate = () => {
+    const csvContent = [
+      'name,email,phone,address,city,country,taxNumber',
+      'John Doe,john@example.com,+44 123 456 7890,"123 Main St",London,United Kingdom,GB123456789',
+      'Jane Smith,jane@example.com,+44 987 654 3210,"456 Oak Ave",Manchester,United Kingdom,GB987654321'
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customers_template.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadProductsTemplate = () => {
+    const csvContent = [
+      'name,description,unitPrice,taxRate,category',
+      'Web Design,Custom website design and development,500.00,20.00,Design',
+      'SEO Consultation,Search engine optimization consultation,150.00,20.00,Marketing',
+      'Logo Design,Professional logo design service,250.00,20.00,Design'
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'products_template.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCsvUpload = async () => {
+    if (!csvFile || !csvUploadUser) return;
+    
+    await csvUploadMutation.mutateAsync({
+      file: csvFile,
+      type: csvUploadType,
+      userId: csvUploadUser.uid
+    });
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      toast({ title: 'Invalid file type', description: 'Please select a CSV file', variant: 'destructive' });
+    }
   };
 
   const getUserStatus = (user: any) => {
@@ -378,6 +477,70 @@ export const AdminPanel = () => {
           </CardContent>
         </Card>
 
+        {/* CSV Upload Management */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-slate-900 dark:text-slate-100">CSV Data Upload</CardTitle>
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setCsvUploadDialog(true)}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload CSV
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Templates
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={downloadCustomersTemplate}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Customer Template
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={downloadProductsTemplate}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Product Template
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                Upload CSV files to bulk import customers or products for any user. This helps you set up new users with their data quickly.
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100">Customers Template</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Upload customer data with fields: name, email, phone, address, city, country, taxNumber
+                  </p>
+                  <Button variant="outline" size="sm" onClick={downloadCustomersTemplate}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Customer Template
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100">Products Template</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Upload product data with fields: name, description, unitPrice, taxRate, category
+                  </p>
+                  <Button variant="outline" size="sm" onClick={downloadProductsTemplate}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Product Template
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Create User Dialog */}
         <Dialog open={createUserDialog} onOpenChange={setCreateUserDialog}>
           <DialogContent>
@@ -497,6 +660,119 @@ export const AdminPanel = () => {
               </Button>
               <Button onClick={handleConfirmSubscription} disabled={updateUserMutation.isPending}>
                 {updateUserMutation.isPending ? 'Granting...' : 'Grant Subscription'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* CSV Upload Dialog */}
+        <Dialog open={csvUploadDialog} onOpenChange={setCsvUploadDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Upload CSV Data</DialogTitle>
+              <DialogDescription>
+                Upload CSV files to bulk import customers or products for a specific user
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  Select User
+                </label>
+                <Select 
+                  value={csvUploadUser?.uid || ''} 
+                  onValueChange={(value) => {
+                    const user = users?.find((u: any) => u.uid === value);
+                    setCsvUploadUser(user);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a user to upload data for" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users?.map((user: any) => (
+                      <SelectItem key={user.uid} value={user.uid}>
+                        {getUserDisplayName(user)} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  Data Type
+                </label>
+                <Select value={csvUploadType} onValueChange={(value) => setCsvUploadType(value as 'customers' | 'products')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customers">Customers</SelectItem>
+                    <SelectItem value="products">Products</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  CSV File
+                </label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-slate-500 dark:text-slate-400
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-violet-50 file:text-violet-700
+                    hover:file:bg-violet-100
+                    dark:file:bg-violet-950 dark:file:text-violet-300
+                    dark:hover:file:bg-violet-900"
+                />
+                {csvFile && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    Selected: {csvFile.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  CSV Format Requirements:
+                </h4>
+                <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                  {csvUploadType === 'customers' ? (
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Headers: name, email, phone, address, city, country, taxNumber</li>
+                      <li>All fields are required except taxNumber</li>
+                      <li>Email must be valid format</li>
+                    </ul>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Headers: name, description, unitPrice, taxRate, category</li>
+                      <li>All fields are required</li>
+                      <li>unitPrice and taxRate must be numbers</li>
+                      <li>Use decimal format (e.g., 19.99)</li>
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setCsvUploadDialog(false);
+                setCsvFile(null);
+                setCsvUploadUser(null);
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCsvUpload} 
+                disabled={!csvFile || !csvUploadUser || csvUploadMutation.isPending}
+              >
+                {csvUploadMutation.isPending ? 'Uploading...' : 'Upload CSV'}
               </Button>
             </DialogFooter>
           </DialogContent>

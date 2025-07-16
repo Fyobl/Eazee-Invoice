@@ -2,6 +2,14 @@ import { Express } from "express";
 import { db } from "./db";
 import { customers, products, invoices, quotes, statements, companies, recycleBin, users } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
+import multer from "multer";
+import Papa from "papaparse";
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 export async function setupRoutes(app: Express) {
   
@@ -593,6 +601,109 @@ export async function setupRoutes(app: Express) {
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  });
+
+  // CSV Upload endpoint
+  app.post('/api/csv-upload', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const { type, userId } = req.body;
+      const csvData = req.file.buffer.toString('utf8');
+
+      // Parse CSV data
+      const parseResult = Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        transform: (value) => value.trim()
+      });
+
+      if (parseResult.errors.length > 0) {
+        return res.status(400).json({ 
+          error: 'CSV parsing failed', 
+          details: parseResult.errors 
+        });
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      for (const [index, row] of parseResult.data.entries()) {
+        try {
+          if (type === 'customers') {
+            // Validate customer data
+            const customerData = row as any;
+            if (!customerData.name || !customerData.email) {
+              throw new Error(`Row ${index + 1}: Name and email are required`);
+            }
+
+            // Insert customer
+            await db.insert(customers).values({
+              uid: userId,
+              name: customerData.name,
+              email: customerData.email,
+              phone: customerData.phone || '',
+              address: customerData.address || '',
+              city: customerData.city || '',
+              country: customerData.country || '',
+              taxNumber: customerData.taxNumber || '',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isDeleted: false
+            });
+
+            successCount++;
+          } else if (type === 'products') {
+            // Validate product data
+            const productData = row as any;
+            if (!productData.name || !productData.description || !productData.unitPrice || !productData.taxRate) {
+              throw new Error(`Row ${index + 1}: Name, description, unitPrice, and taxRate are required`);
+            }
+
+            const unitPrice = parseFloat(productData.unitPrice);
+            const taxRate = parseFloat(productData.taxRate);
+
+            if (isNaN(unitPrice) || isNaN(taxRate)) {
+              throw new Error(`Row ${index + 1}: unitPrice and taxRate must be valid numbers`);
+            }
+
+            // Insert product
+            await db.insert(products).values({
+              uid: userId,
+              name: productData.name,
+              description: productData.description,
+              unitPrice: unitPrice,
+              taxRate: taxRate,
+              category: productData.category || '',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isDeleted: false
+            });
+
+            successCount++;
+          }
+        } catch (error) {
+          errorCount++;
+          errors.push(error.message);
+          console.error(`CSV import error for row ${index + 1}:`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        successCount,
+        errorCount,
+        errors: errors.slice(0, 10), // Limit error messages
+        message: `Successfully imported ${successCount} items. ${errorCount} errors encountered.`
+      });
+
+    } catch (error) {
+      console.error('CSV upload error:', error);
+      res.status(500).json({ error: 'Failed to process CSV upload' });
     }
   });
 }
