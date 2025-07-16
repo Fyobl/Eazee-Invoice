@@ -92,10 +92,10 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, compa
   const settings = getEmailSettings();
   
   const variables = {
-    invoiceNumber: invoice.invoiceNumber,
+    invoiceNumber: invoice.number,
     customerName: customer.name,
     companyName: company.name,
-    issueDate: new Date(invoice.issueDate).toLocaleDateString('en-GB'),
+    issueDate: new Date(invoice.date).toLocaleDateString('en-GB'),
     dueDate: new Date(invoice.dueDate).toLocaleDateString('en-GB'),
     total: formatCurrency(invoice.total, company.currency),
   };
@@ -110,14 +110,13 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, compa
 export const generateQuoteEmail = (quote: Quote, customer: Customer, company: Company): { subject: string; body: string } => {
   const settings = getEmailSettings();
   
-  const validUntil = new Date(quote.issueDate);
-  validUntil.setDate(validUntil.getDate() + 30);
+  const validUntil = new Date(quote.validUntil);
   
   const variables = {
-    quoteNumber: quote.quoteNumber,
+    quoteNumber: quote.number,
     customerName: customer.name,
     companyName: company.name,
-    issueDate: new Date(quote.issueDate).toLocaleDateString('en-GB'),
+    issueDate: new Date(quote.date).toLocaleDateString('en-GB'),
     validUntil: validUntil.toLocaleDateString('en-GB'),
     total: formatCurrency(quote.total, company.currency),
   };
@@ -135,7 +134,7 @@ export const generateStatementEmail = (statement: Statement, customer: Customer,
   const variables = {
     customerName: customer.name,
     companyName: company.name,
-    statementPeriod: `${new Date(statement.fromDate).toLocaleDateString('en-GB')} - ${new Date(statement.toDate).toLocaleDateString('en-GB')}`,
+    statementPeriod: `${new Date(statement.startDate).toLocaleDateString('en-GB')} - ${new Date(statement.endDate).toLocaleDateString('en-GB')}`,
   };
 
   return {
@@ -165,9 +164,15 @@ export const openMailApp = async (
   type: 'invoice' | 'quote' | 'statement'
 ): Promise<void> => {
   try {
+    console.log('Starting email preparation for:', { type, documentId: document.id, customerEmail: customer.email });
+    
     // Generate PDF
+    console.log('Generating PDF...');
     const pdfBlob = await generatePDF({ document, company, type });
+    console.log('PDF generated successfully, size:', pdfBlob.size);
+    
     const base64PDF = await blobToBase64(pdfBlob);
+    console.log('PDF converted to base64');
 
     // Generate email content
     let emailContent: { subject: string; body: string };
@@ -186,6 +191,8 @@ export const openMailApp = async (
         throw new Error('Unknown document type');
     }
 
+    console.log('Email content generated:', { subject: emailContent.subject });
+
     // Create mailto URL
     const subject = encodeURIComponent(emailContent.subject);
     const body = encodeURIComponent(emailContent.body);
@@ -199,19 +206,39 @@ export const openMailApp = async (
     );
 
     const mailtoUrl = `mailto:${to}?subject=${subject}&body=${bodyWithAttachmentNote}`;
+    console.log('Mailto URL created');
 
     // Download the PDF file
     const url = URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${type}-${(document as any)[type === 'invoice' ? 'invoiceNumber' : type === 'quote' ? 'quoteNumber' : 'id']}.pdf`;
+    
+    // Fix the filename generation
+    let filename: string;
+    switch (type) {
+      case 'invoice':
+        filename = `invoice-${(document as Invoice).number}.pdf`;
+        break;
+      case 'quote':
+        filename = `quote-${(document as Quote).number}.pdf`;
+        break;
+      case 'statement':
+        filename = `statement-${(document as Statement).number || document.id}.pdf`;
+        break;
+      default:
+        filename = `${type}-${document.id}.pdf`;
+    }
+    
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    console.log('PDF download initiated');
 
     // Open mail app
     window.location.href = mailtoUrl;
+    console.log('Mail app opened');
   } catch (error) {
     console.error('Error opening mail app:', error);
     throw error;
