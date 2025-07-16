@@ -192,6 +192,12 @@ The application is designed to be easily extensible with additional features lik
 - **Soft Delete Implementation**: Added complete soft delete functionality for invoices, quotes, and customers
 - **Recycle Bin Integration**: All deleted items now go to recycle bin with 7-day recovery period instead of permanent deletion
 - **Enhanced Delete Feedback**: Updated toast messages to inform users about recycle bin availability and 7-day recovery option
+- **Admin Panel Dark Mode Fix**: Fixed all dark mode text visibility issues in admin panel with proper light/dark color classes
+- **PostgreSQL Admin Integration**: Migrated admin panel from Firestore to PostgreSQL with proper user management API routes
+- **Enhanced User Management**: Added comprehensive user management with 3-dot dropdown menus for admin actions
+- **Subscription Management**: Implemented subscription granting with customizable duration (1-12 months)
+- **User Creation System**: Added ability for admins to create new user accounts with proper form validation
+- **Account Suspension Controls**: Full suspend/unsuspend functionality with proper status tracking and UI feedback
 
 ### January 15, 2025
 - **Admin Setup Removal**: Removed AdminSetup component from landing page for cleaner user experience

@@ -1,6 +1,6 @@
 import { Express } from "express";
 import { db } from "./db";
-import { customers, products, invoices, quotes, statements, companies, recycleBin } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, companies, recycleBin, users } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 export async function setupRoutes(app: Express) {
@@ -534,6 +534,53 @@ export async function setupRoutes(app: Express) {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete recycle bin item' });
+    }
+  });
+
+  // User management routes for admin panel
+  app.get('/api/users', async (req, res) => {
+    try {
+      const result = await db.select().from(users)
+        .orderBy(desc(users.createdAt));
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  app.post('/api/users', async (req, res) => {
+    try {
+      const [user] = await db.insert(users).values(req.body).returning();
+      res.json(user);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  });
+
+  app.put('/api/users/:uid', async (req, res) => {
+    try {
+      const uid = req.params.uid;
+      const [user] = await db.update(users)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(users.uid, uid))
+        .returning();
+      res.json(user);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
+  app.delete('/api/users/:uid', async (req, res) => {
+    try {
+      const uid = req.params.uid;
+      await db.delete(users).where(eq(users.uid, uid));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ error: 'Failed to delete user' });
     }
   });
 }
