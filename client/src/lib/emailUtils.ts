@@ -225,39 +225,59 @@ export const openMailApp = async (
     const mailtoUrl = `mailto:${to}?subject=${subject}&body=${bodyWithAttachmentNote}`;
     console.log('Mailto URL created');
 
-    // Download the PDF file
-    const url = URL.createObjectURL(pdfBlob);
-    
-    // Fix the filename generation
-    let filename: string;
-    switch (type) {
-      case 'invoice':
-        filename = `invoice-${(document as Invoice).number}.pdf`;
-        break;
-      case 'quote':
-        filename = `quote-${(document as Quote).number}.pdf`;
-        break;
-      case 'statement':
-        filename = `statement-${(document as Statement).number || document.id}.pdf`;
-        break;
-      default:
-        filename = `${type}-${document.id}.pdf`;
+    // Download the PDF file with better error handling
+    try {
+      const url = URL.createObjectURL(pdfBlob);
+      
+      // Fix the filename generation
+      let filename: string;
+      switch (type) {
+        case 'invoice':
+          filename = `invoice-${(document as Invoice).number}.pdf`;
+          break;
+        case 'quote':
+          filename = `quote-${(document as Quote).number}.pdf`;
+          break;
+        case 'statement':
+          filename = `statement-${(document as Statement).number || document.id}.pdf`;
+          break;
+        default:
+          filename = `${type}-${document.id}.pdf`;
+      }
+      
+      // Create download link with better error handling
+      const link = window.document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.style.display = 'none';
+      
+      // Add to DOM, click, then remove with timeout for cleanup
+      window.document.body.appendChild(link);
+      link.click();
+      
+      // Clean up after a short delay to prevent frame disposal issues
+      setTimeout(() => {
+        if (window.document.body.contains(link)) {
+          window.document.body.removeChild(link);
+        }
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log('PDF download initiated');
+    } catch (downloadError) {
+      console.error('Error downloading PDF:', downloadError);
+      // Still try to open mail app even if download fails
     }
-    
-    // Create download link using the DOM API correctly
-    const link = window.document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.style.display = 'none';
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    console.log('PDF download initiated');
 
-    // Open mail app
-    window.location.href = mailtoUrl;
-    console.log('Mail app opened');
+    // Open mail app with delay to prevent conflicts
+    setTimeout(() => {
+      try {
+        window.location.href = mailtoUrl;
+        console.log('Mail app opened');
+      } catch (mailtoError) {
+        console.error('Error opening mail app:', mailtoError);
+      }
+    }, 200);
   } catch (error) {
     console.error('Error opening mail app:', error);
     throw error;

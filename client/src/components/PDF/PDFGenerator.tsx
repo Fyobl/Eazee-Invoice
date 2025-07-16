@@ -370,10 +370,23 @@ export const generatePDF = async ({ document, company, type }: PDFGeneratorProps
     margin: [0.5, 0.5, 0.8, 0.5], // top, right, bottom, left
     filename: `${type}-${document.number}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      onrendered: (canvas: any) => {
+        console.log('Canvas rendered for PDF generation');
+      }
+    },
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
-  // Generate PDF and return as blob
-  return html2pdf().from(html).set(options).outputPdf('blob');
+  // Generate PDF and return as blob with better error handling
+  try {
+    return html2pdf().from(html).set(options).outputPdf('blob');
+  } catch (error) {
+    console.error('Error in PDF generation:', error);
+    throw new Error(`PDF generation failed: ${error.message}`);
+  }
 };
