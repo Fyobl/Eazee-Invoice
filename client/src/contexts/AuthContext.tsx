@@ -146,10 +146,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
-  // Check if user has active subscription (not just isSubscriber flag)
+  // Check if user has active subscription based on current time
   const hasActiveSubscription = userData ? (
-    userData.isSubscriber && 
-    userData.subscriptionStatus === 'active' && 
     userData.subscriptionCurrentPeriodEnd && 
     new Date(userData.subscriptionCurrentPeriodEnd) > new Date()
   ) : false;
@@ -158,7 +156,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isAdmin = userData?.isAdmin || false;
   const mustChangePassword = userData?.mustChangePassword || false;
   
-  const trialDaysLeft = userData && !userData.isSubscriber ? 
+  const trialDaysLeft = userData && !hasActiveSubscription ? 
     (() => {
       let trialStart: Date;
       
