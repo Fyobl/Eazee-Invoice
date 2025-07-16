@@ -71,14 +71,28 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
       const data = await response.json();
       
       if (data.success) {
+        // Force sync user data to update auth context
+        await fetch('/api/sync-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uid: currentUser?.uid,
+            email: currentUser?.email,
+            displayName: currentUser?.displayName,
+          }),
+        });
+        
         toast({
           title: "Payment Successful (Test Mode)",
           description: "Your subscription has been activated!",
         });
         
-        // Redirect to dashboard after fake payment
+        // Redirect to dashboard after fake payment and force refresh
         setTimeout(() => {
           window.location.href = '/dashboard';
+          window.location.reload();
         }, 1500);
       } else {
         throw new Error(data.error || 'Failed to process fake payment');

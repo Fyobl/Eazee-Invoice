@@ -34,6 +34,19 @@ export const SubscriptionRenewalDialog = ({ open, onClose }: SubscriptionRenewal
       });
 
       if (response.ok) {
+        // Force sync user data to update auth context
+        await fetch('/api/sync-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uid: userData?.uid,
+            email: userData?.email,
+            displayName: userData?.displayName,
+          }),
+        });
+        
         // Refresh the page to update auth state
         window.location.reload();
       }
