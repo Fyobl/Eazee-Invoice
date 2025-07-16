@@ -261,6 +261,7 @@ export const AdminPanel = () => {
     await createUserMutation.mutateAsync({
       uid: `user_${Date.now()}`,
       email: newUserData.email,
+      password: newUserData.password,
       firstName: newUserData.firstName,
       lastName: newUserData.lastName,
       companyName: newUserData.companyName,
