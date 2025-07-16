@@ -32,6 +32,7 @@ import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
 import { Subscribe } from "@/pages/Subscribe";
+import { Help } from "@/pages/Help";
 import { StripeProvider } from "@/components/StripeProvider";
 
 function Router() {
@@ -173,6 +174,12 @@ function Router() {
       <Route path="/admin">
         <ProtectedRoute>
           <AdminPanel />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/help">
+        <ProtectedRoute>
+          <Help />
         </ProtectedRoute>
       </Route>
       

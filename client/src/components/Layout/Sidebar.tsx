@@ -15,7 +15,8 @@ import {
   Shield,
   Mail,
   X,
-  CreditCard
+  CreditCard,
+  HelpCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -36,6 +37,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { href: '/products', label: 'Products', icon: Package },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
     { href: '/recycle-bin', label: 'Recycle Bin', icon: Trash2 },
+    { href: '/help', label: 'Help', icon: HelpCircle },
   ];
 
   const accountNavItems = [
