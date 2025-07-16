@@ -176,9 +176,13 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/customers', async (req, res) => {
+  app.post('/api/customers', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const [customer] = await db.insert(customers).values(req.body).returning();
+      const customerData = {
+        ...req.body,
+        uid: req.user!.uid
+      };
+      const [customer] = await db.insert(customers).values(customerData).returning();
       res.json(customer);
     } catch (error) {
       console.error('Error creating customer:', error);
@@ -186,12 +190,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/customers/:id', async (req, res) => {
+  app.put('/api/customers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [customer] = await db.update(customers)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(customers.id, id))
+        .where(and(eq(customers.id, id), eq(customers.uid, req.user!.uid)))
         .returning();
       res.json(customer);
     } catch (error) {
@@ -199,12 +203,13 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/customers/:id', async (req, res) => {
+  app.delete('/api/customers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       
       // First, get the customer data before soft deleting
-      const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+      const [customer] = await db.select().from(customers)
+        .where(and(eq(customers.id, id), eq(customers.uid, req.user!.uid)));
       
       if (!customer) {
         return res.status(404).json({ error: 'Customer not found' });
@@ -222,7 +227,7 @@ export async function setupRoutes(app: Express) {
       // Soft delete the customer
       const [deletedCustomer] = await db.update(customers)
         .set({ isDeleted: true, updatedAt: new Date() })
-        .where(eq(customers.id, id))
+        .where(and(eq(customers.id, id), eq(customers.uid, req.user!.uid)))
         .returning();
       
       res.json(deletedCustomer);
@@ -245,21 +250,25 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/products', async (req, res) => {
+  app.post('/api/products', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const [product] = await db.insert(products).values(req.body).returning();
+      const productData = {
+        ...req.body,
+        uid: req.user!.uid
+      };
+      const [product] = await db.insert(products).values(productData).returning();
       res.json(product);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create product' });
     }
   });
 
-  app.put('/api/products/:id', async (req, res) => {
+  app.put('/api/products/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [product] = await db.update(products)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(products.id, id))
+        .where(and(eq(products.id, id), eq(products.uid, req.user!.uid)))
         .returning();
       res.json(product);
     } catch (error) {
@@ -267,12 +276,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/products/:id', async (req, res) => {
+  app.delete('/api/products/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [product] = await db.update(products)
         .set({ isDeleted: true, updatedAt: new Date() })
-        .where(eq(products.id, id))
+        .where(and(eq(products.id, id), eq(products.uid, req.user!.uid)))
         .returning();
       res.json(product);
     } catch (error) {
@@ -293,21 +302,25 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/companies', async (req, res) => {
+  app.post('/api/companies', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const [company] = await db.insert(companies).values(req.body).returning();
+      const companyData = {
+        ...req.body,
+        uid: req.user!.uid
+      };
+      const [company] = await db.insert(companies).values(companyData).returning();
       res.json(company);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create company' });
     }
   });
 
-  app.put('/api/companies/:id', async (req, res) => {
+  app.put('/api/companies/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [company] = await db.update(companies)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(companies.id, id))
+        .where(and(eq(companies.id, id), eq(companies.uid, req.user!.uid)))
         .returning();
       res.json(company);
     } catch (error) {
@@ -328,7 +341,7 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/invoices', async (req, res) => {
+  app.post('/api/invoices', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       console.log('Creating invoice with data:', JSON.stringify(req.body, null, 2));
       
@@ -338,7 +351,7 @@ export async function setupRoutes(app: Express) {
       
       // Generate sequential invoice number starting from 100000
       const existingInvoices = await db.select().from(invoices)
-        .where(eq(invoices.uid, bodyData.uid))
+        .where(eq(invoices.uid, req.user!.uid))
         .orderBy(desc(invoices.id));
       
       // Find the highest number from INV-100000 format only, ignore old format
@@ -358,6 +371,7 @@ export async function setupRoutes(app: Express) {
       
       const invoiceData = {
         ...bodyData,
+        uid: req.user!.uid,
         number: `INV-${nextNumber}`,
         date: new Date(bodyData.date),
         dueDate: new Date(bodyData.dueDate)
@@ -382,12 +396,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/invoices/:id', async (req, res) => {
+  app.put('/api/invoices/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [invoice] = await db.update(invoices)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(invoices.id, id))
+        .where(and(eq(invoices.id, id), eq(invoices.uid, req.user!.uid)))
         .returning();
       res.json(invoice);
     } catch (error) {
@@ -395,12 +409,13 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/invoices/:id', async (req, res) => {
+  app.delete('/api/invoices/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       
       // First, get the invoice data before soft deleting
-      const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+      const [invoice] = await db.select().from(invoices)
+        .where(and(eq(invoices.id, id), eq(invoices.uid, req.user!.uid)));
       
       if (!invoice) {
         return res.status(404).json({ error: 'Invoice not found' });
@@ -418,7 +433,7 @@ export async function setupRoutes(app: Express) {
       // Soft delete the invoice
       const [deletedInvoice] = await db.update(invoices)
         .set({ isDeleted: true, updatedAt: new Date() })
-        .where(eq(invoices.id, id))
+        .where(and(eq(invoices.id, id), eq(invoices.uid, req.user!.uid)))
         .returning();
       
       res.json(deletedInvoice);
@@ -441,7 +456,7 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/quotes', async (req, res) => {
+  app.post('/api/quotes', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       console.log('Creating quote with data:', JSON.stringify(req.body, null, 2));
       
@@ -451,7 +466,7 @@ export async function setupRoutes(app: Express) {
       
       // Generate sequential quote number starting from 100000
       const existingQuotes = await db.select().from(quotes)
-        .where(eq(quotes.uid, bodyData.uid))
+        .where(eq(quotes.uid, req.user!.uid))
         .orderBy(desc(quotes.id));
       
       // Find the highest number from QUO-100000 format only, ignore old format
@@ -471,6 +486,7 @@ export async function setupRoutes(app: Express) {
       
       const quoteData = {
         ...bodyData,
+        uid: req.user!.uid,
         number: `QUO-${nextNumber}`,
         date: new Date(bodyData.date),
         validUntil: new Date(bodyData.validUntil)
@@ -491,12 +507,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/quotes/:id', async (req, res) => {
+  app.put('/api/quotes/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [quote] = await db.update(quotes)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(quotes.id, id))
+        .where(and(eq(quotes.id, id), eq(quotes.uid, req.user!.uid)))
         .returning();
       res.json(quote);
     } catch (error) {
@@ -504,12 +520,13 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/quotes/:id', async (req, res) => {
+  app.delete('/api/quotes/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       
       // First, get the quote data before soft deleting
-      const [quote] = await db.select().from(quotes).where(eq(quotes.id, id));
+      const [quote] = await db.select().from(quotes)
+        .where(and(eq(quotes.id, id), eq(quotes.uid, req.user!.uid)));
       
       if (!quote) {
         return res.status(404).json({ error: 'Quote not found' });
@@ -527,7 +544,7 @@ export async function setupRoutes(app: Express) {
       // Soft delete the quote
       const [deletedQuote] = await db.update(quotes)
         .set({ isDeleted: true, updatedAt: new Date() })
-        .where(eq(quotes.id, id))
+        .where(and(eq(quotes.id, id), eq(quotes.uid, req.user!.uid)))
         .returning();
       
       res.json(deletedQuote);
@@ -538,15 +555,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Statements routes
-  app.get('/api/statements', async (req, res) => {
+  app.get('/api/statements', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(statements)
-        .where(and(eq(statements.uid, uid), eq(statements.isDeleted, false)))
+        .where(and(eq(statements.uid, req.user!.uid), eq(statements.isDeleted, false)))
         .orderBy(desc(statements.createdAt));
       
       res.json(result);
@@ -555,14 +567,14 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/statements', async (req, res) => {
+  app.post('/api/statements', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       console.log('Creating statement with data:', req.body);
       
       // Generate statement number
       const existingStatements = await db.select({ number: statements.number })
         .from(statements)
-        .where(eq(statements.uid, req.body.uid))
+        .where(eq(statements.uid, req.user!.uid))
         .orderBy(desc(statements.createdAt));
       
       // Find the highest number >= 100000 for this user
@@ -581,7 +593,7 @@ export async function setupRoutes(app: Express) {
       const statementNumber = `STM-${nextNumber}`;
       
       const statementData = {
-        uid: req.body.uid,
+        uid: req.user!.uid,
         number: statementNumber,
         customerId: req.body.customerId,
         customerName: req.body.customerName,
@@ -606,12 +618,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.put('/api/statements/:id', async (req, res) => {
+  app.put('/api/statements/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [statement] = await db.update(statements)
         .set({ ...req.body, updatedAt: new Date() })
-        .where(eq(statements.id, id))
+        .where(and(eq(statements.id, id), eq(statements.uid, req.user!.uid)))
         .returning();
       res.json(statement);
     } catch (error) {
@@ -619,12 +631,12 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.delete('/api/statements/:id', async (req, res) => {
+  app.delete('/api/statements/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const [statement] = await db.update(statements)
         .set({ isDeleted: true, updatedAt: new Date() })
-        .where(eq(statements.id, id))
+        .where(and(eq(statements.id, id), eq(statements.uid, req.user!.uid)))
         .returning();
       res.json(statement);
     } catch (error) {
@@ -633,15 +645,10 @@ export async function setupRoutes(app: Express) {
   });
 
   // Recycle bin routes
-  app.get('/api/recycle-bin', async (req, res) => {
+  app.get('/api/recycle-bin', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const uid = req.query.uid as string;
-      if (!uid) {
-        return res.status(400).json({ error: 'uid is required' });
-      }
-      
       const result = await db.select().from(recycleBin)
-        .where(eq(recycleBin.uid, uid))
+        .where(eq(recycleBin.uid, req.user!.uid))
         .orderBy(desc(recycleBin.deletedAt));
       
       res.json(result);
@@ -650,19 +657,23 @@ export async function setupRoutes(app: Express) {
     }
   });
 
-  app.post('/api/recycle-bin', async (req, res) => {
+  app.post('/api/recycle-bin', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const [item] = await db.insert(recycleBin).values(req.body).returning();
+      const itemData = {
+        ...req.body,
+        uid: req.user!.uid
+      };
+      const [item] = await db.insert(recycleBin).values(itemData).returning();
       res.json(item);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create recycle bin item' });
     }
   });
 
-  app.delete('/api/recycle-bin/:id', async (req, res) => {
+  app.delete('/api/recycle-bin/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      await db.delete(recycleBin).where(eq(recycleBin.id, id));
+      await db.delete(recycleBin).where(and(eq(recycleBin.id, id), eq(recycleBin.uid, req.user!.uid)));
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete recycle bin item' });
