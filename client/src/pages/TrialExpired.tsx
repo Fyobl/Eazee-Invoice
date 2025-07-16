@@ -3,12 +3,18 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { logoutUser } from '@/lib/auth';
+import { useLocation } from 'wouter';
 
 export const TrialExpired = () => {
   const { userData } = useAuth();
+  const [, navigate] = useLocation();
 
   const handleLogout = async () => {
     await logoutUser();
+  };
+
+  const handleSubscribe = () => {
+    navigate('/subscribe');
   };
 
   return (
@@ -25,7 +31,7 @@ export const TrialExpired = () => {
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Trial Expired</h1>
             
             <p className="text-slate-600 mb-6">
-              Your 7-day free trial has expired. Please upgrade to continue using InvoicePro.
+              Your 7-day free trial has expired. Please upgrade to continue using Eazee Invoice.
             </p>
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
@@ -38,8 +44,8 @@ export const TrialExpired = () => {
             </div>
 
             <div className="space-y-3">
-              <Button className="w-full" size="lg">
-                Upgrade to Pro
+              <Button className="w-full" size="lg" onClick={handleSubscribe}>
+                Upgrade to Pro - £9.97/month
               </Button>
               
               <Button 

@@ -31,6 +31,8 @@ import { EmailSettings } from "@/pages/EmailSettings";
 import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
+import { Subscribe } from "@/pages/Subscribe";
+import { StripeProvider } from "@/components/StripeProvider";
 
 function Router() {
   return (
@@ -39,6 +41,7 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
+      <Route path="/subscribe" component={Subscribe} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
@@ -185,8 +188,10 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <AuthProvider>
-            <Toaster />
-            <Router />
+            <StripeProvider>
+              <Toaster />
+              <Router />
+            </StripeProvider>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>

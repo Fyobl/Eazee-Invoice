@@ -15,6 +15,10 @@ export const users = pgTable('users', {
   isSuspended: boolean('is_suspended').default(false),
   isAdmin: boolean('is_admin').default(false),
   mustChangePassword: boolean('must_change_password').default(false),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  subscriptionStatus: text('subscription_status'),
+  subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

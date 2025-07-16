@@ -12,6 +12,7 @@ interface AuthContextType {
   isAdmin: boolean;
   trialDaysLeft: number;
   mustChangePassword: boolean;
+  isSubscriber: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -151,7 +152,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     hasAccess,
     isAdmin,
     trialDaysLeft,
-    mustChangePassword
+    mustChangePassword,
+    isSubscriber: userData?.isSubscriber || false
   };
 
   return (

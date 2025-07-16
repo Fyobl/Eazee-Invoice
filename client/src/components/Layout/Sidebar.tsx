@@ -14,7 +14,8 @@ import {
   User, 
   Shield,
   Mail,
-  X
+  X,
+  CreditCard
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,7 +25,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [location] = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSubscriber } = useAuth();
 
   const mainNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -42,6 +43,13 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { href: '/account', label: 'Account', icon: User },
     { href: '/email-settings', label: 'Email Settings', icon: Mail },
   ];
+
+  // Add subscription management for all users
+  if (!isSubscriber) {
+    accountNavItems.push({ href: '/subscribe', label: 'Upgrade to Pro', icon: CreditCard });
+  } else {
+    accountNavItems.push({ href: '/subscribe', label: 'Manage Subscription', icon: CreditCard });
+  }
 
   if (isAdmin) {
     accountNavItems.push({ href: '/admin', label: 'Admin Panel', icon: Shield });
