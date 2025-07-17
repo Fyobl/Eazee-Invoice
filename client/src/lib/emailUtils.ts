@@ -299,10 +299,14 @@ export const openMailApp = async (
         
         // Clean up after a short delay to prevent frame disposal issues
         setTimeout(() => {
-          if (window.document.body.contains(link)) {
-            window.document.body.removeChild(link);
+          try {
+            if (window.document.body.contains(link)) {
+              window.document.body.removeChild(link);
+            }
+            URL.revokeObjectURL(url);
+          } catch (cleanupError) {
+            console.warn('Cleanup error (non-critical):', cleanupError);
           }
-          URL.revokeObjectURL(url);
         }, 100);
         
         console.log('PDF download initiated');
@@ -320,7 +324,7 @@ export const openMailApp = async (
         window.location.href = mailtoUrl;
         console.log('Mail app opened');
       } catch (mailtoError) {
-        console.error('Error opening mail app:', mailtoError);
+        console.warn('Error opening mail app (non-critical):', mailtoError);
       }
     }, 200);
   } catch (error) {

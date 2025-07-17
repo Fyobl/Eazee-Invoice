@@ -235,21 +235,32 @@ export const QuoteList = () => {
       console.log('Customer data:', customer);
       console.log('User data:', currentUser);
       
-      await openMailApp(quote, customer, currentUser, 'quote');
-      
-      // Update quote status to "sent" after successful email preparation
+      // Update quote status to "sent" first, before PDF generation
       await updateQuote({ id: quote.id.toString(), data: { status: 'sent' } });
       
-      toast({
-        title: "Email Prepared",
-        description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". PDF downloaded to your Downloads folder - please attach it to the email.`,
-      });
+      // Then try to prepare the email - if this fails, the status is still updated
+      try {
+        await openMailApp(quote, customer, currentUser, 'quote');
+        
+        toast({
+          title: "Email Prepared",
+          description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". PDF downloaded to your Downloads folder - please attach it to the email.`,
+        });
+      } catch (emailError) {
+        console.warn('Email preparation had issues but quote status was updated:', emailError);
+        
+        // Even if email preparation fails, inform user that status was updated
+        toast({
+          title: "Quote Status Updated",
+          description: `Quote ${quote.number} status changed to "Sent". Email preparation had issues - please try again or create PDF manually.`,
+        });
+      }
     } catch (error) {
-      console.error('Error preparing email for quote:', error);
+      console.error('Error in quote email process:', error);
       console.error('Error details:', error.message, error.stack);
       toast({
         title: "Error",
-        description: `Failed to prepare email for quote: ${error.message}. Please try again.`,
+        description: `Failed to update quote status: ${error.message}. Please try again.`,
         variant: "destructive",
       });
     }
