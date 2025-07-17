@@ -202,13 +202,13 @@ export const openMailApp = async (
   try {
     console.log('Starting email preparation for:', { type, documentId: document.id, customerEmail: customer.email });
     
-    // Use centralized error suppression for newly created documents
-    const wasNewlyCreated = suppressErrorsForNewDocument(document);
+    // Temporarily disable error suppression to debug email client issue
+    // const wasNewlyCreated = suppressErrorsForNewDocument(document);
     
-    if (wasNewlyCreated) {
-      // Add a small delay to let the document "settle" in the system
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+    // if (wasNewlyCreated) {
+    //   // Add a small delay to let the document "settle" in the system
+    //   await new Promise(resolve => setTimeout(resolve, 1000));
+    // }
     
     // Generate PDF with better error handling
     console.log('Generating PDF...');
@@ -237,8 +237,8 @@ export const openMailApp = async (
       }
     }
     
-    const base64PDF = await blobToBase64(pdfBlob);
-    console.log('PDF converted to base64');
+    // Skip base64 conversion as we're not using it for mailto
+    console.log('PDF blob ready for download');
 
     // Generate email content
     let emailContent: { subject: string; body: string };
@@ -329,6 +329,12 @@ export const openMailApp = async (
 
     // Open mail app with delay to prevent conflicts
     console.log('Attempting to open mail app with URL:', mailtoUrl);
+    
+    // First try a simple test
+    console.log('Testing basic mailto functionality...');
+    const testMailto = `mailto:${customer.email}?subject=Test&body=Test email`;
+    console.log('Test mailto URL:', testMailto);
+    
     setTimeout(() => {
       try {
         console.log('Opening mail app via window.location.href');
@@ -336,12 +342,33 @@ export const openMailApp = async (
         console.log('Mail app opened successfully');
       } catch (mailtoError) {
         console.error('Error opening mail app:', mailtoError);
-        // Try alternative method
+        
+        // Try alternative method with window.open
         try {
           console.log('Trying alternative method with window.open');
-          window.open(mailtoUrl, '_blank');
+          const newWindow = window.open(mailtoUrl, '_blank');
+          if (newWindow) {
+            console.log('Window.open succeeded');
+          } else {
+            console.log('Window.open returned null - popup blocked?');
+          }
         } catch (alternativeError) {
           console.error('Alternative method also failed:', alternativeError);
+          
+          // Try creating a clickable link as last resort
+          try {
+            console.log('Creating downloadable link as fallback');
+            const link = document.createElement('a');
+            link.href = mailtoUrl;
+            link.textContent = 'Click to open email';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('Fallback link method attempted');
+          } catch (fallbackError) {
+            console.error('All methods failed:', fallbackError);
+          }
         }
       }
     }, 200);
