@@ -132,6 +132,7 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
           border: 1px solid #e2e8f0; 
           padding: 8px; 
           text-align: left; 
+          vertical-align: middle;
         }
         .table th { 
           background-color: #f8fafc; 
@@ -234,11 +235,13 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
           margin-bottom: 0;
         }
         .status-badge {
-          padding: 4px 12px;
-          border-radius: 4px;
-          font-size: 12px;
+          padding: 3px 8px;
+          border-radius: 3px;
+          font-size: 10px;
           font-weight: bold;
           text-transform: uppercase;
+          white-space: nowrap;
+          display: inline-block;
         }
         .status-unpaid { background-color: #dbeafe; color: #1e40af; }
         .status-paid { background-color: #dcfce7; color: #166534; }

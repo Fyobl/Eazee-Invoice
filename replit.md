@@ -362,6 +362,8 @@ The application is designed to be easily extensible with additional features lik
 - **Database Updates**: Enhanced useDatabase hook to support invoice status updates via dropdown selection
 - **User Experience**: Status changes now show toast notifications confirming the update
 - **PDF Visual Enhancement**: Added bordered status stamps to invoice PDFs for clear payment status visibility
+- **Status Position Update**: Moved status stamp from top-right to left side next to totals table for better layout
+- **Statement PDF Fix**: Fixed status badge cutoff issue in statement PDFs by reducing padding and font size for better fit
 
 ### January 16, 2025 - CSV Upload Template Consistency Fix
 - **Customer CSV Template Standardization**: Fixed inconsistency between customer page and admin panel CSV templates
