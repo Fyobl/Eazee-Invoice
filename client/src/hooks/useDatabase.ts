@@ -28,10 +28,14 @@ export const useDatabase = (collectionName: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [collectionName] });
-      toast({
-        title: 'Success',
-        description: `${collectionName.slice(0, -1)} created successfully`,
-      });
+      // Only show generic success toast for non-invoice collections
+      // Invoice creation has custom success messages
+      if (collectionName !== 'invoices') {
+        toast({
+          title: 'Success',
+          description: `${collectionName.slice(0, -1)} created successfully`,
+        });
+      }
     },
     onError: (error: Error) => {
       toast({

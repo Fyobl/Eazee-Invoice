@@ -16,6 +16,7 @@ import { openMailApp } from '@/lib/emailUtils';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const QuoteList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,6 +30,7 @@ export const QuoteList = () => {
   const { add: createInvoice } = useDatabase('invoices');
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const filteredQuotes = quotes?.filter((quote: Quote) => {
     const matchesSearch = quote.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -159,10 +161,29 @@ export const QuoteList = () => {
       };
 
       console.log('Converting quote to invoice:', invoiceData);
-      const newInvoice = await createInvoice(invoiceData);
+      
+      // Use the create mutation directly to avoid duplicate toast messages
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create invoice');
+      }
+
+      const newInvoice = await response.json();
+      
+      // Manually invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
       
       toast({
-        title: "Invoice Created",
+        title: "Invoice Created Successfully",
         description: `Invoice ${newInvoice.number} has been created from quote ${quote.number}.`,
       });
     } catch (error) {
