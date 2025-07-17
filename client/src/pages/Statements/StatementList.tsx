@@ -230,7 +230,17 @@ export const StatementList = () => {
       
       // First, generate and download the PDF
       try {
+        // Add small delay to prevent rapid-fire issues
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Temporarily suppress all alerts during PDF generation
+        const originalAlert = window.alert;
+        window.alert = () => {};
+        
         const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
+        
+        // Restore alert after PDF generation
+        window.alert = originalAlert;
         
         // Download the PDF
         const url = window.URL.createObjectURL(pdfBlob);

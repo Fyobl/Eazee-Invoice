@@ -299,7 +299,17 @@ export const QuoteList = () => {
       
       // Simple approach: generate PDF first, then open email
       try {
+        // Add small delay to prevent rapid-fire issues
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Temporarily suppress all alerts during PDF generation
+        const originalAlert = window.alert;
+        window.alert = () => {};
+        
         const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
+        
+        // Restore alert after PDF generation
+        window.alert = originalAlert;
         
         // Download the PDF
         const url = window.URL.createObjectURL(pdfBlob);
