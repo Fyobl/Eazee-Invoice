@@ -228,8 +228,11 @@ export const QuoteList = () => {
   };
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [lastEmailTime, setLastEmailTime] = useState(0);
 
   const handleSendEmail = async (quote: Quote) => {
+    const now = Date.now();
+    
     if (isGeneratingPDF) {
       toast({
         title: "Please Wait",
@@ -238,6 +241,18 @@ export const QuoteList = () => {
       });
       return;
     }
+    
+    // Debounce: prevent rapid clicks within 3 seconds
+    if (now - lastEmailTime < 3000) {
+      toast({
+        title: "Please Wait",
+        description: "Please wait a moment before sending another email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLastEmailTime(now);
 
     if (!currentUser) {
       toast({

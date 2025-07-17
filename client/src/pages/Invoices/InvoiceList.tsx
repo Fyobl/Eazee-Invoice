@@ -24,6 +24,7 @@ export const InvoiceList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [lastEmailTime, setLastEmailTime] = useState(0);
   
   const { data: invoices, isLoading: loading, remove: deleteDocument, update: updateInvoice } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
@@ -186,6 +187,8 @@ export const InvoiceList = () => {
   };
 
   const handleSendEmail = async (invoice: Invoice) => {
+    const now = Date.now();
+    
     if (isGeneratingPDF) {
       toast({
         title: "Please Wait",
@@ -194,6 +197,18 @@ export const InvoiceList = () => {
       });
       return;
     }
+    
+    // Debounce: prevent rapid clicks within 3 seconds
+    if (now - lastEmailTime < 3000) {
+      toast({
+        title: "Please Wait",
+        description: "Please wait a moment before sending another email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLastEmailTime(now);
 
     if (!currentUser) {
       toast({

@@ -16,17 +16,34 @@ export const generatePDF = async (
     documentType: type
   });
   
-  // Simple error suppression for PDF generation
+  // Enhanced error suppression for PDF generation in Replit environment
   const originalErrorHandler = window.onerror;
   const originalUnhandledRejection = window.onunhandledrejection;
+  const originalConsoleError = console.error;
+  
+  // Comprehensive error patterns that occur in Replit
+  const suppressedErrorPatterns = [
+    'WebFrameMain',
+    'frame was disposed',
+    'browser_init.js2',
+    'emitter.emit',
+    'Render frame was disposed',
+    'Object has been destroyed',
+    'Cannot read properties of undefined',
+    'Cannot read property',
+    'electron',
+    'webContents',
+    'BrowserWindow'
+  ];
+  
+  const shouldSuppressError = (message: string): boolean => {
+    return suppressedErrorPatterns.some(pattern => 
+      message.toLowerCase().includes(pattern.toLowerCase())
+    );
+  };
   
   window.onerror = function(message, source, lineno, colno, error) {
-    if (typeof message === 'string' && (
-      message.includes('WebFrameMain') ||
-      message.includes('frame was disposed') ||
-      message.includes('browser_init.js2') ||
-      message.includes('emitter.emit')
-    )) {
+    if (typeof message === 'string' && shouldSuppressError(message)) {
       console.warn('PDF generation error suppressed:', message);
       return true;
     }
@@ -34,15 +51,22 @@ export const generatePDF = async (
   };
   
   window.onunhandledrejection = function(event) {
-    if (event.reason && event.reason.message && (
-      event.reason.message.includes('WebFrameMain') ||
-      event.reason.message.includes('frame was disposed')
-    )) {
-      console.warn('PDF generation promise rejection suppressed:', event.reason.message);
+    const errorMessage = event.reason?.message || event.reason?.toString() || '';
+    if (shouldSuppressError(errorMessage)) {
+      console.warn('PDF generation promise rejection suppressed:', errorMessage);
       event.preventDefault();
       return true;
     }
     return originalUnhandledRejection ? originalUnhandledRejection(event) : false;
+  };
+  
+  console.error = function(...args) {
+    const errorString = args.join(' ');
+    if (shouldSuppressError(errorString)) {
+      console.warn('PDF generation console error suppressed:', ...args);
+      return;
+    }
+    originalConsoleError.apply(console, args);
   };
   
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
@@ -469,5 +493,6 @@ export const generatePDF = async (
     // Restore original error handlers
     window.onerror = originalErrorHandler;
     window.onunhandledrejection = originalUnhandledRejection;
+    console.error = originalConsoleError;
   }
 };

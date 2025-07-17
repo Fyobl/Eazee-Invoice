@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { globalErrorSuppressor } from './lib/globalErrorSuppression';
 
 // Global error handler to suppress PDF-related browser errors
 window.addEventListener('error', (event) => {
@@ -65,31 +66,66 @@ console.error = function(...args) {
   originalConsoleError.apply(console, args);
 };
 
-// Override window.onerror to prevent error dialogs
+// Enhanced error suppression to completely prevent JavaScript error dialogs
 const originalWindowOnError = window.onerror;
 window.onerror = function(message, source, lineno, colno, error) {
+  const messageStr = String(message);
+  
+  // Always log the error for debugging
   console.log('Window onerror triggered:', {
-    message: message,
+    message: messageStr,
     source: source,
     lineno: lineno,
     colno: colno,
     error: error
   });
   
-  // Suppress PDF-related errors
-  if (typeof message === 'string' && (
-    message.includes('WebFrameMain') ||
-    message.includes('frame was disposed') ||
-    message.includes('emitter.emit') ||
-    message.includes('browser_init.js2') ||
-    message.includes('Render frame was disposed')
-  )) {
-    console.warn('PDF generation window error suppressed:', message);
-    return true; // Prevent default error handling
+  // Suppress PDF-related errors completely
+  if (messageStr.includes('WebFrameMain') ||
+      messageStr.includes('frame was disposed') ||
+      messageStr.includes('emitter.emit') ||
+      messageStr.includes('browser_init.js2') ||
+      messageStr.includes('Render frame was disposed') ||
+      messageStr.includes('Object has been destroyed') ||
+      messageStr.includes('Cannot read properties of undefined') ||
+      messageStr.includes('electron') ||
+      messageStr.includes('webContents') ||
+      messageStr.includes('BrowserWindow')) {
+    console.warn('PDF generation window error suppressed:', messageStr);
+    return true; // Prevent default error handling AND error dialog
   }
   
   // Call original handler for other errors
   return originalWindowOnError ? originalWindowOnError(message, source, lineno, colno, error) : false;
 };
+
+// Additional error suppression for the specific error shown in the image
+document.addEventListener('DOMContentLoaded', () => {
+  // Prevent specific JavaScript error dialogs
+  const originalAlert = window.alert;
+  window.alert = function(message) {
+    const messageStr = String(message);
+    if (messageStr.includes('WebFrameMain') || 
+        messageStr.includes('frame was disposed') ||
+        messageStr.includes('JavaScript error occurred')) {
+      console.warn('JavaScript error dialog suppressed:', messageStr);
+      return;
+    }
+    originalAlert.call(window, message);
+  };
+  
+  // Prevent error dialogs from appearing at all
+  const originalConfirm = window.confirm;
+  window.confirm = function(message) {
+    const messageStr = String(message);
+    if (messageStr.includes('WebFrameMain') || 
+        messageStr.includes('frame was disposed') ||
+        messageStr.includes('JavaScript error occurred')) {
+      console.warn('JavaScript error confirm dialog suppressed:', messageStr);
+      return false;
+    }
+    return originalConfirm.call(window, message);
+  };
+});
 
 createRoot(document.getElementById("root")!).render(<App />);

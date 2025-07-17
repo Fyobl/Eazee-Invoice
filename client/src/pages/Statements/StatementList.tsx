@@ -24,6 +24,7 @@ export const StatementList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statementToDelete, setStatementToDelete] = useState<Statement | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [lastEmailTime, setLastEmailTime] = useState(0);
   
   const { data: statements, isLoading: loading, remove: deleteDocument } = useDatabase('statements');
   const { data: customers } = useDatabase('customers');
@@ -167,6 +168,8 @@ export const StatementList = () => {
   };
 
   const handleSendEmail = async (statement: Statement) => {
+    const now = Date.now();
+    
     if (isGeneratingPDF) {
       toast({
         title: "Please Wait",
@@ -175,6 +178,18 @@ export const StatementList = () => {
       });
       return;
     }
+    
+    // Debounce: prevent rapid clicks within 3 seconds
+    if (now - lastEmailTime < 3000) {
+      toast({
+        title: "Please Wait",
+        description: "Please wait a moment before sending another email.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLastEmailTime(now);
 
     if (!currentUser) {
       toast({
