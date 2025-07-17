@@ -13,11 +13,21 @@ interface ReportData {
 export const generateVATReport = async (data: ReportData, dateRange: { start: Date; end: Date }) => {
   const { invoices, user } = data;
   
+  console.log('VAT Report Debug:', {
+    totalInvoices: invoices.length,
+    dateRange: { start: dateRange.start, end: dateRange.end },
+    invoiceDates: invoices.map(inv => ({ number: inv.number, date: inv.date }))
+  });
+  
   // Filter invoices within date range
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
+    const inRange = invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
+    console.log(`Invoice ${invoice.number}: ${invoice.date} - in range: ${inRange}`);
+    return inRange;
   });
+  
+  console.log('Filtered invoices:', filteredInvoices.length);
 
   // Calculate VAT totals
   const vatData = filteredInvoices.map(invoice => {

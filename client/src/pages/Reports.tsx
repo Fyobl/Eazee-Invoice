@@ -22,7 +22,7 @@ export const Reports = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   
-  const [startDate, setStartDate] = useState(format(subMonths(new Date(), 1), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState(format(subMonths(new Date(), 12), 'yyyy-MM-dd')); // Default to last 12 months
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'quarterly' | 'yearly'>('monthly');
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
