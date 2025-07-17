@@ -84,6 +84,11 @@ export class ErrorSuppressor {
       'node:events:531'
     ];
     
+    // Don't suppress mailto or email-related errors
+    if (message.includes('mailto') || message.includes('email') || message.includes('mail')) {
+      return false;
+    }
+    
     return pdfErrorPatterns.some(pattern => message.includes(pattern));
   }
 
@@ -105,8 +110,8 @@ export const suppressErrorsForNewDocument = (document: any) => {
     new Date(document.createdAt) > new Date(Date.now() - 120000); // 2 minutes
     
   if (isNewlyCreated) {
-    console.log('Detected newly created document - activating error suppression');
-    errorSuppressor.activateWithTimeout(15000); // 15 seconds
+    console.log('Detected newly created document - activating targeted error suppression');
+    errorSuppressor.activateWithTimeout(8000); // 8 seconds - shorter timeout
     return true;
   }
   

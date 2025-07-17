@@ -328,12 +328,21 @@ export const openMailApp = async (
     }
 
     // Open mail app with delay to prevent conflicts
+    console.log('Attempting to open mail app with URL:', mailtoUrl);
     setTimeout(() => {
       try {
+        console.log('Opening mail app via window.location.href');
         window.location.href = mailtoUrl;
-        console.log('Mail app opened');
+        console.log('Mail app opened successfully');
       } catch (mailtoError) {
-        console.warn('Error opening mail app (non-critical):', mailtoError);
+        console.error('Error opening mail app:', mailtoError);
+        // Try alternative method
+        try {
+          console.log('Trying alternative method with window.open');
+          window.open(mailtoUrl, '_blank');
+        } catch (alternativeError) {
+          console.error('Alternative method also failed:', alternativeError);
+        }
       }
     }, 200);
   } catch (error) {
