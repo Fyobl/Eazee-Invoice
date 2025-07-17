@@ -168,10 +168,36 @@ export const StatementList = () => {
     }
 
     try {
-      await openMailApp(statement, customer, currentUser, 'statement');
+      console.log('Creating simple email for statement:', statement.number);
+      
+      const emailSubject = `Statement ${statement.number} from ${currentUser.companyName || 'Your Company'}`;
+      const emailBody = `Dear ${customer.name},
+
+Please find your account statement for the period ${new Date(statement.fromDate).toLocaleDateString('en-GB')} to ${new Date(statement.toDate).toLocaleDateString('en-GB')}.
+
+Statement Details:
+- Statement Number: ${statement.number}
+- Period: ${new Date(statement.fromDate).toLocaleDateString('en-GB')} - ${new Date(statement.toDate).toLocaleDateString('en-GB')}
+- Total Amount: £${statement.total}
+
+This statement shows all outstanding invoices for the specified period. If you have any questions or need clarification on any items, please contact us.
+
+Thank you for your business.
+
+Best regards,
+${currentUser.companyName || 'Your Company'}
+
+---
+Note: A PDF version of this statement can be downloaded from our system if needed.`;
+
+      const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      console.log('Opening simple email with URL:', simpleMailtoUrl);
+      window.location.href = simpleMailtoUrl;
+      
       toast({
-        title: "Email Prepared",
-        description: `Email template opened for statement ${statement.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
+        title: "Email Opened",
+        description: `Email template opened for statement ${statement.number}. You can generate a PDF separately if needed.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);

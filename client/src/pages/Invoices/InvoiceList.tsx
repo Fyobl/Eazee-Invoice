@@ -187,18 +187,41 @@ export const InvoiceList = () => {
     }
 
     try {
-      console.log('Attempting to send email for invoice:', invoice);
-      console.log('Customer found:', customer);
-      console.log('User found:', currentUser);
+      console.log('Creating simple email for invoice:', invoice.number);
       
-      await openMailApp(invoice, customer, currentUser, 'invoice');
+      const emailSubject = `Invoice ${invoice.number} from ${currentUser.companyName || 'Your Company'}`;
+      const emailBody = `Dear ${customer.name},
+
+Please find attached invoice ${invoice.number} for your recent purchase.
+
+Invoice Details:
+- Invoice Number: ${invoice.number}
+- Issue Date: ${new Date(invoice.date).toLocaleDateString('en-GB')}
+- Due Date: ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}
+- Amount: £${invoice.total}
+- Status: ${invoice.status.toUpperCase()}
+
+Payment is due by ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}. If you have any questions regarding this invoice, please contact us.
+
+Thank you for your business.
+
+Best regards,
+${currentUser.companyName || 'Your Company'}
+
+---
+Note: A PDF version of this invoice can be downloaded from our system if needed.`;
+
+      const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      console.log('Opening simple email with URL:', simpleMailtoUrl);
+      window.location.href = simpleMailtoUrl;
+      
       toast({
-        title: "Email Prepared",
-        description: `Email template opened for invoice ${invoice.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
+        title: "Email Opened",
+        description: `Email template opened for invoice ${invoice.number}. You can generate a PDF separately if needed.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);
-      console.error('Error details:', error.message, error.stack);
       toast({
         title: "Error",
         description: `Failed to prepare email: ${error.message}. Please try again.`,

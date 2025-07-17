@@ -255,27 +255,41 @@ export const QuoteList = () => {
           return originalOnerror ? originalOnerror(message, source, lineno, colno, error) : false;
         };
         
-        // Test if openMailApp function is available
-        console.log('openMailApp function available:', typeof openMailApp);
+        // Since simple mailto works, let's create a simple email without PDF generation
+        console.log('Creating simple email for quote:', quote.number);
         
-        // Wrap the openMailApp call to catch any synchronous errors
-        console.log('About to call openMailApp with:', { quote: quote.number, customer: customer.name, userEmail: currentUser.email });
+        const emailSubject = `Quote ${quote.number} from ${currentUser.companyName || 'Your Company'}`;
+        const emailBody = `Dear ${customer.name},
+
+Thank you for your interest in our services. Please find quote ${quote.number} for your consideration.
+
+Quote Details:
+- Quote Number: ${quote.number}
+- Issue Date: ${new Date(quote.date).toLocaleDateString('en-GB')}
+- Valid Until: ${new Date(quote.validUntil).toLocaleDateString('en-GB')}
+- Amount: £${quote.total}
+
+This quote is valid for 30 days from the issue date. If you have any questions or would like to proceed with this quote, please contact us.
+
+We look forward to working with you.
+
+Best regards,
+${currentUser.companyName || 'Your Company'}
+
+---
+Note: A PDF version of this quote can be downloaded from our system if needed.`;
+
+        const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
         
-        // Simple test first
-        console.log('Testing simple mailto...');
-        const testUrl = `mailto:${customer.email}?subject=Test&body=Test`;
-        console.log('Test URL:', testUrl);
+        console.log('Opening simple email with URL:', simpleMailtoUrl);
         
         try {
-          window.location.href = testUrl;
-          console.log('Simple mailto test completed');
-        } catch (testError) {
-          console.error('Simple mailto test failed:', testError);
+          window.location.href = simpleMailtoUrl;
+          console.log('Simple email opened successfully');
+        } catch (emailError) {
+          console.error('Simple email failed:', emailError);
+          throw emailError;
         }
-        
-        // Now try the full function
-        const emailPromise = openMailApp(quote, customer, currentUser, 'quote');
-        console.log('openMailApp called, waiting for result...');
         
         // Restore original error handler after a delay
         setTimeout(() => {
@@ -285,8 +299,8 @@ export const QuoteList = () => {
         await emailPromise;
         
         toast({
-          title: "Email Prepared",
-          description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". PDF downloaded to your Downloads folder - please attach it to the email.`,
+          title: "Email Opened",
+          description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". You can generate a PDF separately if needed.`,
         });
       } catch (emailError) {
         console.warn('Email preparation had issues but quote status was updated:', emailError);
