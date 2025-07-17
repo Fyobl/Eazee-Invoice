@@ -1,14 +1,31 @@
 import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDatabase } from '@/hooks/useDatabase';
-import { FileText, Quote, FileBarChart, Users, TrendingUp, DollarSign } from 'lucide-react';
-import { Invoice, Quote as QuoteType, Statement, Customer } from '@shared/schema';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { FileText, Quote, FileBarChart, Users, TrendingUp, DollarSign, Download, Receipt, Star, Crown, Calendar } from 'lucide-react';
+import { Invoice, Quote as QuoteType, Statement, Customer, Product } from '@shared/schema';
+import { generateVATReport, generateTopCustomersReport, generateBestSellersReport, generatePeriodTakingsReport } from '@/components/Reports/ReportGenerator';
+import { format, subDays, subMonths, subWeeks, startOfYear, endOfYear } from 'date-fns';
+import { useState } from 'react';
 
 export const Reports = () => {
   const { data: invoices } = useDatabase('invoices');
   const { data: quotes } = useDatabase('quotes');
   const { data: statements } = useDatabase('statements');
   const { data: customers } = useDatabase('customers');
+  const { data: products } = useDatabase('products');
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  
+  const [startDate, setStartDate] = useState(format(subMonths(new Date(), 1), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
 
   const totalInvoices = invoices?.length || 0;
   const totalQuotes = quotes?.length || 0;
@@ -65,9 +82,59 @@ export const Reports = () => {
     }
   ];
 
+  const handleGenerateReport = async (reportType: string) => {
+    if (!currentUser || !invoices || !customers) return;
+    
+    setGeneratingReport(reportType);
+    
+    try {
+      const dateRange = {
+        start: new Date(startDate),
+        end: new Date(endDate)
+      };
+      
+      const reportData = {
+        invoices: invoices as Invoice[],
+        quotes: quotes as QuoteType[] || [],
+        customers: customers as Customer[],
+        products: products as Product[] || [],
+        user: currentUser
+      };
+      
+      switch (reportType) {
+        case 'vat':
+          await generateVATReport(reportData, dateRange);
+          break;
+        case 'topCustomers':
+          await generateTopCustomersReport(reportData, dateRange);
+          break;
+        case 'bestSellers':
+          await generateBestSellersReport(reportData, dateRange);
+          break;
+        case 'periodTakings':
+          await generatePeriodTakingsReport(reportData, selectedPeriod, dateRange);
+          break;
+      }
+      
+      toast({
+        title: "Report Generated",
+        description: "Your report has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
   const topCustomers = customers?.map((customer: Customer) => {
-    const customerInvoices = invoices?.filter((invoice: Invoice) => invoice.customerId === customer.id) || [];
-    const customerRevenue = customerInvoices.reduce((sum: number, invoice: Invoice) => sum + invoice.total, 0);
+    const customerInvoices = invoices?.filter((invoice: Invoice) => invoice.customerId === customer.id.toString()) || [];
+    const customerRevenue = customerInvoices.reduce((sum: number, invoice: Invoice) => sum + parseFloat(invoice.total), 0);
     return {
       name: customer.name,
       invoiceCount: customerInvoices.length,
@@ -78,6 +145,103 @@ export const Reports = () => {
   return (
     <Layout title="Reports">
       <div className="space-y-6">
+        {/* Date Range Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Report Date Range</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="end-date">End Date</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="period">Period Type</Label>
+                <Select value={selectedPeriod} onValueChange={(value: any) => setSelectedPeriod(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Downloadable Reports */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Downloadable Reports</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button
+                onClick={() => handleGenerateReport('vat')}
+                disabled={generatingReport === 'vat'}
+                className="flex items-center gap-2 h-20 flex-col"
+                variant="outline"
+              >
+                <Receipt className="h-6 w-6" />
+                <span>VAT Report</span>
+                {generatingReport === 'vat' && <span className="text-xs">Generating...</span>}
+              </Button>
+              
+              <Button
+                onClick={() => handleGenerateReport('topCustomers')}
+                disabled={generatingReport === 'topCustomers'}
+                className="flex items-center gap-2 h-20 flex-col"
+                variant="outline"
+              >
+                <Crown className="h-6 w-6" />
+                <span>Top Customers</span>
+                {generatingReport === 'topCustomers' && <span className="text-xs">Generating...</span>}
+              </Button>
+              
+              <Button
+                onClick={() => handleGenerateReport('bestSellers')}
+                disabled={generatingReport === 'bestSellers'}
+                className="flex items-center gap-2 h-20 flex-col"
+                variant="outline"
+              >
+                <Star className="h-6 w-6" />
+                <span>Best Sellers</span>
+                {generatingReport === 'bestSellers' && <span className="text-xs">Generating...</span>}
+              </Button>
+              
+              <Button
+                onClick={() => handleGenerateReport('periodTakings')}
+                disabled={generatingReport === 'periodTakings'}
+                className="flex items-center gap-2 h-20 flex-col"
+                variant="outline"
+              >
+                <Calendar className="h-6 w-6" />
+                <span>{selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Takings</span>
+                {generatingReport === 'periodTakings' && <span className="text-xs">Generating...</span>}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {
