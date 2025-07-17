@@ -23,7 +23,7 @@ const quoteSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   date: z.string().min(1, 'Date is required'),
   validUntil: z.string().min(1, 'Valid until date is required'),
-  status: z.enum(['draft', 'sent', 'accepted']),
+  status: z.enum(['draft', 'sent', 'accepted', 'expired']),
   notes: z.string().optional()
 });
 
@@ -219,7 +219,6 @@ export const QuoteForm = () => {
                             <SelectItem value="draft">Draft</SelectItem>
                             <SelectItem value="sent">Sent</SelectItem>
                             <SelectItem value="accepted">Accepted</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
                             <SelectItem value="expired">Expired</SelectItem>
                           </SelectContent>
                         </Select>
