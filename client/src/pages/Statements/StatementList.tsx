@@ -23,6 +23,7 @@ export const StatementList = () => {
   const [periodFilter, setPeriodFilter] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statementToDelete, setStatementToDelete] = useState<Statement | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const { data: statements, isLoading: loading, remove: deleteDocument } = useDatabase('statements');
   const { data: customers } = useDatabase('customers');
@@ -166,6 +167,15 @@ export const StatementList = () => {
   };
 
   const handleSendEmail = async (statement: Statement) => {
+    if (isGeneratingPDF) {
+      toast({
+        title: "Please Wait",
+        description: "PDF is still being generated. Please wait for it to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!currentUser) {
       toast({
         title: "Error",
@@ -200,6 +210,7 @@ export const StatementList = () => {
     }
 
     try {
+      setIsGeneratingPDF(true);
       console.log('Creating PDF and email for statement:', statement.number);
       
       // First, generate and download the PDF
@@ -259,6 +270,8 @@ Note: The PDF has been downloaded to your Downloads folder. Please attach it to 
         description: "Failed to prepare email. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 

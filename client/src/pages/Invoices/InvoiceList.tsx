@@ -23,6 +23,7 @@ export const InvoiceList = () => {
   const [customerFilter, setCustomerFilter] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const { data: invoices, isLoading: loading, remove: deleteDocument, update: updateInvoice } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
@@ -185,6 +186,15 @@ export const InvoiceList = () => {
   };
 
   const handleSendEmail = async (invoice: Invoice) => {
+    if (isGeneratingPDF) {
+      toast({
+        title: "Please Wait",
+        description: "PDF is still being generated. Please wait for it to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!currentUser) {
       toast({
         title: "Error",
@@ -219,6 +229,7 @@ export const InvoiceList = () => {
     }
 
     try {
+      setIsGeneratingPDF(true);
       console.log('Creating PDF and email for invoice:', invoice.number);
       
       // First, generate and download the PDF
@@ -280,6 +291,8 @@ Note: The PDF has been downloaded to your Downloads folder. Please attach it to 
         description: `Failed to prepare email: ${error.message}. Please try again.`,
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 

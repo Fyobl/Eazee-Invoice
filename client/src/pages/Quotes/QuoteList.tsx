@@ -227,7 +227,18 @@ export const QuoteList = () => {
     }
   };
 
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   const handleSendEmail = async (quote: Quote) => {
+    if (isGeneratingPDF) {
+      toast({
+        title: "Please Wait",
+        description: "PDF is still being generated. Please wait for it to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!currentUser) {
       toast({
         title: "Error",
@@ -262,57 +273,38 @@ export const QuoteList = () => {
     }
 
     try {
+      setIsGeneratingPDF(true);
+      
       console.log('Quote email process starting for quote:', quote.number);
-      console.log('Quote data:', quote);
-      console.log('Customer data:', customer);
-      console.log('User data:', currentUser);
       
-      // Update quote status to "sent" first, before PDF generation
-      await updateQuote({ id: quote.id.toString(), data: { status: 'sent' } });
+      // Only update status if it's not already "sent"
+      if (quote.status !== 'sent') {
+        await updateQuote({ id: quote.id.toString(), data: { status: 'sent' } });
+      }
       
-      // Then try to prepare the email - if this fails, the status is still updated
+      // Simple approach: generate PDF first, then open email
       try {
-        // Add additional error suppression specifically for this operation
-        const originalOnerror = window.onerror;
-        window.onerror = function(message, source, lineno, colno, error) {
-          if (typeof message === 'string' && (
-            message.includes('WebFrameMain') ||
-            message.includes('frame was disposed') ||
-            message.includes('emitter.emit') ||
-            message.includes('Render frame was disposed')
-          )) {
-            console.warn('PDF generation error suppressed during email preparation:', message);
-            return true;
-          }
-          return originalOnerror ? originalOnerror(message, source, lineno, colno, error) : false;
-        };
+        const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
         
-        // Generate PDF with error suppression and then open email
-        console.log('Starting PDF generation for quote:', quote.number);
+        // Download the PDF
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `quote-${quote.number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
         
-        // First, generate and download the PDF
-        try {
-          const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
-          
-          // Download the PDF
-          const url = window.URL.createObjectURL(pdfBlob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `quote-${quote.number}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          
-          console.log('PDF generated and downloaded successfully');
-        } catch (pdfError) {
-          console.warn('PDF generation failed, continuing with email:', pdfError);
-          // Continue with email even if PDF fails
-        }
-        
-        // Then open the email
-        const emailSubject = `Quote ${quote.number} from ${currentUser.companyName || 'Your Company'}`;
-        const emailBody = `Dear ${customer.name},
+        console.log('PDF generated and downloaded successfully');
+      } catch (pdfError) {
+        console.warn('PDF generation failed, continuing with email:', pdfError);
+        // Continue with email even if PDF fails
+      }
+      
+      // Then open the email
+      const emailSubject = `Quote ${quote.number} from ${currentUser.companyName || 'Your Company'}`;
+      const emailBody = `Dear ${customer.name},
 
 Thank you for your interest in our services. Please find quote ${quote.number} for your consideration.
 
@@ -332,37 +324,24 @@ ${currentUser.companyName || 'Your Company'}
 ---
 Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
 
-        const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        
-        console.log('Opening email with URL:', simpleMailtoUrl);
-        window.location.href = simpleMailtoUrl;
-        
-        // Restore original error handler after a delay
-        setTimeout(() => {
-          window.onerror = originalOnerror;
-        }, 2000);
-        
-        toast({
-          title: "Email Prepared",
-          description: `PDF downloaded and email opened for quote ${quote.number}. Quote status updated to "Sent". Please attach the PDF to the email.`,
-        });
-      } catch (emailError) {
-        console.warn('Email preparation had issues but quote status was updated:', emailError);
-        
-        // Even if email preparation fails, inform user that status was updated
-        toast({
-          title: "Quote Status Updated",
-          description: `Quote ${quote.number} status changed to "Sent". Email preparation had issues - please try again or create PDF manually.`,
-        });
-      }
+      const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      console.log('Opening email with URL:', simpleMailtoUrl);
+      window.location.href = simpleMailtoUrl;
+      
+      toast({
+        title: "Email Prepared",
+        description: `PDF downloaded and email opened for quote ${quote.number}. Quote status updated to "Sent". Please attach the PDF to the email.`,
+      });
     } catch (error) {
       console.error('Error in quote email process:', error);
-      console.error('Error details:', error.message, error.stack);
       toast({
         title: "Error",
         description: `Failed to update quote status: ${error.message}. Please try again.`,
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
