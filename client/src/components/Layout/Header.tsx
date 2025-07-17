@@ -31,7 +31,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
     try {
       await logoutUser();
       await refreshUser();
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
