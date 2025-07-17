@@ -2,6 +2,7 @@ import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { Invoice, Quote, Statement, Customer, User } from '@shared/schema';
 import { formatCurrency } from './currency';
 import { handlePDFError } from './pdfErrorHandler';
+import { suppressErrorsForNewDocument } from './errorSuppression';
 
 // Email template interface
 export interface EmailTemplate {
@@ -200,6 +201,14 @@ export const openMailApp = async (
 ): Promise<void> => {
   try {
     console.log('Starting email preparation for:', { type, documentId: document.id, customerEmail: customer.email });
+    
+    // Use centralized error suppression for newly created documents
+    const wasNewlyCreated = suppressErrorsForNewDocument(document);
+    
+    if (wasNewlyCreated) {
+      // Add a small delay to let the document "settle" in the system
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     
     // Generate PDF with better error handling
     console.log('Generating PDF...');

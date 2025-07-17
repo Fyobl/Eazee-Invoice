@@ -1,6 +1,7 @@
 import html2pdf from 'html2pdf.js';
 import { Invoice, Quote, Statement, User } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
+import { suppressErrorsForNewDocument } from '@/lib/errorSuppression';
 
 interface PDFGeneratorProps {
   document: Invoice | Quote | Statement;
@@ -15,26 +16,8 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
     companyName: user.companyName 
   });
   
-  // Add global error handler to prevent unhandled errors from showing to user
-  const originalErrorHandler = window.onerror;
-  const originalUnhandledRejection = window.onunhandledrejection;
-  
-  window.onerror = function(message, source, lineno, colno, error) {
-    if (typeof message === 'string' && message.includes('WebFrameMain')) {
-      console.warn('PDF generation browser error (suppressed):', message);
-      return true; // Prevent default error handling
-    }
-    return originalErrorHandler ? originalErrorHandler.apply(this, arguments) : false;
-  };
-  
-  window.onunhandledrejection = function(event) {
-    if (event.reason && event.reason.message && event.reason.message.includes('WebFrameMain')) {
-      console.warn('PDF generation promise rejection (suppressed):', event.reason);
-      event.preventDefault();
-      return;
-    }
-    return originalUnhandledRejection ? originalUnhandledRejection.apply(this, arguments) : undefined;
-  };
+  // Use centralized error suppression for newly created documents
+  suppressErrorsForNewDocument(document);
   
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
   
