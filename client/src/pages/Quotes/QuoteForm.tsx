@@ -23,7 +23,7 @@ const quoteSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   date: z.string().min(1, 'Date is required'),
   validUntil: z.string().min(1, 'Valid until date is required'),
-  status: z.enum(['draft', 'sent', 'accepted', 'rejected', 'expired']),
+  status: z.enum(['draft', 'sent', 'accepted']),
   notes: z.string().optional()
 });
 
