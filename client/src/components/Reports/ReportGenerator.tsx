@@ -22,8 +22,13 @@ export const generateVATReport = async (data: ReportData, dateRange: { start: Da
   // Filter invoices within date range
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    const inRange = invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
-    console.log(`Invoice ${invoice.number}: ${invoice.date} - in range: ${inRange}`);
+    // Set time to start of day for proper date comparison
+    const invoiceDateOnly = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), invoiceDate.getDate());
+    const startDateOnly = new Date(dateRange.start.getFullYear(), dateRange.start.getMonth(), dateRange.start.getDate());
+    const endDateOnly = new Date(dateRange.end.getFullYear(), dateRange.end.getMonth(), dateRange.end.getDate());
+    
+    const inRange = invoiceDateOnly >= startDateOnly && invoiceDateOnly <= endDateOnly;
+    console.log(`Invoice ${invoice.number}: ${invoice.date} (${invoiceDateOnly.toDateString()}) - in range: ${inRange}`);
     return inRange;
   });
   
@@ -143,7 +148,13 @@ export const generateTopCustomersReport = async (data: ReportData, dateRange: { 
   // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
+    // Set time to start of day for proper date comparison
+    const invoiceDateOnly = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), invoiceDate.getDate());
+    const startDateOnly = new Date(dateRange.start.getFullYear(), dateRange.start.getMonth(), dateRange.start.getDate());
+    const endDateOnly = new Date(dateRange.end.getFullYear(), dateRange.end.getMonth(), dateRange.end.getDate());
+    
+    const inRange = invoiceDateOnly >= startDateOnly && invoiceDateOnly <= endDateOnly;
+    return inRange && invoice.status === 'paid';
   });
 
   // Calculate customer data based on paid invoices only
@@ -232,7 +243,13 @@ export const generateBestSellersReport = async (data: ReportData, dateRange: { s
   // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
+    // Set time to start of day for proper date comparison
+    const invoiceDateOnly = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), invoiceDate.getDate());
+    const startDateOnly = new Date(dateRange.start.getFullYear(), dateRange.start.getMonth(), dateRange.start.getDate());
+    const endDateOnly = new Date(dateRange.end.getFullYear(), dateRange.end.getMonth(), dateRange.end.getDate());
+    
+    const inRange = invoiceDateOnly >= startDateOnly && invoiceDateOnly <= endDateOnly;
+    return inRange && invoice.status === 'paid';
   });
 
   // Extract and count products from invoice items
@@ -321,7 +338,13 @@ export const generatePeriodTakingsReport = async (data: ReportData, period: 'wee
   // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
+    // Set time to start of day for proper date comparison
+    const invoiceDateOnly = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), invoiceDate.getDate());
+    const startDateOnly = new Date(dateRange.start.getFullYear(), dateRange.start.getMonth(), dateRange.start.getDate());
+    const endDateOnly = new Date(dateRange.end.getFullYear(), dateRange.end.getMonth(), dateRange.end.getDate());
+    
+    const inRange = invoiceDateOnly >= startDateOnly && invoiceDateOnly <= endDateOnly;
+    return inRange && invoice.status === 'paid';
   });
 
   // Group invoices by period
