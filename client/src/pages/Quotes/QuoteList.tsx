@@ -256,7 +256,9 @@ export const QuoteList = () => {
         };
         
         // Wrap the openMailApp call to catch any synchronous errors
+        console.log('About to call openMailApp with:', { quote: quote.number, customer: customer.name, userEmail: currentUser.email });
         const emailPromise = openMailApp(quote, customer, currentUser, 'quote');
+        console.log('openMailApp called, waiting for result...');
         
         // Restore original error handler after a delay
         setTimeout(() => {

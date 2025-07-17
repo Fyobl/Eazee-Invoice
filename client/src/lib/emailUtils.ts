@@ -199,6 +199,12 @@ export const openMailApp = async (
   user: User,
   type: 'invoice' | 'quote' | 'statement'
 ): Promise<void> => {
+  console.log('=== EMAIL FUNCTION CALLED ===');
+  console.log('Document:', document);
+  console.log('Customer:', customer);
+  console.log('User:', user);
+  console.log('Type:', type);
+  
   try {
     console.log('Starting email preparation for:', { type, documentId: document.id, customerEmail: customer.email });
     
