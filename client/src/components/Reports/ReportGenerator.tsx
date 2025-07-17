@@ -130,13 +130,13 @@ export const generateVATReport = async (data: ReportData, dateRange: { start: Da
 export const generateTopCustomersReport = async (data: ReportData, dateRange: { start: Date; end: Date }) => {
   const { invoices, customers, user } = data;
   
-  // Filter invoices within date range
+  // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
+    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
   });
 
-  // Calculate customer data
+  // Calculate customer data based on paid invoices only
   const customerData = customers.map(customer => {
     const customerInvoices = filteredInvoices.filter(invoice => invoice.customerId === customer.id.toString());
     const totalRevenue = customerInvoices.reduce((sum, invoice) => sum + parseFloat(invoice.total), 0);
@@ -219,10 +219,10 @@ export const generateTopCustomersReport = async (data: ReportData, dateRange: { 
 export const generateBestSellersReport = async (data: ReportData, dateRange: { start: Date; end: Date }) => {
   const { invoices, user } = data;
   
-  // Filter invoices within date range
+  // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
+    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
   });
 
   // Extract and count products from invoice items
@@ -308,10 +308,10 @@ export const generateBestSellersReport = async (data: ReportData, dateRange: { s
 export const generatePeriodTakingsReport = async (data: ReportData, period: 'weekly' | 'monthly' | 'quarterly' | 'yearly', dateRange: { start: Date; end: Date }) => {
   const { invoices, user } = data;
   
-  // Filter invoices within date range
+  // Filter invoices within date range and only include PAID invoices for revenue calculations
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end;
+    return invoiceDate >= dateRange.start && invoiceDate <= dateRange.end && invoice.status === 'paid';
   });
 
   // Group invoices by period
