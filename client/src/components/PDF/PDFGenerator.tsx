@@ -146,7 +146,12 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
         .totals { 
           margin-bottom: 20px; 
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        .status-container {
+          flex: 1;
+          padding-right: 20px;
         }
         .totals-table { 
           border-collapse: collapse;
@@ -239,15 +244,14 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
         .status-paid { background-color: #dcfce7; color: #166534; }
         .status-overdue { background-color: #fecaca; color: #b91c1c; }
         .status-stamp {
-          position: absolute;
-          top: 20px;
-          right: 20px;
           padding: 8px 16px;
           border-radius: 8px;
           font-size: 14px;
           font-weight: bold;
           text-transform: uppercase;
           border: 2px solid;
+          margin-bottom: 10px;
+          display: inline-block;
         }
         .status-stamp-unpaid { 
           background-color: #dbeafe; 
@@ -282,7 +286,7 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
           <strong>${user.companyName || 'Company Name'}</strong><br>
           ${(user.companyAddress || '').replace(/\n/g, '<br>')}
         </div>
-        ${type === 'invoice' && 'status' in document ? `<div class="status-stamp status-stamp-${document.status}">${document.status}</div>` : ''}
+
       </div>
       
       <div class="info-section">
@@ -372,6 +376,9 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
         </table>
         
         <div class="totals">
+          <div class="status-container">
+            ${type === 'invoice' && 'status' in document ? `<div class="status-stamp status-stamp-${document.status}">${document.status}</div>` : ''}
+          </div>
           <table class="totals-table">
             <tr>
               <td class="label">Subtotal:</td>
