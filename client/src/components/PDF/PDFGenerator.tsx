@@ -229,15 +229,41 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
           margin-bottom: 0;
         }
         .status-badge {
-          padding: 2px 8px;
+          padding: 4px 12px;
           border-radius: 4px;
           font-size: 12px;
           font-weight: bold;
           text-transform: uppercase;
         }
-        .status-sent { background-color: #fef3c7; color: #92400e; }
+        .status-unpaid { background-color: #dbeafe; color: #1e40af; }
+        .status-paid { background-color: #dcfce7; color: #166534; }
         .status-overdue { background-color: #fecaca; color: #b91c1c; }
-        .status-draft { background-color: #f3f4f6; color: #4b5563; }
+        .status-stamp {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: bold;
+          text-transform: uppercase;
+          border: 2px solid;
+        }
+        .status-stamp-unpaid { 
+          background-color: #dbeafe; 
+          color: #1e40af; 
+          border-color: #1e40af; 
+        }
+        .status-stamp-paid { 
+          background-color: #dcfce7; 
+          color: #166534; 
+          border-color: #166534; 
+        }
+        .status-stamp-overdue { 
+          background-color: #fecaca; 
+          color: #b91c1c; 
+          border-color: #b91c1c; 
+        }
         @media print {
           body { margin: 0; padding: 15px; }
           .header { page-break-inside: avoid; }
@@ -256,6 +282,7 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
           <strong>${user.companyName || 'Company Name'}</strong><br>
           ${(user.companyAddress || '').replace(/\n/g, '<br>')}
         </div>
+        ${type === 'invoice' && 'status' in document ? `<div class="status-stamp status-stamp-${document.status}">${document.status}</div>` : ''}
       </div>
       
       <div class="info-section">

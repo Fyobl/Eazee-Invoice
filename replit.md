@@ -353,6 +353,16 @@ The application is designed to be easily extensible with additional features lik
 - **Subscription Status API Fix**: Enhanced subscription status endpoint to properly identify cancelled subscriptions as inactive
 - **Database Consistency**: Ensured cancelled subscriptions have both isSubscriber = false and subscriptionStatus = 'cancelled'
 
+### January 17, 2025 - Invoice Status System Enhancement & PDF Status Marking
+- **Three-Status System Implementation**: Updated invoice system to use only three statuses: unpaid, paid, and overdue
+- **Quote-to-Invoice Conversion Fix**: Fixed quote conversion to create invoices with "unpaid" status instead of "sent"
+- **Clickable Status Field**: Made invoice status field clickable in invoice list for easy status updates
+- **PDF Status Stamp**: Added status stamp to invoice PDFs showing UNPAID, PAID, or OVERDUE in top-right corner
+- **Enhanced Status Display**: Updated status badges throughout the application with proper color coding
+- **Database Updates**: Enhanced useDatabase hook to support invoice status updates via dropdown selection
+- **User Experience**: Status changes now show toast notifications confirming the update
+- **PDF Visual Enhancement**: Added bordered status stamps to invoice PDFs for clear payment status visibility
+
 ### January 16, 2025 - CSV Upload Template Consistency Fix
 - **Customer CSV Template Standardization**: Fixed inconsistency between customer page and admin panel CSV templates
 - **Template Format Unification**: Updated customer page template to match server-side expectations with proper column headers

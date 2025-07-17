@@ -155,7 +155,7 @@ export const QuoteList = () => {
         subtotal: typeof quote.subtotal === 'string' ? quote.subtotal : quote.subtotal.toString(),
         taxAmount: typeof quote.taxAmount === 'string' ? quote.taxAmount : quote.taxAmount.toString(),
         total: typeof quote.total === 'string' ? quote.total : quote.total.toString(),
-        status: 'sent' as const,
+        status: 'unpaid' as const,
         notes: quote.notes || '',
         quoteId: quote.id // Include quote ID so server can mark it as converted
       };

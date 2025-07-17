@@ -24,7 +24,7 @@ export const InvoiceList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   
-  const { data: invoices, isLoading: loading, remove: deleteDocument } = useDatabase('invoices');
+  const { data: invoices, isLoading: loading, remove: deleteDocument, update: updateInvoice } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -130,6 +130,23 @@ export const InvoiceList = () => {
       toast({
         title: "Error",
         description: "Failed to download PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStatusChange = async (invoice: Invoice, newStatus: string) => {
+    try {
+      await updateInvoice({ id: invoice.id.toString(), data: { status: newStatus } });
+      toast({
+        title: "Status Updated",
+        description: `Invoice ${invoice.number} status changed to ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error('Error updating invoice status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update invoice status. Please try again.",
         variant: "destructive",
       });
     }
@@ -281,9 +298,32 @@ export const InvoiceList = () => {
                     <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell>£{parseFloat(invoice.total).toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
+                      <Select value={invoice.status} onValueChange={(newStatus) => handleStatusChange(invoice, newStatus)}>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue>
+                            <Badge className={getStatusColor(invoice.status)}>
+                              {invoice.status}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unpaid">
+                            <Badge className={getStatusColor('unpaid')}>
+                              unpaid
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="paid">
+                            <Badge className={getStatusColor('paid')}>
+                              paid
+                            </Badge>
+                          </SelectItem>
+                          <SelectItem value="overdue">
+                            <Badge className={getStatusColor('overdue')}>
+                              overdue
+                            </Badge>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
