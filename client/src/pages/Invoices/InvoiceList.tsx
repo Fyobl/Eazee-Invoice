@@ -74,12 +74,28 @@ export const InvoiceList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: invoice,
-        user: currentUser,
-        type: 'invoice'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
       
       const url = URL.createObjectURL(pdfBlob);
       window.open(url, '_blank');
@@ -105,12 +121,28 @@ export const InvoiceList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: invoice,
-        user: currentUser,
-        type: 'invoice'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
       
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -187,8 +219,29 @@ export const InvoiceList = () => {
     }
 
     try {
-      console.log('Creating simple email for invoice:', invoice.number);
+      console.log('Creating PDF and email for invoice:', invoice.number);
       
+      // First, generate and download the PDF
+      try {
+        const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
+        
+        // Download the PDF
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `invoice-${invoice.number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('PDF generated and downloaded successfully');
+      } catch (pdfError) {
+        console.warn('PDF generation failed, continuing with email:', pdfError);
+        // Continue with email even if PDF fails
+      }
+      
+      // Then open the email
       const emailSubject = `Invoice ${invoice.number} from ${currentUser.companyName || 'Your Company'}`;
       const emailBody = `Dear ${customer.name},
 
@@ -209,16 +262,16 @@ Best regards,
 ${currentUser.companyName || 'Your Company'}
 
 ---
-Note: A PDF version of this invoice can be downloaded from our system if needed.`;
+Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
 
       const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
       
-      console.log('Opening simple email with URL:', simpleMailtoUrl);
+      console.log('Opening email with URL:', simpleMailtoUrl);
       window.location.href = simpleMailtoUrl;
       
       toast({
-        title: "Email Opened",
-        description: `Email template opened for invoice ${invoice.number}. You can generate a PDF separately if needed.`,
+        title: "Email Prepared",
+        description: `PDF downloaded and email opened for invoice ${invoice.number}. Please attach the PDF to the email.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);

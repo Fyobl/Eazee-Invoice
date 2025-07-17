@@ -78,12 +78,28 @@ export const QuoteList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: quote,
-        user: currentUser,
-        type: 'quote'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this quote.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
       
       const url = URL.createObjectURL(pdfBlob);
       window.open(url, '_blank');
@@ -110,12 +126,28 @@ export const QuoteList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: quote,
-        user: currentUser,
-        type: 'quote'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this quote.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
       
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -255,9 +287,30 @@ export const QuoteList = () => {
           return originalOnerror ? originalOnerror(message, source, lineno, colno, error) : false;
         };
         
-        // Since simple mailto works, let's create a simple email without PDF generation
-        console.log('Creating simple email for quote:', quote.number);
+        // Generate PDF with error suppression and then open email
+        console.log('Starting PDF generation for quote:', quote.number);
         
+        // First, generate and download the PDF
+        try {
+          const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
+          
+          // Download the PDF
+          const url = window.URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `quote-${quote.number}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          console.log('PDF generated and downloaded successfully');
+        } catch (pdfError) {
+          console.warn('PDF generation failed, continuing with email:', pdfError);
+          // Continue with email even if PDF fails
+        }
+        
+        // Then open the email
         const emailSubject = `Quote ${quote.number} from ${currentUser.companyName || 'Your Company'}`;
         const emailBody = `Dear ${customer.name},
 
@@ -277,30 +330,21 @@ Best regards,
 ${currentUser.companyName || 'Your Company'}
 
 ---
-Note: A PDF version of this quote can be downloaded from our system if needed.`;
+Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
 
         const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
         
-        console.log('Opening simple email with URL:', simpleMailtoUrl);
-        
-        try {
-          window.location.href = simpleMailtoUrl;
-          console.log('Simple email opened successfully');
-        } catch (emailError) {
-          console.error('Simple email failed:', emailError);
-          throw emailError;
-        }
+        console.log('Opening email with URL:', simpleMailtoUrl);
+        window.location.href = simpleMailtoUrl;
         
         // Restore original error handler after a delay
         setTimeout(() => {
           window.onerror = originalOnerror;
         }, 2000);
         
-        await emailPromise;
-        
         toast({
-          title: "Email Opened",
-          description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". You can generate a PDF separately if needed.`,
+          title: "Email Prepared",
+          description: `PDF downloaded and email opened for quote ${quote.number}. Quote status updated to "Sent". Please attach the PDF to the email.`,
         });
       } catch (emailError) {
         console.warn('Email preparation had issues but quote status was updated:', emailError);

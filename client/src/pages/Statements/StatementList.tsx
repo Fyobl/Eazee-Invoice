@@ -74,12 +74,28 @@ export const StatementList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: statement,
-        user: currentUser,
-        type: 'statement'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this statement.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
 
       const pdfUrl = URL.createObjectURL(pdfBlob);
       window.open(pdfUrl, '_blank');
@@ -103,12 +119,28 @@ export const StatementList = () => {
       return;
     }
 
-    try {
-      const pdfBlob = await generatePDF({
-        document: statement,
-        user: currentUser,
-        type: 'statement'
+    if (!customers || customers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Customer information not found.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const customer = customers.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId);
+
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer not found for this statement.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -168,8 +200,29 @@ export const StatementList = () => {
     }
 
     try {
-      console.log('Creating simple email for statement:', statement.number);
+      console.log('Creating PDF and email for statement:', statement.number);
       
+      // First, generate and download the PDF
+      try {
+        const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
+        
+        // Download the PDF
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `statement-${statement.number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('PDF generated and downloaded successfully');
+      } catch (pdfError) {
+        console.warn('PDF generation failed, continuing with email:', pdfError);
+        // Continue with email even if PDF fails
+      }
+      
+      // Then open the email
       const emailSubject = `Statement ${statement.number} from ${currentUser.companyName || 'Your Company'}`;
       const emailBody = `Dear ${customer.name},
 
@@ -188,16 +241,16 @@ Best regards,
 ${currentUser.companyName || 'Your Company'}
 
 ---
-Note: A PDF version of this statement can be downloaded from our system if needed.`;
+Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
 
       const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
       
-      console.log('Opening simple email with URL:', simpleMailtoUrl);
+      console.log('Opening email with URL:', simpleMailtoUrl);
       window.location.href = simpleMailtoUrl;
       
       toast({
-        title: "Email Opened",
-        description: `Email template opened for statement ${statement.number}. You can generate a PDF separately if needed.`,
+        title: "Email Prepared",
+        description: `PDF downloaded and email opened for statement ${statement.number}. Please attach the PDF to the email.`,
       });
     } catch (error) {
       console.error('Error preparing email:', error);
