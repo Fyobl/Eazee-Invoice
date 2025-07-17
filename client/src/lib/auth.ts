@@ -16,6 +16,13 @@ export interface AuthUser {
   subscriptionStatus?: string;
   subscriptionCurrentPeriodEnd?: Date;
   isAdminGrantedSubscription?: boolean;
+  // Company branding fields
+  companyLogo?: string;
+  companyAddress?: string;
+  companyVatNumber?: string;
+  companyRegistrationNumber?: string;
+  currency?: string;
+  dateFormat?: string;
 }
 
 export const registerUser = async (

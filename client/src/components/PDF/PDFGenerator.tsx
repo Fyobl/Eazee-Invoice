@@ -27,7 +27,7 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
   let unpaidInvoices: Invoice[] = [];
   if (type === 'statement') {
     try {
-      const response = await fetch(`/api/invoices?uid=${document.uid}`);
+      const response = await apiRequest('GET', '/api/invoices');
       const allInvoices = await response.json();
       
       // Filter unpaid invoices for this customer within the statement period
@@ -365,8 +365,8 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
       ${document.notes ? `<div class="notes"><strong>Notes:</strong><br>${document.notes}</div>` : ''}
       
       <div class="footer">
-        ${company.vatNumber ? `VAT Number: ${company.vatNumber}` : ''}
-        ${company.registrationNumber ? ` | Registration Number: ${company.registrationNumber}` : ''}
+        ${user.companyVatNumber ? `VAT Number: ${user.companyVatNumber}` : ''}
+        ${user.companyRegistrationNumber ? ` | Registration Number: ${user.companyRegistrationNumber}` : ''}
       </div>
     </body>
     </html>
