@@ -255,8 +255,25 @@ export const QuoteList = () => {
           return originalOnerror ? originalOnerror(message, source, lineno, colno, error) : false;
         };
         
+        // Test if openMailApp function is available
+        console.log('openMailApp function available:', typeof openMailApp);
+        
         // Wrap the openMailApp call to catch any synchronous errors
         console.log('About to call openMailApp with:', { quote: quote.number, customer: customer.name, userEmail: currentUser.email });
+        
+        // Simple test first
+        console.log('Testing simple mailto...');
+        const testUrl = `mailto:${customer.email}?subject=Test&body=Test`;
+        console.log('Test URL:', testUrl);
+        
+        try {
+          window.location.href = testUrl;
+          console.log('Simple mailto test completed');
+        } catch (testError) {
+          console.error('Simple mailto test failed:', testError);
+        }
+        
+        // Now try the full function
         const emailPromise = openMailApp(quote, customer, currentUser, 'quote');
         console.log('openMailApp called, waiting for result...');
         
