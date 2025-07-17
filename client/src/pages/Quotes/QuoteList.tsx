@@ -25,7 +25,7 @@ export const QuoteList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [quoteToDelete, setQuoteToDelete] = useState<Quote | null>(null);
   
-  const { data: quotes, isLoading: loading, remove: deleteDocument } = useDatabase('quotes');
+  const { data: quotes, isLoading: loading, remove: deleteDocument, update: updateQuote } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
   const { add: createInvoice } = useDatabase('invoices');
   const { currentUser } = useAuth();
@@ -236,9 +236,13 @@ export const QuoteList = () => {
       console.log('User data:', currentUser);
       
       await openMailApp(quote, customer, currentUser, 'quote');
+      
+      // Update quote status to "sent" after successful email preparation
+      await updateQuote(quote.id, { status: 'sent' });
+      
       toast({
         title: "Email Prepared",
-        description: `Email template opened for quote ${quote.number}. PDF downloaded to your Downloads folder - please attach it to the email.`,
+        description: `Email template opened for quote ${quote.number}. Quote status updated to "Sent". PDF downloaded to your Downloads folder - please attach it to the email.`,
       });
     } catch (error) {
       console.error('Error preparing email for quote:', error);
