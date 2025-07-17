@@ -238,7 +238,7 @@ export const QuoteList = () => {
       await openMailApp(quote, customer, currentUser, 'quote');
       
       // Update quote status to "sent" after successful email preparation
-      await updateQuote(quote.id, { status: 'sent' });
+      await updateQuote({ id: quote.id.toString(), data: { status: 'sent' } });
       
       toast({
         title: "Email Prepared",
