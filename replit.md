@@ -365,6 +365,14 @@ The application is designed to be easily extensible with additional features lik
 - **Status Position Update**: Moved status stamp from top-right to left side next to totals table for better layout
 - **Statement PDF Fix**: Fixed status badge cutoff issue in statement PDFs by reducing padding and font size for better fit
 
+### January 17, 2025 - Quote Status System Enhancement & Reports Date Filtering Fix
+- **Quote Status Consistency**: Fixed quote conversion to mark quotes as "accepted" instead of "converted" for proper reports integration
+- **Database Status Update**: Updated existing quotes from "converted" to "accepted" status to maintain consistency
+- **Reports Date Filtering Fix**: Fixed critical date filtering issue in all business reports due to timestamp format mismatch
+- **Extended Default Date Range**: Updated reports to default to 12 months instead of 1 month for better data visibility
+- **Report Logic Enhancement**: VAT reports show all invoices, revenue reports only show paid invoices for accurate business metrics
+- **Quote List UI Update**: Removed "converted" status from quote list color scheme, added proper "draft" status styling
+
 ### January 17, 2025 - Comprehensive Business Reports System Implementation
 - **VAT Report**: Added comprehensive VAT report with detailed breakdown of subtotal, VAT amounts, and totals by invoice
 - **Top Customers Report**: Implemented customer ranking report showing revenue, invoice count, and average invoice value
