@@ -1,23 +1,49 @@
 import html2pdf from 'html2pdf.js';
-import { Invoice, Quote, Statement, User } from '@shared/schema';
+import { Invoice, Quote, Statement, User, Customer } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
-import { suppressErrorsForNewDocument } from '@/lib/errorSuppression';
 
-interface PDFGeneratorProps {
-  document: Invoice | Quote | Statement;
-  user: User;
-  type: 'invoice' | 'quote' | 'statement';
-}
-
-export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): Promise<Blob> => {
+export const generatePDF = async (
+  document: Invoice | Quote | Statement,
+  customer: Customer,
+  user: User,
+  type: 'invoice' | 'quote' | 'statement'
+): Promise<Blob> => {
   console.log(`Starting PDF generation for ${type}:`, { 
     documentId: document.id, 
     documentNumber: document.number,
-    companyName: user.companyName 
+    companyName: user.companyName,
+    customerName: customer.name,
+    documentType: type
   });
   
-  // Use centralized error suppression for newly created documents
-  suppressErrorsForNewDocument(document);
+  // Simple error suppression for PDF generation
+  const originalErrorHandler = window.onerror;
+  const originalUnhandledRejection = window.onunhandledrejection;
+  
+  window.onerror = function(message, source, lineno, colno, error) {
+    if (typeof message === 'string' && (
+      message.includes('WebFrameMain') ||
+      message.includes('frame was disposed') ||
+      message.includes('browser_init.js2') ||
+      message.includes('emitter.emit')
+    )) {
+      console.warn('PDF generation error suppressed:', message);
+      return true;
+    }
+    return originalErrorHandler ? originalErrorHandler(message, source, lineno, colno, error) : false;
+  };
+  
+  window.onunhandledrejection = function(event) {
+    if (event.reason && event.reason.message && (
+      event.reason.message.includes('WebFrameMain') ||
+      event.reason.message.includes('frame was disposed')
+    )) {
+      console.warn('PDF generation promise rejection suppressed:', event.reason.message);
+      event.preventDefault();
+      return true;
+    }
+    return originalUnhandledRejection ? originalUnhandledRejection(event) : false;
+  };
   
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
   
@@ -429,44 +455,16 @@ export const generatePDF = async ({ document, user, type }: PDFGeneratorProps): 
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
-  // Generate PDF and return as blob with better error handling
+  // Generate PDF and return as blob
   try {
     console.log(`Generating PDF for ${type} with options:`, options);
     
-    // Create a more robust PDF generation with error handling
-    const pdfPromise = html2pdf().from(html).set(options).outputPdf('blob');
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('PDF generation timeout')), 30000); // 30 second timeout
-    });
-    
-    const result = await Promise.race([pdfPromise, timeoutPromise]);
+    const result = await html2pdf().from(html).set(options).outputPdf('blob');
     console.log(`PDF generation completed for ${type}`);
     return result;
   } catch (error) {
     console.error(`Error in PDF generation for ${type}:`, error);
-    
-    // If it's a frame disposal error, try a simpler approach
-    if (error.message.includes('WebFrameMain') || error.message.includes('frame was disposed')) {
-      console.log('Attempting fallback PDF generation...');
-      try {
-        // Simpler options for fallback
-        const fallbackOptions = {
-          margin: 0.5,
-          filename: `${type}-${document.number}.pdf`,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 1 },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        
-        return html2pdf().from(html).set(fallbackOptions).outputPdf('blob');
-      } catch (fallbackError) {
-        console.error('Fallback PDF generation also failed:', fallbackError);
-      }
-    }
-    
-    throw new Error(`PDF generation failed for ${type}: ${error.message}`);
+    throw error;
   } finally {
     // Restore original error handlers
     window.onerror = originalErrorHandler;
