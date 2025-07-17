@@ -240,7 +240,30 @@ export const QuoteList = () => {
       
       // Then try to prepare the email - if this fails, the status is still updated
       try {
-        await openMailApp(quote, customer, currentUser, 'quote');
+        // Add additional error suppression specifically for this operation
+        const originalOnerror = window.onerror;
+        window.onerror = function(message, source, lineno, colno, error) {
+          if (typeof message === 'string' && (
+            message.includes('WebFrameMain') ||
+            message.includes('frame was disposed') ||
+            message.includes('emitter.emit') ||
+            message.includes('Render frame was disposed')
+          )) {
+            console.warn('PDF generation error suppressed during email preparation:', message);
+            return true;
+          }
+          return originalOnerror ? originalOnerror(message, source, lineno, colno, error) : false;
+        };
+        
+        // Wrap the openMailApp call to catch any synchronous errors
+        const emailPromise = openMailApp(quote, customer, currentUser, 'quote');
+        
+        // Restore original error handler after a delay
+        setTimeout(() => {
+          window.onerror = originalOnerror;
+        }, 2000);
+        
+        await emailPromise;
         
         toast({
           title: "Email Prepared",
