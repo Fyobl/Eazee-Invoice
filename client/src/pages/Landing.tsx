@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Quote, Users, DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Quote, Users, DollarSign, CheckCircle, RotateCcw, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -150,10 +150,10 @@ export const Landing = () => {
             
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-6 w-6 text-primary" />
+                <RotateCcw className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Weather Dashboard</h3>
-              <p className="text-slate-600 dark:text-slate-300">Stay informed with local weather right in your dashboard</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Soft Delete & Recovery</h3>
+              <p className="text-slate-600 dark:text-slate-300">Accidentally deleted items? Recover them within 7 days from recycle bin</p>
             </div>
             
             <div className="text-center">
@@ -166,10 +166,10 @@ export const Landing = () => {
             
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="h-6 w-6 text-primary" />
+                <Mail className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Admin Panel</h3>
-              <p className="text-slate-600 dark:text-slate-300">Advanced user management and subscription controls for administrators</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Email Integration</h3>
+              <p className="text-slate-600 dark:text-slate-300">Send invoices and quotes directly via email with PDF attachments</p>
             </div>
             
             <div className="text-center">
