@@ -123,6 +123,17 @@ export const statements = pgTable('statements', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const statementInvoices = pgTable('statement_invoices', {
+  id: serial('id').primaryKey(),
+  statementId: text('statement_id').notNull(),
+  invoiceNumber: text('invoice_number').notNull(),
+  invoiceDate: timestamp('invoice_date').notNull(),
+  invoiceDueDate: timestamp('invoice_due_date').notNull(),
+  invoiceAmount: decimal('invoice_amount', { precision: 10, scale: 2 }).notNull(),
+  invoiceStatus: text('invoice_status').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export const recycleBin = pgTable('recycle_bin', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull(),
@@ -157,8 +168,13 @@ export const quotesRelations = relations(quotes, ({ one }) => ({
   user: one(users, { fields: [quotes.uid], references: [users.uid] }),
 }));
 
-export const statementsRelations = relations(statements, ({ one }) => ({
+export const statementsRelations = relations(statements, ({ one, many }) => ({
   user: one(users, { fields: [statements.uid], references: [users.uid] }),
+  statementInvoices: many(statementInvoices),
+}));
+
+export const statementInvoicesRelations = relations(statementInvoices, ({ one }) => ({
+  statement: one(statements, { fields: [statementInvoices.statementId], references: [statements.id] }),
 }));
 
 // Insert schemas
@@ -168,6 +184,7 @@ export const insertProductSchema = createInsertSchema(products);
 export const insertInvoiceSchema = createInsertSchema(invoices);
 export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertStatementSchema = createInsertSchema(statements);
+export const insertStatementInvoiceSchema = createInsertSchema(statementInvoices);
 export const insertRecycleBinSchema = createInsertSchema(recycleBin);
 export const insertSessionSchema = createInsertSchema(sessions);
 
@@ -178,6 +195,7 @@ export const selectProductSchema = createSelectSchema(products);
 export const selectInvoiceSchema = createSelectSchema(invoices);
 export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectStatementSchema = createSelectSchema(statements);
+export const selectStatementInvoiceSchema = createSelectSchema(statementInvoices);
 export const selectRecycleBinSchema = createSelectSchema(recycleBin);
 export const selectSessionSchema = createSelectSchema(sessions);
 
@@ -194,6 +212,8 @@ export type Quote = typeof quotes.$inferSelect;
 export type InsertQuote = typeof quotes.$inferInsert;
 export type Statement = typeof statements.$inferSelect;
 export type InsertStatement = typeof statements.$inferInsert;
+export type StatementInvoice = typeof statementInvoices.$inferSelect;
+export type InsertStatementInvoice = typeof statementInvoices.$inferInsert;
 export type RecycleBinItem = typeof recycleBin.$inferSelect;
 export type InsertRecycleBinItem = typeof recycleBin.$inferInsert;
 export type Session = typeof sessions.$inferSelect;

@@ -77,31 +77,14 @@ export const generatePDF = async (
     return `£${numAmount.toFixed(2)}`;
   };
 
-  // Fetch unpaid invoices for statements
-  let unpaidInvoices: Invoice[] = [];
+  // Fetch snapshot invoice data for statements
+  let statementInvoices: any[] = [];
   if (type === 'statement') {
     try {
-      const response = await apiRequest('GET', '/api/invoices');
-      const allInvoices = await response.json();
-      
-      // Filter unpaid invoices for this customer within the statement period
-      unpaidInvoices = allInvoices.filter((invoice: Invoice) => {
-        const invoiceDate = new Date(invoice.date);
-        const statementStart = new Date(document.startDate);
-        const statementEnd = new Date(document.endDate);
-        
-        // Set statement end date to end of day for proper comparison
-        const statementEndOfDay = new Date(statementEnd);
-        statementEndOfDay.setHours(23, 59, 59, 999);
-        
-        const customerMatch = invoice.customerId === document.customerId;
-        const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
-        const dateMatch = invoiceDate >= statementStart && invoiceDate <= statementEndOfDay;
-        
-        return customerMatch && statusMatch && dateMatch;
-      });
+      const response = await apiRequest('GET', `/api/statements/${document.id}/invoices`);
+      statementInvoices = await response.json();
     } catch (error) {
-      console.error('Error fetching unpaid invoices:', error);
+      console.error('Error fetching statement invoice snapshots:', error);
     }
   }
 
@@ -399,7 +382,7 @@ export const generatePDF = async (
           <p><strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}</p>
           <p><strong>Statement Type:</strong> ${document.period === '7' ? 'Weekly' : document.period === '30' ? 'Monthly' : 'Custom Period'}</p>
           
-          ${unpaidInvoices.length > 0 ? `
+          ${statementInvoices.length > 0 ? `
             <table class="table">
               <thead>
                 <tr>
@@ -411,13 +394,13 @@ export const generatePDF = async (
                 </tr>
               </thead>
               <tbody>
-                ${unpaidInvoices.map(invoice => `
+                ${statementInvoices.map(invoice => `
                   <tr>
-                    <td>${invoice.number}</td>
-                    <td>${new Date(invoice.date).toLocaleDateString()}</td>
-                    <td>${new Date(invoice.dueDate).toLocaleDateString()}</td>
-                    <td><span class="status-badge status-${invoice.status}">${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</span></td>
-                    <td>${formatPrice(invoice.total)}</td>
+                    <td>${invoice.invoiceNumber}</td>
+                    <td>${new Date(invoice.invoiceDate).toLocaleDateString()}</td>
+                    <td>${new Date(invoice.invoiceDueDate).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${invoice.invoiceStatus}">${invoice.invoiceStatus.charAt(0).toUpperCase() + invoice.invoiceStatus.slice(1)}</span></td>
+                    <td>${formatPrice(invoice.invoiceAmount)}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -426,16 +409,16 @@ export const generatePDF = async (
             <div class="statement-summary">
               <div class="summary-row">
                 <span>Total Outstanding:</span>
-                <span class="amount">${formatPrice(unpaidInvoices.reduce((sum, inv) => sum + parseFloat(inv.total), 0))}</span>
+                <span class="amount">${formatPrice(statementInvoices.reduce((sum, inv) => sum + parseFloat(inv.invoiceAmount), 0))}</span>
               </div>
               <div class="summary-row">
                 <span>Number of Unpaid Invoices:</span>
-                <span class="amount">${unpaidInvoices.length}</span>
+                <span class="amount">${statementInvoices.length}</span>
               </div>
             </div>
           ` : `
             <div class="statement-placeholder">
-              <p>No unpaid invoices found for this customer within the selected period.</p>
+              <p>No unpaid invoices found for this customer when this statement was created.</p>
             </div>
           `}
         </div>

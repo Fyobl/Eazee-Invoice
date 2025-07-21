@@ -1,6 +1,6 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
-import { customers, products, invoices, quotes, statements, recycleBin, users, type User } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, type User } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
@@ -572,6 +572,42 @@ export async function setupRoutes(app: Express) {
       
       const [statement] = await db.insert(statements).values(statementData).returning();
       console.log('Statement created successfully:', statement);
+      
+      // Capture invoice snapshot data at the time of statement creation
+      const unpaidInvoices = await db.select().from(invoices)
+        .where(and(
+          eq(invoices.uid, req.user!.uid),
+          eq(invoices.customerId, req.body.customerId),
+          eq(invoices.isDeleted, false)
+        ));
+      
+      // Filter invoices within the statement period and with unpaid/overdue status
+      const relevantInvoices = unpaidInvoices.filter(invoice => {
+        const invoiceDate = new Date(invoice.date);
+        const startDate = new Date(req.body.startDate);
+        const endDate = new Date(req.body.endDate);
+        
+        return (invoice.status === 'unpaid' || invoice.status === 'overdue') &&
+               invoiceDate >= startDate && 
+               invoiceDate <= endDate;
+      });
+      
+      // Store snapshot data for each relevant invoice
+      if (relevantInvoices.length > 0) {
+        const snapshotData = relevantInvoices.map(invoice => ({
+          statementId: statement.id.toString(),
+          invoiceNumber: invoice.number,
+          invoiceDate: new Date(invoice.date),
+          invoiceDueDate: new Date(invoice.dueDate),
+          invoiceAmount: invoice.total,
+          invoiceStatus: invoice.status,
+          createdAt: new Date()
+        }));
+        
+        await db.insert(statementInvoices).values(snapshotData);
+        console.log(`Stored ${snapshotData.length} invoice snapshots for statement ${statement.id}`);
+      }
+      
       res.json(statement);
     } catch (error) {
       console.error('Error creating statement:', error);
@@ -595,13 +631,47 @@ export async function setupRoutes(app: Express) {
   app.delete('/api/statements/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      const [statement] = await db.update(statements)
-        .set({ isDeleted: true, updatedAt: new Date() })
+      
+      // For statements, perform hard delete (complete removal)
+      // First delete the associated statement invoices
+      await db.delete(statementInvoices)
+        .where(eq(statementInvoices.statementId, id.toString()));
+      
+      // Then delete the statement itself
+      const [statement] = await db.delete(statements)
         .where(and(eq(statements.id, id), eq(statements.uid, req.user!.uid)))
         .returning();
+      
+      console.log(`Statement ${id} and its invoice snapshots permanently deleted`);
       res.json(statement);
     } catch (error) {
+      console.error('Error deleting statement:', error);
       res.status(500).json({ error: 'Failed to delete statement' });
+    }
+  });
+
+  // Get statement invoice snapshots
+  app.get('/api/statements/:id/invoices', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const statementId = req.params.id;
+      
+      // First verify the statement belongs to the user
+      const [statement] = await db.select().from(statements)
+        .where(and(eq(statements.id, parseInt(statementId)), eq(statements.uid, req.user!.uid)));
+      
+      if (!statement) {
+        return res.status(404).json({ error: 'Statement not found' });
+      }
+      
+      // Get the snapshot invoice data
+      const snapshotInvoices = await db.select().from(statementInvoices)
+        .where(eq(statementInvoices.statementId, statementId))
+        .orderBy(desc(statementInvoices.invoiceDate));
+      
+      res.json(snapshotInvoices);
+    } catch (error) {
+      console.error('Error fetching statement invoices:', error);
+      res.status(500).json({ error: 'Failed to fetch statement invoices' });
     }
   });
 
