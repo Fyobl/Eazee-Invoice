@@ -591,10 +591,14 @@ export async function setupRoutes(app: Express) {
         const startDate = new Date(req.body.startDate);
         const endDate = new Date(req.body.endDate);
         
-        const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
-        const dateMatch = invoiceDate >= startDate && invoiceDate <= endDate;
+        // Set end date to end of day to include invoices on the end date
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
         
-        console.log(`Invoice ${invoice.number}: date=${invoice.date}, status=${invoice.status}, statusMatch=${statusMatch}, dateMatch=${dateMatch}, customerId=${invoice.customerId}`);
+        const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
+        const dateMatch = invoiceDate >= startDate && invoiceDate <= endOfDay;
+        
+        console.log(`Invoice ${invoice.number}: date=${invoice.date}, status=${invoice.status}, statusMatch=${statusMatch}, dateMatch=${dateMatch} (comparing ${invoiceDate.toISOString()} between ${startDate.toISOString()} and ${endOfDay.toISOString()})`);
         
         return statusMatch && dateMatch;
       });
