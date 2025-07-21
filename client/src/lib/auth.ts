@@ -23,6 +23,11 @@ export interface AuthUser {
   companyRegistrationNumber?: string;
   currency?: string;
   dateFormat?: string;
+  // Bank details fields
+  bankName?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  bankSortCode?: string;
 }
 
 export const registerUser = async (

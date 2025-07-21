@@ -28,6 +28,11 @@ export const users = pgTable('users', {
   companyRegistrationNumber: text('company_registration_number'),
   currency: text('currency').notNull().default('GBP'),
   dateFormat: text('date_format').notNull().default('DD/MM/YYYY'),
+  // Bank details fields
+  bankName: text('bank_name'),
+  bankAccountName: text('bank_account_name'),
+  bankAccountNumber: text('bank_account_number'),
+  bankSortCode: text('bank_sort_code'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

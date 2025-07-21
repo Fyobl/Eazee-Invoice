@@ -24,7 +24,11 @@ const settingsSchema = z.object({
   companyVatNumber: z.string().optional(),
   companyRegistrationNumber: z.string().optional(),
   currency: z.string().min(1, 'Currency is required'),
-  dateFormat: z.string().min(1, 'Date format is required')
+  dateFormat: z.string().min(1, 'Date format is required'),
+  bankName: z.string().optional(),
+  bankAccountName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankSortCode: z.string().optional()
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -49,7 +53,11 @@ export const Settings = () => {
       companyVatNumber: '',
       companyRegistrationNumber: '',
       currency: 'GBP',
-      dateFormat: 'DD/MM/YYYY'
+      dateFormat: 'DD/MM/YYYY',
+      bankName: '',
+      bankAccountName: '',
+      bankAccountNumber: '',
+      bankSortCode: ''
     }
   });
 
@@ -61,7 +69,11 @@ export const Settings = () => {
         companyVatNumber: currentUser.companyVatNumber || '',
         companyRegistrationNumber: currentUser.companyRegistrationNumber || '',
         currency: currentUser.currency || 'GBP',
-        dateFormat: currentUser.dateFormat || 'DD/MM/YYYY'
+        dateFormat: currentUser.dateFormat || 'DD/MM/YYYY',
+        bankName: currentUser.bankName || '',
+        bankAccountName: currentUser.bankAccountName || '',
+        bankAccountNumber: currentUser.bankAccountNumber || '',
+        bankSortCode: currentUser.bankSortCode || ''
       });
       setLogoPreview(currentUser.companyLogo || null);
     }
@@ -192,7 +204,11 @@ export const Settings = () => {
         companyVatNumber: data.companyVatNumber,
         companyRegistrationNumber: data.companyRegistrationNumber,
         currency: data.currency,
-        dateFormat: data.dateFormat
+        dateFormat: data.dateFormat,
+        bankName: data.bankName,
+        bankAccountName: data.bankAccountName,
+        bankAccountNumber: data.bankAccountNumber,
+        bankSortCode: data.bankSortCode
       });
       
       if (!response.ok) {
@@ -439,6 +455,75 @@ export const Settings = () => {
                             <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Add your bank details to display payment instructions on invoices, quotes, and statements.
+                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bank Name (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Lloyds Bank, Barclays" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="bankAccountName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Name (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Account holder name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="bankSortCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sort Code (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12-34-56" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="bankAccountNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Number (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12345678" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

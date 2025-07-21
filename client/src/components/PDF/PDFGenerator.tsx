@@ -236,6 +236,37 @@ export const generatePDF = async (
           font-size: 13px;
           line-height: 1.4;
         }
+        .bank-details {
+          margin-top: 30px;
+          padding: 15px;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          font-size: 12px;
+          line-height: 1.4;
+        }
+        .bank-details h4 {
+          margin: 0 0 10px 0;
+          font-size: 13px;
+          font-weight: bold;
+          color: #1e293b;
+        }
+        .bank-details-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .bank-detail-item {
+          display: flex;
+          justify-content: space-between;
+        }
+        .bank-detail-label {
+          font-weight: bold;
+          color: #475569;
+        }
+        .bank-detail-value {
+          color: #1e293b;
+        }
         .footer { 
           border-top: 1px solid #e2e8f0; 
           padding-top: 15px; 
@@ -243,7 +274,7 @@ export const generatePDF = async (
           text-align: center; 
           color: #64748b; 
           font-size: 11px;
-          margin-top: 30px;
+          margin-top: 20px;
         }
         .statement-content {
           margin: 15px 0;
@@ -454,6 +485,38 @@ export const generatePDF = async (
       `}
       
       ${document.notes ? `<div class="notes"><strong>Notes:</strong><br>${document.notes}</div>` : ''}
+      
+      ${(user.bankName || user.bankAccountName || user.bankAccountNumber || user.bankSortCode) ? `
+        <div class="bank-details">
+          <h4>Payment Details</h4>
+          <div class="bank-details-grid">
+            ${user.bankName ? `
+              <div class="bank-detail-item">
+                <span class="bank-detail-label">Bank:</span>
+                <span class="bank-detail-value">${user.bankName}</span>
+              </div>
+            ` : ''}
+            ${user.bankAccountName ? `
+              <div class="bank-detail-item">
+                <span class="bank-detail-label">Account Name:</span>
+                <span class="bank-detail-value">${user.bankAccountName}</span>
+              </div>
+            ` : ''}
+            ${user.bankSortCode ? `
+              <div class="bank-detail-item">
+                <span class="bank-detail-label">Sort Code:</span>
+                <span class="bank-detail-value">${user.bankSortCode}</span>
+              </div>
+            ` : ''}
+            ${user.bankAccountNumber ? `
+              <div class="bank-detail-item">
+                <span class="bank-detail-label">Account Number:</span>
+                <span class="bank-detail-value">${user.bankAccountNumber}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : ''}
       
       <div class="footer">
         ${user.companyVatNumber ? `VAT Number: ${user.companyVatNumber}` : ''}
