@@ -553,10 +553,11 @@ export async function setupRoutes(app: Express) {
       
       const statementNumber = `STM-${nextNumber}`;
       
+      const customerIdInt = parseInt(req.body.customerId);
       const statementData = {
         uid: req.user!.uid,
         number: statementNumber,
-        customerId: req.body.customerId,
+        customerId: customerIdInt,
         customerName: req.body.customerName,
         date: new Date(req.body.date),
         startDate: new Date(req.body.startDate),
@@ -577,9 +578,12 @@ export async function setupRoutes(app: Express) {
       const unpaidInvoices = await db.select().from(invoices)
         .where(and(
           eq(invoices.uid, req.user!.uid),
-          eq(invoices.customerId, req.body.customerId),
+          eq(invoices.customerId, customerIdInt),
           eq(invoices.isDeleted, false)
         ));
+      
+      console.log(`Found ${unpaidInvoices.length} invoices for customer ${req.body.customerId}:`, 
+        unpaidInvoices.map(inv => ({ number: inv.number, date: inv.date, status: inv.status, customerId: inv.customerId })));
       
       // Filter invoices within the statement period and with unpaid/overdue status
       const relevantInvoices = unpaidInvoices.filter(invoice => {
@@ -587,10 +591,16 @@ export async function setupRoutes(app: Express) {
         const startDate = new Date(req.body.startDate);
         const endDate = new Date(req.body.endDate);
         
-        return (invoice.status === 'unpaid' || invoice.status === 'overdue') &&
-               invoiceDate >= startDate && 
-               invoiceDate <= endDate;
+        const statusMatch = invoice.status === 'unpaid' || invoice.status === 'overdue';
+        const dateMatch = invoiceDate >= startDate && invoiceDate <= endDate;
+        
+        console.log(`Invoice ${invoice.number}: date=${invoice.date}, status=${invoice.status}, statusMatch=${statusMatch}, dateMatch=${dateMatch}, customerId=${invoice.customerId}`);
+        
+        return statusMatch && dateMatch;
       });
+      
+      console.log(`Filtered to ${relevantInvoices.length} relevant invoices:`, 
+        relevantInvoices.map(inv => ({ number: inv.number, date: inv.date, status: inv.status })));
       
       // Store snapshot data for each relevant invoice
       if (relevantInvoices.length > 0) {
