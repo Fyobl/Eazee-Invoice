@@ -12,6 +12,12 @@ app.use(express.urlencoded({ extended: false }));
 
 // Session middleware
 const PgSession = ConnectPgSimple(session);
+// Determine if we should use secure cookies
+const isSecure = process.env.NODE_ENV === 'production' && 
+  (process.env.HTTPS_ENABLED === 'true' || process.env.REPLIT_DB_URL !== undefined);
+
+console.log('Session configuration - Environment:', process.env.NODE_ENV, 'Secure cookies:', isSecure);
+
 app.use(session({
   store: new PgSession({
     pool,
@@ -21,10 +27,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
   resave: false,
   saveUninitialized: false,
+  rolling: true, // Reset the expiration on each request
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax', // Allow cross-site usage for better compatibility
   },
 }));
 

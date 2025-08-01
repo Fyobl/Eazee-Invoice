@@ -17,8 +17,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if subscription is expired and user is not on trial
   const isSubscriptionExpired = userData && !isSubscriber && trialDaysLeft === 0 && !userData.isAdmin;
   
-  // Protected route logic now working properly
-
   // Check if we have stored auth data while Firebase Auth is initializing
   const storedAuthUser = localStorage.getItem('authUser');
   const storedUserData = localStorage.getItem('userData');

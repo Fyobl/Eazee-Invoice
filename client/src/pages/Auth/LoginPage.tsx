@@ -43,7 +43,7 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      await loginUser(data.email, data.password);
+      const user = await loginUser(data.email, data.password);
       
       // Store credentials if "Remember Me" is checked
       if (data.rememberMe) {
@@ -55,10 +55,12 @@ export const LoginPage = () => {
       }
       
       await refreshUser();
+      
       toast({
         title: 'Login successful',
         description: 'Welcome back to Eazee Invoice!',
       });
+      
       navigate('/dashboard');
     } catch (error) {
       toast({

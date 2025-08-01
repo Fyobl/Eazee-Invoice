@@ -41,3 +41,14 @@ Preferred communication style: Simple, everyday language.
 - **Radix UI**: Accessible component primitives for UI.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **Lucide React**: Icon library.
+
+## Recent Updates
+
+### August 1, 2025 - Login Issue Fix (Production Deployment)
+- **Session Cookie Configuration Fix**: Fixed login issue where users couldn't stay logged in on deployed sites due to improper session cookie configuration
+- **HTTPS-Only Cookie Problem**: Previously session cookies were set to `secure: true` in production, requiring HTTPS which caused login failures on non-HTTPS deployments
+- **Flexible Cookie Security**: Updated session configuration to only use secure cookies when HTTPS is explicitly enabled or detected (via HTTPS_ENABLED environment variable)
+- **Session Persistence Enhancement**: Added `rolling: true` to session configuration to extend session on each request, improving user experience
+- **Better Cookie Compatibility**: Added `sameSite: 'lax'` for better cross-site compatibility while maintaining security
+- **Production Debugging**: Added comprehensive session debugging for production troubleshooting
+- **Multer Security Update**: Verified application functionality after multer dependency security update - all file upload features working correctly
