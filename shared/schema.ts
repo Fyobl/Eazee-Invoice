@@ -143,6 +143,15 @@ export const recycleBin = pgTable('recycle_bin', {
   deletedAt: timestamp('deleted_at').notNull().defaultNow(),
 });
 
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  used: boolean('used').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   customers: many(customers),
@@ -187,6 +196,7 @@ export const insertStatementSchema = createInsertSchema(statements);
 export const insertStatementInvoiceSchema = createInsertSchema(statementInvoices);
 export const insertRecycleBinSchema = createInsertSchema(recycleBin);
 export const insertSessionSchema = createInsertSchema(sessions);
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
 
 // Select schemas
 export const selectUserSchema = createSelectSchema(users);
@@ -198,6 +208,7 @@ export const selectStatementSchema = createSelectSchema(statements);
 export const selectStatementInvoiceSchema = createSelectSchema(statementInvoices);
 export const selectRecycleBinSchema = createSelectSchema(recycleBin);
 export const selectSessionSchema = createSelectSchema(sessions);
+export const selectPasswordResetTokenSchema = createSelectSchema(passwordResetTokens);
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -218,6 +229,8 @@ export type RecycleBinItem = typeof recycleBin.$inferSelect;
 export type InsertRecycleBinItem = typeof recycleBin.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 
 export interface InvoiceItem {
   id: string;

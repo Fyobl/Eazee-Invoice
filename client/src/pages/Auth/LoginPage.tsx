@@ -156,11 +156,18 @@ export const LoginPage = () => {
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-blue-600 hover:text-blue-500">
-              Sign up
-            </Link>
+          <div className="mt-4 text-center text-sm space-y-2">
+            <div>
+              <Link href="/forgot-password" className="text-blue-600 hover:text-blue-500">
+                Forgot your password?
+              </Link>
+            </div>
+            <div>
+              Don't have an account?{' '}
+              <Link href="/register" className="text-blue-600 hover:text-blue-500">
+                Sign up
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

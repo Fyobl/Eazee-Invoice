@@ -6,6 +6,7 @@ import multer from "multer";
 import Papa from "papaparse";
 import Stripe from "stripe";
 import { storage } from "./storage";
+import { sendPasswordResetEmail } from "./emailService";
 
 // Authentication middleware
 interface AuthenticatedRequest extends Request {
@@ -160,6 +161,104 @@ export async function setupRoutes(app: Express) {
   
   app.get('/api/me', requireAuth, async (req, res) => {
     res.json({ user: { ...req.user!, passwordHash: undefined } });
+  });
+
+  // Password reset routes
+  app.post('/api/forgot-password', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if user exists or not for security
+        return res.json({ 
+          success: true, 
+          message: 'If an account with this email exists, you will receive a password reset link.' 
+        });
+      }
+
+      // Generate reset token
+      const resetToken = await storage.createPasswordResetToken(email);
+      
+      // Get base URL for reset link
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${req.get('host')}` 
+        : `http://${req.get('host')}`;
+
+      // Send reset email
+      const emailSent = await sendPasswordResetEmail(email, resetToken, baseUrl);
+      
+      if (!emailSent) {
+        console.error('Failed to send password reset email to:', email);
+        return res.status(500).json({ error: 'Failed to send reset email' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'If an account with this email exists, you will receive a password reset link.' 
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({ error: 'Failed to process password reset request' });
+    }
+  });
+
+  app.post('/api/reset-password', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: 'Token and new password are required' });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+      }
+
+      // Validate token and reset password
+      const success = await storage.resetPasswordWithToken(token, newPassword);
+      
+      if (!success) {
+        return res.status(400).json({ error: 'Invalid or expired reset token' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Password reset successful. You can now log in with your new password.' 
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      res.status(500).json({ error: 'Failed to reset password' });
+    }
+  });
+
+  app.get('/api/validate-reset-token/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      if (!token) {
+        return res.status(400).json({ error: 'Token is required' });
+      }
+
+      const resetToken = await storage.validatePasswordResetToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ error: 'Invalid or expired reset token' });
+      }
+
+      res.json({ 
+        valid: true, 
+        email: resetToken.email 
+      });
+    } catch (error) {
+      console.error('Validate reset token error:', error);
+      res.status(500).json({ error: 'Failed to validate reset token' });
+    }
   });
   
   // Customers routes

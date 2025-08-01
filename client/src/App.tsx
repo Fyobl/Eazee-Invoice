@@ -14,6 +14,8 @@ import { Suspended } from "@/pages/Suspended";
 import NotFound from "@/pages/not-found";
 import { Register } from "@/pages/Auth/Register";
 import { LoginPage } from "@/pages/Auth/LoginPage";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 // Protected pages
 import { Dashboard } from "@/pages/Dashboard";
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
       <Route path="/subscribe" component={Subscribe} />

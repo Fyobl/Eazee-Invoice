@@ -1,8 +1,9 @@
-import { users, customers, products, invoices, quotes, statements, recycleBin, type User, type InsertUser } from "@shared/schema";
+import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 
 // Storage interface for user operations
 export interface IStorage {
@@ -16,6 +17,10 @@ export interface IStorage {
   registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string): Promise<User>;
   loginUser(email: string, password: string): Promise<User | null>;
   updatePassword(uid: string, currentPassword: string, newPassword: string): Promise<boolean>;
+  // Password reset methods
+  createPasswordResetToken(email: string): Promise<string>;
+  validatePasswordResetToken(token: string): Promise<PasswordResetToken | null>;
+  resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -149,7 +154,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(invoices).where(eq(invoices.uid, uid));
       await db.delete(products).where(eq(products.uid, uid));
       await db.delete(customers).where(eq(customers.uid, uid));
-      await db.delete(companies).where(eq(companies.uid, uid));
+
       
       // Finally delete the user
       const result = await db.delete(users).where(eq(users.uid, uid));
@@ -159,6 +164,74 @@ export class DatabaseStorage implements IStorage {
       console.error('Error deleting user:', error);
       return false;
     }
+  }
+
+  // Password reset methods
+  async createPasswordResetToken(email: string): Promise<string> {
+    // Clean up expired tokens first
+    await db.delete(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.email, email),
+        gt(new Date(), passwordResetTokens.expiresAt)
+      ));
+
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    const tokenData: InsertPasswordResetToken = {
+      email,
+      token,
+      expiresAt,
+      used: false
+    };
+
+    await db.insert(passwordResetTokens).values(tokenData);
+    return token;
+  }
+
+  async validatePasswordResetToken(token: string): Promise<PasswordResetToken | null> {
+    const [resetToken] = await db.select()
+      .from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.token, token),
+        eq(passwordResetTokens.used, false),
+        gt(passwordResetTokens.expiresAt, new Date())
+      ));
+
+    return resetToken || null;
+  }
+
+  async resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
+    const resetToken = await this.validatePasswordResetToken(token);
+    if (!resetToken) {
+      return false;
+    }
+
+    const user = await this.getUserByEmail(resetToken.email);
+    if (!user) {
+      return false;
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update user's password
+    await db.update(users)
+      .set({ 
+        passwordHash,
+        mustChangePassword: false,
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, user.uid));
+
+    // Mark token as used
+    await db.update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, resetToken.id));
+
+    return true;
   }
 
 }
