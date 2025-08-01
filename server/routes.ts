@@ -50,7 +50,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-06-30.basil",
 });
 
 export async function setupRoutes(app: Express) {
@@ -219,9 +219,8 @@ export async function setupRoutes(app: Express) {
       await db.insert(recycleBin).values({
         uid: customer.uid,
         type: 'customer',
-        originalId: id,
-        data: customer,
-        deletedAt: new Date()
+        originalId: id.toString(),
+        data: customer
       });
 
       // Soft delete the customer
@@ -386,9 +385,8 @@ export async function setupRoutes(app: Express) {
       await db.insert(recycleBin).values({
         uid: invoice.uid,
         type: 'invoice',
-        originalId: id,
-        data: invoice,
-        deletedAt: new Date()
+        originalId: id.toString(),
+        data: invoice
       });
 
       // Soft delete the invoice
@@ -497,9 +495,8 @@ export async function setupRoutes(app: Express) {
       await db.insert(recycleBin).values({
         uid: quote.uid,
         type: 'quote',
-        originalId: id,
-        data: quote,
-        deletedAt: new Date()
+        originalId: id.toString(),
+        data: quote
       });
 
       // Soft delete the quote
@@ -571,14 +568,25 @@ export async function setupRoutes(app: Express) {
       
       console.log('Processed statement data:', statementData);
       
-      const [statement] = await db.insert(statements).values(statementData).returning();
+      const [statement] = await db.insert(statements).values({
+        uid: statementData.uid,
+        number: statementData.number,
+        customerId: statementData.customerId.toString(),
+        customerName: statementData.customerName,
+        date: statementData.date,
+        startDate: statementData.startDate,
+        endDate: statementData.endDate,
+        period: statementData.period,
+        notes: statementData.notes,
+        isDeleted: statementData.isDeleted
+      }).returning();
       console.log('Statement created successfully:', statement);
       
       // Capture invoice snapshot data at the time of statement creation
       const unpaidInvoices = await db.select().from(invoices)
         .where(and(
           eq(invoices.uid, req.user!.uid),
-          eq(invoices.customerId, customerIdInt),
+          eq(invoices.customerId, customerIdInt.toString()),
           eq(invoices.isDeleted, false)
         ));
       
@@ -840,7 +848,7 @@ export async function setupRoutes(app: Express) {
       const parseResult = Papa.parse(csvData, {
         header: true,
         skipEmptyLines: true,
-        transform: (value) => value.trim()
+        transform: (value: any) => value.trim()
       });
 
       if (parseResult.errors.length > 0) {
@@ -878,13 +886,7 @@ export async function setupRoutes(app: Express) {
               name: customerData.name.trim(),
               email: customerData.email.trim(),
               phone: customerData.phone?.trim() || '',
-              address: customerData.address?.trim() || '',
-              city: customerData.city?.trim() || '',
-              country: customerData.country?.trim() || '',
-              taxNumber: customerData.taxNumber?.trim() || '',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              isDeleted: false
+              address: customerData.address?.trim() || ''
             });
 
             successCount++;
@@ -907,19 +909,15 @@ export async function setupRoutes(app: Express) {
               uid: userId,
               name: productData.name,
               description: productData.description,
-              unitPrice: unitPrice,
-              taxRate: taxRate,
-              category: productData.category || '',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              isDeleted: false
+              unitPrice: unitPrice.toString(),
+              taxRate: taxRate.toString()
             });
 
             successCount++;
           }
         } catch (error) {
           errorCount++;
-          errors.push(error.message);
+          errors.push((error as Error).message);
           console.error(`CSV import error for row ${index + 1}:`, error);
         }
       }
@@ -977,7 +975,7 @@ export async function setupRoutes(app: Express) {
           user = await storage.updateUserSubscriptionStatus(
             uid, 
             hasActiveSubscription ? 'active' : 'expired', 
-            user.subscriptionCurrentPeriodEnd
+            user.subscriptionCurrentPeriodEnd || undefined
           );
         }
       }
@@ -1098,7 +1096,7 @@ export async function setupRoutes(app: Express) {
 
     } catch (error) {
       console.error('Subscription creation error:', error);
-      res.status(500).json({ error: 'Failed to create subscription: ' + error.message });
+      res.status(500).json({ error: 'Failed to create subscription: ' + (error as Error).message });
     }
   });
 
@@ -1109,10 +1107,10 @@ export async function setupRoutes(app: Express) {
 
     try {
       // In production, you should set STRIPE_WEBHOOK_SECRET
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
+      event = stripe.webhooks.constructEvent(req.body, sig as string, process.env.STRIPE_WEBHOOK_SECRET || '');
     } catch (err) {
-      console.error('Webhook signature verification failed:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      console.error('Webhook signature verification failed:', (err as Error).message);
+      return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
     }
 
     // Handle the event

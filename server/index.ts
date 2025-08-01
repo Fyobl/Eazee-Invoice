@@ -133,7 +133,7 @@ async function monitorDatabaseConnection() {
     try {
       await pool.query('SELECT 1');
     } catch (error) {
-      log('Database health check failed: ' + error.message);
+      log('Database health check failed: ' + (error as Error).message);
       if (isDatabaseError(error)) {
         log('Database connection lost, restarting...');
         gracefulRestart();
@@ -186,7 +186,7 @@ async function monitorDatabaseConnection() {
       serveStatic(app);
     }
   } catch (error) {
-    log('Startup error: ' + error.message);
+    log('Startup error: ' + (error as Error).message);
     console.error('Startup error:', error);
     
     if (isDatabaseError(error)) {
