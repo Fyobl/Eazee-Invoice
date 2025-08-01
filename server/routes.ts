@@ -14,25 +14,20 @@ interface AuthenticatedRequest extends Request {
 
 const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const sessionId = req.session?.userId;
-  console.log('RequireAuth check - Session ID:', sessionId, 'Full session:', req.session);
   
   if (!sessionId) {
-    console.log('No session ID found, returning 401');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const user = await storage.getUser(sessionId);
   if (!user) {
-    console.log('User not found for session ID:', sessionId);
     return res.status(401).json({ error: 'User not found' });
   }
   
   if (user.isSuspended) {
-    console.log('User is suspended:', sessionId);
     return res.status(403).json({ error: 'Account suspended' });
   }
   
-  console.log('Auth successful for user:', user.uid);
   req.user = user;
   next();
 };
@@ -90,7 +85,6 @@ export async function setupRoutes(app: Express) {
   app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      console.log('Login attempt for:', email);
       
       if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
@@ -98,23 +92,13 @@ export async function setupRoutes(app: Express) {
       
       const user = await storage.loginUser(email, password);
       if (!user) {
-        console.log('Invalid credentials for:', email);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
       // Set session
       req.session.userId = user.uid;
-      console.log('Session set for user:', user.uid, 'Session ID:', req.sessionID);
       
-      // Save session explicitly to ensure it's persisted
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: 'Session save failed' });
-        }
-        console.log('Session saved successfully for:', user.uid);
-        res.json({ user: { ...user, passwordHash: undefined } });
-      });
+      res.json({ user: { ...user, passwordHash: undefined } });
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ error: 'Login failed' });

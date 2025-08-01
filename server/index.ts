@@ -16,8 +16,6 @@ const PgSession = ConnectPgSimple(session);
 const isSecure = process.env.NODE_ENV === 'production' && 
   (process.env.HTTPS_ENABLED === 'true' || process.env.REPLIT_DB_URL !== undefined);
 
-console.log('Session configuration - Environment:', process.env.NODE_ENV, 'Secure cookies:', isSecure);
-
 app.use(session({
   store: new PgSession({
     pool,
