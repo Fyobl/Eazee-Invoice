@@ -28,7 +28,7 @@ Preferred communication style: Simple, everyday language.
 - **Document Management**: Creation, tracking, and management of invoices, quotes, and statements. Features include PDF export (html2pdf.js), soft deletion with a 7-day recovery period, and status management (Invoices: Unpaid, Paid, Overdue; Quotes: Draft, Sent, Accepted). Quote-to-invoice conversion. Statements include snapshot system for immutability and historical data preservation.
 - **Customer & Product Management**: Comprehensive customer profiles and product catalogs with pricing and tax rates. CSV import/export functionality for bulk data management (customers and products). Searchable customer and product selection in forms.
 - **Reporting**: Comprehensive business reports including VAT, Top Customers, Best Sellers, and Period Takings reports. All reports include PDF export and customizable date range selection.
-- **Email Integration**: Ability to email invoices, quotes, and statements. Generates PDFs, downloads automatically, and pre-fills email client. Customizable email templates with variable replacement.
+- **Email Integration**: Ability to email invoices, quotes, and statements. Generates PDFs, downloads automatically, and pre-fills email client. Customizable email templates with variable replacement. Password reset functionality via Brevo email service with secure token-based verification.
 - **Company Branding**: Per-user company branding (logo, name, address) for all generated documents and emails.
 - **Dashboard**: Redesigned 2x3 grid layout including a welcome message and local weather integration (Open-Meteo API).
 - **Help Page**: Comprehensive help page with step-by-step instructions, visual workflow diagrams, interactive demos, and feature highlights.
@@ -36,6 +36,7 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 - **Stripe**: For subscription management and payment processing.
+- **Brevo (SendInBlue)**: Email service for sending password reset emails and other transactional emails.
 - **Open-Meteo API**: For local weather data integration on the dashboard (no API key required).
 - **html2pdf.js**: For client-side PDF generation from HTML.
 - **Radix UI**: Accessible component primitives for UI.
@@ -43,6 +44,16 @@ Preferred communication style: Simple, everyday language.
 - **Lucide React**: Icon library.
 
 ## Recent Updates
+
+### August 2, 2025 - Password Reset System Implementation (Brevo Integration)
+- **Complete Password Reset Flow**: Implemented secure password reset functionality using email-based token verification
+- **Brevo Email Service Integration**: Integrated Brevo (formerly SendInBlue) email service for sending password reset emails with professional HTML templates
+- **Secure Token System**: Added password reset tokens table with 1-hour expiration, one-time use validation, and secure token generation
+- **Frontend Components**: Created forgot password and reset password pages with proper validation, error handling, and user feedback
+- **Email Templates**: Designed professional email templates with security warnings, clear instructions, and branded styling
+- **Database Schema**: Added passwordResetTokens table with proper relationships and automatic cleanup of expired tokens
+- **API Endpoints**: Implemented `/api/forgot-password`, `/api/reset-password`, and `/api/validate-reset-token` endpoints with comprehensive error handling
+- **User Experience**: Added "Forgot your password?" link to login page and seamless flow between reset pages
 
 ### August 1, 2025 - Login Issue Fix (Production Deployment)
 - **Session Cookie Configuration Fix**: Fixed login issue where users couldn't stay logged in on deployed sites due to improper session cookie configuration
