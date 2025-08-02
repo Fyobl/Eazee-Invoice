@@ -21,6 +21,8 @@ export interface IStorage {
   createPasswordResetToken(email: string): Promise<string>;
   validatePasswordResetToken(token: string): Promise<PasswordResetToken | null>;
   resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
+  // Admin password management
+  adminSetUserPassword(userUid: string, newPassword: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -232,6 +234,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(passwordResetTokens.id, resetToken.id));
 
     return true;
+  }
+
+  // Admin password management
+  async adminSetUserPassword(userUid: string, newPassword: string): Promise<boolean> {
+    try {
+      const user = await this.getUser(userUid);
+      if (!user) {
+        return false;
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update user's password
+      await db.update(users)
+        .set({ 
+          passwordHash,
+          mustChangePassword: false,
+          updatedAt: new Date()
+        })
+        .where(eq(users.uid, userUid));
+
+      return true;
+    } catch (error) {
+      console.error('Error setting user password:', error);
+      return false;
+    }
   }
 
 }

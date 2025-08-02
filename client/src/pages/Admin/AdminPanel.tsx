@@ -13,9 +13,10 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2 } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
+import { AdminPasswordManager } from '@/components/AdminPasswordManager';
 
 export const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -498,45 +499,48 @@ export const AdminPanel = () => {
                         {getTrialEndDate(user)}
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {!user.isSubscriber && (
-                              <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
-                                <Shield className="h-4 w-4 mr-2" />
-                                Grant Subscription
+                        <div className="flex items-center gap-2">
+                          <AdminPasswordManager user={user} />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {!user.isSubscriber && (
+                                <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
+                                  <Shield className="h-4 w-4 mr-2" />
+                                  Grant Subscription
+                                </DropdownMenuItem>
+                              )}
+                              {user.isSubscriber && (
+                                <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Revoke Subscription
+                                </DropdownMenuItem>
+                              )}
+                              {!user.isSuspended ? (
+                                <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Suspend User
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => handleUnsuspendUser(user.uid)}>
+                                  <UserPlus className="h-4 w-4 mr-2" />
+                                  Unsuspend User
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteUser(user)} 
+                                className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/50"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete User
                               </DropdownMenuItem>
-                            )}
-                            {user.isSubscriber && (
-                              <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
-                                <Ban className="h-4 w-4 mr-2" />
-                                Revoke Subscription
-                              </DropdownMenuItem>
-                            )}
-                            {!user.isSuspended ? (
-                              <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
-                                <Ban className="h-4 w-4 mr-2" />
-                                Suspend User
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => handleUnsuspendUser(user.uid)}>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Unsuspend User
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteUser(user)} 
-                              className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/50"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete User
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

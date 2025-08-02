@@ -260,6 +260,92 @@ export async function setupRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to validate reset token' });
     }
   });
+
+  // Admin password management routes
+  app.post('/api/admin/send-password-reset', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { userUid } = req.body;
+      
+      if (!userUid) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Get the target user
+      const targetUser = await storage.getUser(userUid);
+      if (!targetUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Generate reset token
+      const resetToken = await storage.createPasswordResetToken(targetUser.email);
+      
+      // Get base URL for reset link
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${req.get('host')}` 
+        : `http://${req.get('host')}`;
+
+      // Send reset email
+      const emailSent = await sendPasswordResetEmail(targetUser.email, resetToken, baseUrl);
+      
+      if (!emailSent) {
+        console.error('Failed to send admin-initiated password reset email to:', targetUser.email);
+        return res.status(500).json({ error: 'Failed to send reset email' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Password reset email sent to ${targetUser.email}` 
+      });
+    } catch (error) {
+      console.error('Admin password reset error:', error);
+      res.status(500).json({ error: 'Failed to send password reset email' });
+    }
+  });
+
+  app.post('/api/admin/set-user-password', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { userUid, newPassword } = req.body;
+      
+      if (!userUid || !newPassword) {
+        return res.status(400).json({ error: 'User ID and new password are required' });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+      }
+
+      // Get the target user
+      const targetUser = await storage.getUser(userUid);
+      if (!targetUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Set the new password
+      const success = await storage.adminSetUserPassword(userUid, newPassword);
+      
+      if (!success) {
+        return res.status(500).json({ error: 'Failed to set password' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Password updated for ${targetUser.email}` 
+      });
+    } catch (error) {
+      console.error('Admin set password error:', error);
+      res.status(500).json({ error: 'Failed to set user password' });
+    }
+  });
   
   // Customers routes
   app.get('/api/customers', requireAuth, async (req: AuthenticatedRequest, res) => {
