@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Key, AlertCircle, CheckCircle } from "lucide-react";
@@ -124,14 +125,14 @@ export function AdminPasswordManager({ user }: AdminPasswordManagerProps) {
   };
 
   return (
-    <div className="flex gap-2">
+    <>
       {/* Send Password Reset Dialog */}
       <Dialog open={sendResetOpen} onOpenChange={setSendResetOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
             <Mail className="h-4 w-4 mr-2" />
-            Send Reset
-          </Button>
+            Send Password Reset
+          </DropdownMenuItem>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -180,10 +181,10 @@ export function AdminPasswordManager({ user }: AdminPasswordManagerProps) {
       {/* Set Password Dialog */}
       <Dialog open={setPasswordOpen} onOpenChange={setSetPasswordOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
             <Key className="h-4 w-4 mr-2" />
             Set Password
-          </Button>
+          </DropdownMenuItem>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -307,6 +308,6 @@ export function AdminPasswordManager({ user }: AdminPasswordManagerProps) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

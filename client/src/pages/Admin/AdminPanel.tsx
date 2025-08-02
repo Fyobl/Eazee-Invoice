@@ -499,48 +499,46 @@ export const AdminPanel = () => {
                         {getTrialEndDate(user)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <AdminPasswordManager user={user} />
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {!user.isSubscriber && (
-                                <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
-                                  <Shield className="h-4 w-4 mr-2" />
-                                  Grant Subscription
-                                </DropdownMenuItem>
-                              )}
-                              {user.isSubscriber && (
-                                <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  Revoke Subscription
-                                </DropdownMenuItem>
-                              )}
-                              {!user.isSuspended ? (
-                                <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  Suspend User
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => handleUnsuspendUser(user.uid)}>
-                                  <UserPlus className="h-4 w-4 mr-2" />
-                                  Unsuspend User
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteUser(user)} 
-                                className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/50"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete User
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <AdminPasswordManager user={user} />
+                            {!user.isSubscriber && (
+                              <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
+                                <Shield className="h-4 w-4 mr-2" />
+                                Grant Subscription
                               </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                            )}
+                            {user.isSubscriber && (
+                              <DropdownMenuItem onClick={() => handleRevokeSubscription(user.uid)}>
+                                <Ban className="h-4 w-4 mr-2" />
+                                Revoke Subscription
+                              </DropdownMenuItem>
+                            )}
+                            {!user.isSuspended ? (
+                              <DropdownMenuItem onClick={() => handleSuspendUser(user.uid)}>
+                                <Ban className="h-4 w-4 mr-2" />
+                                Suspend User
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleUnsuspendUser(user.uid)}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Unsuspend User
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteUser(user)} 
+                              className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete User
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
