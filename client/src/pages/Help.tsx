@@ -740,27 +740,7 @@ export const Help = () => {
           </CardContent>
         </Card>
 
-        {/* Contact Support */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Need More Help?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
-              If you can't find the answer you're looking for, don't hesitate to reach out for support.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Contact Support
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <FileDown className="h-4 w-4" />
-                Download User Manual
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </Layout>
   );
