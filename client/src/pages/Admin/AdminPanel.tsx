@@ -388,10 +388,12 @@ export const AdminPanel = () => {
   };
 
   const getTrialEndDate = (user: any) => {
+    if (user.isSuspended) return 'Suspended';
+    
     if (user.isSubscriber) {
       // Handle admin-granted subscriptions without end dates
       if (user.isAdminGrantedSubscription && !user.subscriptionCurrentPeriodEnd) {
-        return 'Admin Grant (No Expiry)';
+        return 'Permanent';
       }
       
       // Handle Stripe subscriptions without proper end dates
@@ -418,11 +420,19 @@ export const AdminPanel = () => {
       return `${daysLeft} days left`;
     }
     
-    if (user.isSuspended) return 'Suspended';
-    
+    // For trial users, calculate days left in trial
     const trialStart = new Date(user.trialStartDate);
     const trialEnd = new Date(trialStart.getTime() + (7 * 24 * 60 * 60 * 1000));
-    return trialEnd.toLocaleDateString();
+    const now = new Date();
+    
+    // Check if trial is expired
+    if (trialEnd <= now) {
+      return 'Trial Expired';
+    }
+    
+    // Calculate days left in trial
+    const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return `${daysLeft} days left`;
   };
 
   const getCountryFlagForUser = (user: any) => {
@@ -569,7 +579,7 @@ export const AdminPanel = () => {
                   <TableHead className="text-slate-900 dark:text-slate-100">User</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Status</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Joined</TableHead>
-                  <TableHead className="text-slate-900 dark:text-slate-100">Expires</TableHead>
+                  <TableHead className="text-slate-900 dark:text-slate-100">Subscription Status</TableHead>
                   <TableHead className="text-slate-900 dark:text-slate-100">Actions</TableHead>
                 </TableRow>
               </TableHeader>
