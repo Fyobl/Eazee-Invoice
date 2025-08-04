@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle, CreditCard, Shield, Clock, Users, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout/Layout';
+import { StripeProvider } from '@/components/StripeProvider';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -376,9 +377,10 @@ export const Subscribe = () => {
 
   // Show subscription signup form
   return (
-    <Layout title="Upgrade to Pro">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="text-center mb-8">
+    <StripeProvider clientSecret={clientSecret}>
+      <Layout title="Upgrade to Pro">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Upgrade to Pro</h1>
         <p className="text-slate-600 dark:text-slate-400">
           Continue enjoying all features with our monthly subscription
@@ -478,9 +480,7 @@ export const Subscribe = () => {
             {(() => {
               console.log('Render - clientSecret:', clientSecret, 'loading:', loading);
               return clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <SubscribeForm clientSecret={clientSecret} />
-                </Elements>
+                <SubscribeForm clientSecret={clientSecret} />
               ) : (
                 <div className="text-center py-8">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
@@ -492,8 +492,9 @@ export const Subscribe = () => {
             })()}
           </CardContent>
         </Card>
-      </div>
-    </div>
-    </Layout>
+          </div>
+        </div>
+      </Layout>
+    </StripeProvider>
   );
 };

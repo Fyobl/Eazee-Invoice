@@ -1295,20 +1295,7 @@ export async function setupRoutes(app: Express) {
         priceId = price.id;
       }
 
-      // Create a PaymentIntent directly for the subscription
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 1999, // £19.99 in pence
-        currency: 'gbp',
-        customer: stripeCustomer.id,
-        setup_future_usage: 'off_session',
-        description: 'Eazee Invoice Pro Monthly Subscription',
-        metadata: {
-          subscription_creation: 'true',
-          uid: uid
-        }
-      });
-
-      // Create subscription with the payment intent
+      // Create subscription - let Stripe handle the PaymentIntent
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomer.id,
         items: [{
@@ -1323,12 +1310,21 @@ export async function setupRoutes(app: Express) {
       });
       
       console.log('Subscription created with ID:', subscription.id);
-      console.log('PaymentIntent created with ID:', paymentIntent.id);
+      
+      // Get the payment intent from the subscription's invoice
+      const invoice = subscription.latest_invoice as any;
+      const paymentIntent = invoice?.payment_intent;
+      
+      if (!paymentIntent || !paymentIntent.client_secret) {
+        throw new Error('Failed to create payment intent for subscription');
+      }
+      
+      console.log('PaymentIntent from subscription:', paymentIntent.id);
 
       // Update user with Stripe info
       await storage.updateUserStripeInfo(uid, stripeCustomer.id, subscription.id);
 
-      // Return the subscription with the manually created payment intent
+      // Return the subscription with the payment intent from the invoice
       res.json({
         subscriptionId: subscription.id,
         clientSecret: paymentIntent.client_secret,

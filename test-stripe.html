@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stripe Test</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div id="card-element"></div>
+    <div id="card-errors" role="alert"></div>
+    <button id="submit">Submit Payment</button>
+
+    <script>
+        // Test with live Stripe key
+        const stripe = Stripe('pk_live_51O7OqoJfs8qCR8mt4GwydKNKLqgcITCyTXZMv5iCi3fjGCo16oDTckPIGSRoVdowCHl7Ec6cTqcVqMJ0vgXxO6z900CVvP0fMd');
+        
+        // Create a test Payment Intent to see if basic Stripe works
+        fetch('/api/create-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                uid: 'test-user-' + Date.now(),
+                email: 'test-' + Date.now() + '@example.com',
+                firstName: 'Test',
+                lastName: 'User'
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Server response:', data);
+            
+            if (data.clientSecret) {
+                console.log('ClientSecret format:', data.clientSecret);
+                console.log('ClientSecret length:', data.clientSecret.length);
+                console.log('ClientSecret starts with:', data.clientSecret.substring(0, 10));
+                
+                // Try to create elements with this clientSecret
+                const elements = stripe.elements({
+                    clientSecret: data.clientSecret
+                });
+                
+                const cardElement = elements.create('payment');
+                cardElement.mount('#card-element');
+                
+                cardElement.on('ready', () => {
+                    console.log('Payment element ready!');
+                });
+                
+                cardElement.on('loaderror', (error) => {
+                    console.error('Payment element load error:', error);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('API Error:', err);
+        });
+    </script>
+</body>
+</html>
