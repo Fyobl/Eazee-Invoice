@@ -1700,4 +1700,52 @@ export async function setupRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to cancel subscription' });
     }
   });
+
+  // FRESH STRIPE PAYMENTINTENT ENDPOINTS - Clean implementation
+  app.post('/api/create-payment-intent', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      console.log('🔄 Creating fresh PaymentIntent for user:', user.uid);
+      
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        console.log('🆕 Creating new Stripe customer');
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.displayName,
+          metadata: { userId: user.uid }
+        });
+        stripeCustomerId = customer.id;
+        
+        await db.update(users)
+          .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+          .where(eq(users.uid, user.uid));
+        console.log('✅ Stripe customer created:', stripeCustomerId);
+      }
+      
+      // Create PaymentIntent for subscription payment
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 1999, // £19.99 in pence
+        currency: 'gbp',
+        customer: stripeCustomerId,
+        setup_future_usage: 'off_session',
+        metadata: {
+          userId: user.uid,
+          type: 'subscription_payment'
+        }
+      });
+      
+      console.log('✅ PaymentIntent created:', paymentIntent.id);
+      console.log('🔑 Client secret (first 30 chars):', paymentIntent.client_secret?.substring(0, 30));
+      
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error) {
+      console.error('❌ Error creating payment intent:', error);
+      res.status(500).json({ error: 'Failed to create payment intent' });
+    }
+  });
 }

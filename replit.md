@@ -45,6 +45,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 4, 2025 - Complete Stripe Subscription System Rebuild (PaymentIntent Approach)
+- **Fresh Implementation**: Completely rebuilt Stripe subscription system using PaymentIntent approach instead of SetupIntent
+- **Key Mismatch Resolution**: Fixed client_secret mismatch errors that were causing 400 errors from api.stripe.com
+- **Live Key Configuration**: Properly configured live Stripe keys (pk_live_ and sk_live_) with verified account (acct_1RlU9WJfs8qCR8mt)
+- **Account Verification**: Confirmed Stripe account is fully active with charges and payouts enabled, all capabilities active
+- **New Endpoint**: Created `/subscribe-new` route with clean PaymentIntent implementation
+- **Error Elimination**: Eliminated all SetupIntent-related 400 errors by switching to PaymentIntent for subscription setup
+- **Server Diagnostics**: Added comprehensive Stripe account diagnostics on server startup
+- **Fresh Components**: Built new SubscribeNew.tsx component with proper useAuth integration
+
 ### August 4, 2025 - Admin Password Management & Help Page Updates
 - **Admin Password Management**: Added comprehensive admin password management functionality with two options:
   - Send password reset emails to users (generates secure reset tokens via Brevo)
