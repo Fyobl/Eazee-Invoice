@@ -7,6 +7,7 @@ import Papa from "papaparse";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { sendPasswordResetEmail } from "./emailService";
+import { sendSubscriptionNotification } from "./pushNotifications";
 import * as geoip from 'geoip-lite';
 
 // Utility function to get user's country from IP
@@ -1561,15 +1562,38 @@ export async function setupRoutes(app: Express) {
     // Handle the event
     switch (event.type) {
       case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        const subscription = event.data.object as Stripe.Subscription;
-        const customer = await stripe.customers.retrieve(subscription.customer as string);
+        const newSubscription = event.data.object as Stripe.Subscription;
+        const newCustomer = await stripe.customers.retrieve(newSubscription.customer as string);
         
-        if (customer && !customer.deleted && customer.metadata?.uid) {
+        if (newCustomer && !newCustomer.deleted && newCustomer.metadata?.uid) {
           await storage.updateUserSubscriptionStatus(
-            customer.metadata.uid,
-            subscription.status,
-            new Date(subscription.current_period_end * 1000)
+            newCustomer.metadata.uid,
+            newSubscription.status,
+            new Date(newSubscription.current_period_end * 1000)
+          );
+          
+          // Send push notification for new subscriptions only
+          const customerName = newCustomer.name || 'Unknown Customer';
+          const customerEmail = newCustomer.email || 'No email';
+          const amount = newSubscription.items.data[0]?.price?.unit_amount ? 
+            (newSubscription.items.data[0].price.unit_amount / 100) : 19.99;
+          const currency = newSubscription.items.data[0]?.price?.currency?.toUpperCase() || 'GBP';
+          
+          // Send notification in background (don't block webhook response)
+          sendSubscriptionNotification(customerEmail, customerName, amount, currency)
+            .catch(error => console.error('Notification failed:', error));
+        }
+        break;
+        
+      case 'customer.subscription.updated':
+        const updatedSubscription = event.data.object as Stripe.Subscription;
+        const updatedCustomer = await stripe.customers.retrieve(updatedSubscription.customer as string);
+        
+        if (updatedCustomer && !updatedCustomer.deleted && updatedCustomer.metadata?.uid) {
+          await storage.updateUserSubscriptionStatus(
+            updatedCustomer.metadata.uid,
+            updatedSubscription.status,
+            new Date(updatedSubscription.current_period_end * 1000)
           );
         }
         break;
@@ -1620,6 +1644,18 @@ export async function setupRoutes(app: Express) {
     }
 
     res.json({ received: true });
+  });
+
+  // Test notification endpoint (admin only)
+  app.post('/api/test-notification', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { sendTestNotification } = await import('./pushNotifications');
+      await sendTestNotification();
+      res.json({ success: true, message: 'Test notification sent successfully' });
+    } catch (error) {
+      console.error('Test notification failed:', error);
+      res.status(500).json({ error: 'Failed to send test notification' });
+    }
   });
 
   // Get user subscription status

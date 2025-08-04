@@ -45,6 +45,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 4, 2025 - Push Notification System for New Subscriptions
+- **Comprehensive Notification System**: Implemented multi-platform push notifications when users subscribe
+- **Webhook Integration**: Enhanced Stripe webhook handler to trigger notifications on new subscription creation
+- **Multiple Service Support**: Supports Pushover (recommended), Telegram, and Discord notifications simultaneously
+- **Admin Test Feature**: Added "Test Notification" button in admin panel payment settings for easy setup verification
+- **Background Processing**: Notifications sent asynchronously to avoid blocking webhook responses
+- **Setup Documentation**: Created comprehensive NOTIFICATION_SETUP.md guide with step-by-step instructions
+- **Rich Notification Content**: Includes customer name, email, subscription amount, and UK timezone timestamp
+- **Error Handling**: Graceful failure handling with detailed logging for troubleshooting
+- **Environment Configuration**: Uses environment variables for secure API key management (PUSHOVER_*, TELEGRAM_*, DISCORD_*)
+
 ### August 4, 2025 - Country Flags & UI Enhancement
 - **Country Flag Feature**: Replaced user initials with country flags in admin panel user list
 - **Database Schema**: Added country field to users table with ISO country codes (defaults to GB)

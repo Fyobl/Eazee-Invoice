@@ -56,6 +56,8 @@ export const AdminPanel = () => {
     subscriptionMonths: '1'
   });
   const [stripeMode, setStripeMode] = useState<'live' | 'test'>('live');
+  const [isTogglingMode, setIsTogglingMode] = useState(false);
+  const [isTestingNotification, setIsTestingNotification] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -371,6 +373,32 @@ export const AdminPanel = () => {
     });
   };
 
+  // Test notification mutation
+  const testNotificationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/test-notification');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ 
+        title: 'Test notification sent!', 
+        description: 'Check your phone for the notification'
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Notification test failed', 
+        description: error.message || 'Failed to send test notification'
+      });
+    }
+  });
+
+  const handleTestNotification = () => {
+    setIsTestingNotification(true);
+    testNotificationMutation.mutate();
+    setTimeout(() => setIsTestingNotification(false), 2000);
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type === 'text/csv') {
@@ -522,6 +550,26 @@ export const AdminPanel = () => {
                 </p>
               </div>
             )}
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">Push Notifications</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Test phone notifications for new subscriptions
+                  </p>
+                </div>
+                <Button
+                  onClick={handleTestNotification}
+                  disabled={isTestingNotification || testNotificationMutation.isPending}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  {isTestingNotification ? 'Sending...' : 'Test Notification'}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
