@@ -1213,19 +1213,31 @@ export async function setupRoutes(app: Express) {
         }
       }
 
-      // If user already has a subscription, return existing subscription info
+      // If user already has a subscription, try to return existing subscription info
       if (user.stripeSubscriptionId) {
-        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-        
-        if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
-          const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
-          if (latestInvoice.payment_intent && typeof latestInvoice.payment_intent === 'object') {
-            const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
-            return res.json({
-              subscriptionId: subscription.id,
-              clientSecret: paymentIntent.client_secret,
-              status: subscription.status
-            });
+        try {
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          
+          if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
+            const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
+            if (latestInvoice.payment_intent && typeof latestInvoice.payment_intent === 'object') {
+              const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+              return res.json({
+                subscriptionId: subscription.id,
+                clientSecret: paymentIntent.client_secret,
+                status: subscription.status
+              });
+            }
+          }
+        } catch (stripeError: any) {
+          // If subscription doesn't exist (e.g., switching from test to live keys), clear the old data
+          if (stripeError.code === 'resource_missing') {
+            console.log('Old subscription not found in live mode, clearing user data...');
+            await storage.updateUserStripeInfo(uid, null, null);
+            user.stripeCustomerId = null;
+            user.stripeSubscriptionId = null;
+          } else {
+            throw stripeError;
           }
         }
       }
