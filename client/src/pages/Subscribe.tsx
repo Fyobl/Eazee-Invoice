@@ -206,10 +206,14 @@ export const Subscribe = () => {
       });
 
       const data = await response.json();
+      console.log('Subscription API response:', data);
       
       if (data.clientSecret) {
+        console.log('Setting clientSecret:', data.clientSecret);
         setClientSecret(data.clientSecret);
+        setLoading(false); // Set loading false here when we have client secret
       } else {
+        console.error('No clientSecret in response:', data);
         throw new Error(data.error || 'Failed to create subscription');
       }
     } catch (error) {
@@ -235,8 +239,7 @@ export const Subscribe = () => {
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
     }
   };
 
