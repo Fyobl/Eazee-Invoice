@@ -15,7 +15,8 @@ export default function ManageSubscription() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  if (!user?.isSubscriber) {
+  // Show management page for both regular subscribers and admin-granted subscribers
+  if (!user?.isSubscriber && !user?.isAdminGrantedSubscription) {
     return (
       <div className="container max-w-4xl mx-auto p-6">
         <Card>
@@ -102,7 +103,9 @@ export default function ManageSubscription() {
             <div>
               <div className="text-sm text-muted-foreground">Plan</div>
               <div className="font-semibold">Pro Plan</div>
-              <div className="text-sm text-muted-foreground">£19.99/month</div>
+              <div className="text-sm text-muted-foreground">
+                {user.isAdminGrantedSubscription ? 'Admin Granted' : '£19.99/month'}
+              </div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">
@@ -125,11 +128,21 @@ export default function ManageSubscription() {
             </div>
           </div>
 
-          {isExpiringSoon && user.subscriptionStatus === 'active' && (
+          {isExpiringSoon && user.subscriptionStatus === 'active' && !user.isAdminGrantedSubscription && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 Your subscription renews in {daysRemaining} days. Your card will be charged £19.99.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {user.isAdminGrantedSubscription && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                You have an admin-granted subscription. 
+                {daysRemaining > 0 ? ` You have ${daysRemaining} days remaining.` : ' Your subscription has expired.'}
               </AlertDescription>
             </Alert>
           )}
@@ -188,8 +201,8 @@ export default function ManageSubscription() {
         </CardContent>
       </Card>
 
-      {/* Actions Card */}
-      {user.subscriptionStatus === 'active' && (
+      {/* Actions Card - Only show cancel option for paid subscriptions, not admin-granted */}
+      {user.subscriptionStatus === 'active' && !user.isAdminGrantedSubscription && (
         <Card>
           <CardHeader>
             <CardTitle>Subscription Actions</CardTitle>

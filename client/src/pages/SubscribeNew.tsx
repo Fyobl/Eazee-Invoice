@@ -106,8 +106,8 @@ export default function SubscribeNew() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Redirect subscribers to management page
-    if (userData?.isSubscriber) {
+    // Redirect all subscribers (including admin-granted) to management page
+    if (userData?.isSubscriber || userData?.isAdminGrantedSubscription) {
       window.location.href = '/manage-subscription';
       return;
     }
