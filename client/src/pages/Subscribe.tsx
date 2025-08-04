@@ -133,20 +133,24 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
           {isLoading ? 'Processing...' : 'Subscribe to Pro - £19.99/month'}
         </Button>
         
-        <Button 
-          type="button"
-          onClick={handleFakePayment}
-          disabled={isLoading}
-          className="w-full"
-          size="lg"
-          variant="outline"
-        >
-          {isLoading ? 'Processing...' : 'Test Payment (Fake) - £19.99/month'}
-        </Button>
-        
-        <p className="text-xs text-center text-slate-500 dark:text-slate-400">
-          Use the "Test Payment" button to simulate a successful payment without charging a card
-        </p>
+        {userData?.isAdmin && (
+          <>
+            <Button 
+              type="button"
+              onClick={handleFakePayment}
+              disabled={isLoading}
+              className="w-full"
+              size="lg"
+              variant="outline"
+            >
+              {isLoading ? 'Processing...' : 'Test Payment (Admin Only) - £19.99/month'}
+            </Button>
+            
+            <p className="text-xs text-center text-slate-500 dark:text-slate-400">
+              Admin test: Simulate successful payment without charging a card
+            </p>
+          </>
+        )}
       </div>
     </form>
   );
