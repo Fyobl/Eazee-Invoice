@@ -207,9 +207,25 @@ export const Subscribe = () => {
       }
     } catch (error) {
       console.error('Error creating subscription:', error);
+      
+      // Try to extract more detailed error information
+      let errorMessage = "Failed to initialize subscription. Please try again.";
+      
+      if (error instanceof Response) {
+        try {
+          const errorData = await error.json();
+          errorMessage = errorData.details || errorData.error || errorMessage;
+          console.error('Detailed error:', errorData);
+        } catch {
+          errorMessage = `Server error: ${error.status}`;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to initialize subscription. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

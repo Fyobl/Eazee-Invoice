@@ -1244,24 +1244,50 @@ export async function setupRoutes(app: Express) {
         });
       }
 
-      // First create a product
-      const product = await stripe.products.create({
-        name: 'Eazee Invoice Pro',
-        description: 'Monthly subscription to Eazee Invoice Pro'
-      });
-
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
-        customer: stripeCustomer.id,
-        items: [{
-          price_data: {
+      // Use a fixed price ID or create a reusable price
+      let priceId = process.env.STRIPE_PRICE_ID;
+      
+      if (!priceId) {
+        // Create or find existing product
+        const products = await stripe.products.list({ limit: 100 });
+        let product = products.data.find(p => p.name === 'Eazee Invoice Pro');
+        
+        if (!product) {
+          product = await stripe.products.create({
+            name: 'Eazee Invoice Pro',
+            description: 'Monthly subscription to Eazee Invoice Pro'
+          });
+        }
+        
+        // Create or find existing price
+        const prices = await stripe.prices.list({
+          product: product.id,
+          currency: 'gbp',
+          recurring: { interval: 'month' },
+          limit: 100
+        });
+        
+        let price = prices.data.find(p => p.unit_amount === 1999);
+        
+        if (!price) {
+          price = await stripe.prices.create({
             currency: 'gbp',
             product: product.id,
             unit_amount: 1999, // £19.99 in pence
             recurring: {
               interval: 'month'
             }
-          }
+          });
+        }
+        
+        priceId = price.id;
+      }
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomer.id,
+        items: [{
+          price: priceId
         }],
         payment_behavior: 'default_incomplete',
         expand: ['latest_invoice.payment_intent']
@@ -1270,18 +1296,54 @@ export async function setupRoutes(app: Express) {
       // Update user with Stripe info
       await storage.updateUserStripeInfo(uid, stripeCustomer.id, subscription.id);
 
-      const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
-      const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
-
-      res.json({
-        subscriptionId: subscription.id,
-        clientSecret: paymentIntent.client_secret,
-        status: subscription.status
-      });
+      // Check if we have a valid latest invoice with payment intent
+      if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
+        const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
+        if (latestInvoice.payment_intent && typeof latestInvoice.payment_intent === 'object') {
+          const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+          
+          res.json({
+            subscriptionId: subscription.id,
+            clientSecret: paymentIntent.client_secret,
+            status: subscription.status
+          });
+        } else {
+          // If no payment intent, return without client secret
+          res.json({
+            subscriptionId: subscription.id,
+            status: subscription.status,
+            error: 'No payment intent found'
+          });
+        }
+      } else {
+        res.status(500).json({ error: 'Failed to retrieve payment information' });
+      }
 
     } catch (error) {
       console.error('Subscription creation error:', error);
-      res.status(500).json({ error: 'Failed to create subscription: ' + (error as Error).message });
+      
+      // More detailed error information
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
+      // Check if it's a Stripe error
+      if ((error as any).type) {
+        console.error('Stripe error type:', (error as any).type);
+        console.error('Stripe error code:', (error as any).code);
+        console.error('Stripe error param:', (error as any).param);
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to create subscription', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stripeError: (error as any).type ? {
+          type: (error as any).type,
+          code: (error as any).code,
+          param: (error as any).param
+        } : null
+      });
     }
   });
 
