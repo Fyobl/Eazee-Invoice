@@ -28,7 +28,9 @@ export const StripeProvider = ({ children, clientSecret }: StripeProviderProps) 
           fontWeight: '500',
         },
       },
-    }
+    },
+    // Force reload to clear any cached business names
+    loader: 'always'
   } : {};
   
   return (
