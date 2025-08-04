@@ -46,11 +46,20 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// Initialize Stripe
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Initialize Stripe - support both test and live modes
+const USE_TEST_MODE = process.env.STRIPE_USE_TEST_MODE === 'true';
+const STRIPE_SECRET_KEY = USE_TEST_MODE 
+  ? process.env.STRIPE_TEST_SECRET_KEY 
+  : process.env.STRIPE_SECRET_KEY;
+
+if (!STRIPE_SECRET_KEY) {
+  throw new Error(`Missing required Stripe secret: ${USE_TEST_MODE ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'}`);
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+
+console.log('Server Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
+console.log('Server Stripe Secret Key (first 20 chars):', STRIPE_SECRET_KEY?.substring(0, 20));
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: "2025-06-30.basil",
 });
 

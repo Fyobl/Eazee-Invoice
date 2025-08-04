@@ -21,12 +21,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// Initialize Stripe - use the live public key to match the live secret key
-const STRIPE_PUBLIC_KEY = 'pk_live_51RlU9WJfs8qCR8mtjprd7cMgGSOTXQgkOdoNIIyhH26RofzXQUkiHVKh8TjaGvpk4xcH8iZb9PHMYDUGQs2z18jN00Pg9lqxKK';
+// Initialize Stripe - check for live mode vs test mode compatibility
+const USE_TEST_MODE = import.meta.env.VITE_STRIPE_USE_TEST_MODE === 'true';
+const STRIPE_PUBLIC_KEY = USE_TEST_MODE 
+  ? import.meta.env.VITE_STRIPE_PUBLIC_KEY  // Test key
+  : 'pk_live_51RlU9WJfs8qCR8mtjprd7cMgGSOTXQgkOdoNIIyhH26RofzXQUkiHVKh8TjaGvpk4xcH8iZb9PHMYDUGQs2z18jN00Pg9lqxKK'; // Live key
+
 if (!STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: STRIPE_PUBLIC_KEY');
 }
-// Initialize Stripe with proper configuration
+
+console.log('Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
 console.log('Frontend Stripe Public Key (first 20 chars):', STRIPE_PUBLIC_KEY?.substring(0, 20));
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
@@ -51,6 +56,9 @@ const SubscribeForm = ({ clientSecret, subscriptionData }: {
 
     try {
       if (subscriptionData?.isSetupIntent) {
+        console.log('Attempting SetupIntent confirmation...');
+        console.log('SubscriptionData:', subscriptionData);
+        
         // Setup Intent flow for collecting payment method
         const { error, setupIntent } = await stripe.confirmSetup({
           elements,
@@ -59,6 +67,8 @@ const SubscribeForm = ({ clientSecret, subscriptionData }: {
           },
           redirect: 'if_required'
         });
+        
+        console.log('SetupIntent confirmation result:', { error, setupIntent });
 
         if (error) {
           console.error('Setup error:', error);
@@ -187,7 +197,19 @@ const SubscribeForm = ({ clientSecret, subscriptionData }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement />
+      <PaymentElement 
+        onReady={() => {
+          console.log('PaymentElement ready!');
+        }}
+        onLoadError={(error) => {
+          console.error('PaymentElement load error:', error);
+        }}
+        onChange={(event) => {
+          if (event.error) {
+            console.error('PaymentElement change error:', event.error);
+          }
+        }}
+      />
       <div className="space-y-3">
         <Button 
           type="submit" 

@@ -16,12 +16,17 @@ interface StripeProviderProps {
 }
 
 export const StripeProvider = ({ children, clientSecret }: StripeProviderProps) => {
+  console.log('StripeProvider - clientSecret received:', clientSecret ? 'present' : 'missing');
+  console.log('StripeProvider - clientSecret starts with:', clientSecret?.substring(0, 20));
+  
   const options = clientSecret ? { 
     clientSecret,
     appearance: {
       theme: 'stripe' as const,
     }
   } : {};
+  
+  console.log('StripeProvider - options:', options);
   
   return (
     <Elements stripe={stripePromise} options={options}>
