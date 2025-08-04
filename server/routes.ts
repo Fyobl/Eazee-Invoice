@@ -1283,41 +1283,45 @@ export async function setupRoutes(app: Express) {
         priceId = price.id;
       }
 
-      // Create subscription
+      // Create a PaymentIntent directly for the subscription
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 1999, // £19.99 in pence
+        currency: 'gbp',
+        customer: stripeCustomer.id,
+        setup_future_usage: 'off_session',
+        metadata: {
+          subscription_creation: 'true',
+          uid: uid
+        }
+      });
+
+      // Create subscription with the payment intent
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomer.id,
         items: [{
           price: priceId
         }],
         payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent']
+        payment_settings: {
+          save_default_payment_method: 'on_subscription'
+        },
+        expand: ['latest_invoice.payment_intent'],
+        collection_method: 'charge_automatically'
       });
+      
+      console.log('Subscription created with ID:', subscription.id);
+      console.log('PaymentIntent created with ID:', paymentIntent.id);
 
       // Update user with Stripe info
       await storage.updateUserStripeInfo(uid, stripeCustomer.id, subscription.id);
 
-      // Check if we have a valid latest invoice with payment intent
-      if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
-        const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
-        if (latestInvoice.payment_intent && typeof latestInvoice.payment_intent === 'object') {
-          const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
-          
-          res.json({
-            subscriptionId: subscription.id,
-            clientSecret: paymentIntent.client_secret,
-            status: subscription.status
-          });
-        } else {
-          // If no payment intent, return without client secret
-          res.json({
-            subscriptionId: subscription.id,
-            status: subscription.status,
-            error: 'No payment intent found'
-          });
-        }
-      } else {
-        res.status(500).json({ error: 'Failed to retrieve payment information' });
-      }
+      // Return the subscription with the manually created payment intent
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: paymentIntent.client_secret,
+        status: subscription.status,
+        paymentIntentId: paymentIntent.id
+      });
 
     } catch (error) {
       console.error('Subscription creation error:', error);
