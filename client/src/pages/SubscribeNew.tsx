@@ -100,25 +100,19 @@ const PaymentForm = ({ clientSecret, paymentIntentId }: { clientSecret: string; 
 };
 
 export default function SubscribeNew() {
-  const { currentUser, userData } = useAuth();
+  const { currentUser } = useAuth();
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Redirect all subscribers (including admin-granted) to management page
-    if (userData?.isSubscriber || userData?.isAdminGrantedSubscription) {
-      window.location.href = '/manage-subscription';
-      return;
-    }
-
     if (currentUser) {
       createPaymentIntent();
     } else {
       // Stop loading if no user is authenticated
       setIsLoading(false);
     }
-  }, [currentUser, userData]);
+  }, [currentUser]);
 
   const createPaymentIntent = async () => {
     try {

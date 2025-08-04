@@ -1575,43 +1575,6 @@ export async function setupRoutes(app: Express) {
     res.json({ received: true });
   });
 
-  // Cancel subscription endpoint
-  app.post('/api/cancel-subscription', requireAuth, async (req, res) => {
-    try {
-      const user = req.user!;
-      
-      if (!user.stripeSubscriptionId) {
-        return res.status(400).json({ error: 'No active subscription found' });
-      }
-
-      // Cancel subscription at period end (don't cancel immediately)
-      const subscription = await stripe.subscriptions.update(user.stripeSubscriptionId, {
-        cancel_at_period_end: true
-      });
-
-      // Update user status to cancelled but keep isSubscriber true until period ends
-      await storage.updateUserSubscriptionStatus(
-        user.uid,
-        'cancelled',
-        new Date(subscription.current_period_end * 1000)
-      );
-
-      res.json({ 
-        success: true,
-        message: 'Subscription cancelled successfully',
-        cancelAtPeriodEnd: true,
-        periodEndDate: new Date(subscription.current_period_end * 1000)
-      });
-
-    } catch (error) {
-      console.error('Cancel subscription error:', error);
-      res.status(500).json({ 
-        error: 'Failed to cancel subscription',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
   // Get user subscription status
   app.get('/api/subscription-status', async (req, res) => {
     try {

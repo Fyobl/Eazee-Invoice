@@ -27,7 +27,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [location] = useLocation();
-  const { isAdmin, isSubscriber, userData } = useAuth();
+  const { isAdmin, isSubscriber } = useAuth();
 
   // Prevent background scroll when sidebar is open
   useEffect(() => {
@@ -61,8 +61,12 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { href: '/email-settings', label: 'Email Settings', icon: Mail },
   ];
 
-  // Always show Subscribe option - redirect logic will be handled in the Subscribe page
-  accountNavItems.push({ href: '/subscribe', label: 'Subscribe', icon: CreditCard });
+  // Add subscription management for all users
+  if (!isSubscriber) {
+    accountNavItems.push({ href: '/subscribe', label: 'Upgrade to Pro', icon: CreditCard });
+  } else {
+    accountNavItems.push({ href: '/subscribe', label: 'Manage Subscription', icon: CreditCard });
+  }
 
   if (isAdmin) {
     accountNavItems.push({ href: '/admin', label: 'Admin Panel', icon: Shield });
