@@ -1295,41 +1295,30 @@ export async function setupRoutes(app: Express) {
         priceId = price.id;
       }
 
-      // Create subscription - let Stripe handle the PaymentIntent
-      const subscription = await stripe.subscriptions.create({
+      // First create a SetupIntent to collect payment method
+      const setupIntent = await stripe.setupIntents.create({
         customer: stripeCustomer.id,
-        items: [{
-          price: priceId
-        }],
-        payment_behavior: 'default_incomplete',
-        payment_settings: {
-          save_default_payment_method: 'on_subscription'
-        },
-        expand: ['latest_invoice.payment_intent'],
-        collection_method: 'charge_automatically'
+        payment_method_types: ['card'],
+        usage: 'off_session',
+        metadata: {
+          uid: uid,
+          purpose: 'subscription_setup'
+        }
       });
       
-      console.log('Subscription created with ID:', subscription.id);
-      
-      // Get the payment intent from the subscription's invoice
-      const invoice = subscription.latest_invoice as any;
-      const paymentIntent = invoice?.payment_intent;
-      
-      if (!paymentIntent || !paymentIntent.client_secret) {
-        throw new Error('Failed to create payment intent for subscription');
-      }
-      
-      console.log('PaymentIntent from subscription:', paymentIntent.id);
+      console.log('SetupIntent created with ID:', setupIntent.id);
+      console.log('SetupIntent client_secret:', setupIntent.client_secret ? 'present' : 'missing');
 
-      // Update user with Stripe info
-      await storage.updateUserStripeInfo(uid, stripeCustomer.id, subscription.id);
+      // Update user with Stripe info (subscription will be created after payment method is confirmed)
+      await storage.updateUserStripeInfo(uid, stripeCustomer.id, null);
 
-      // Return the subscription with the payment intent from the invoice
+      // Return the setup intent for collecting payment method
       res.json({
-        subscriptionId: subscription.id,
-        clientSecret: paymentIntent.client_secret,
-        status: subscription.status,
-        paymentIntentId: paymentIntent.id
+        clientSecret: setupIntent.client_secret,
+        setupIntentId: setupIntent.id,
+        customerId: stripeCustomer.id,
+        priceId: priceId,
+        isSetupIntent: true
       });
 
     } catch (error) {
@@ -1356,6 +1345,54 @@ export async function setupRoutes(app: Express) {
           code: (error as any).code,
           param: (error as any).param
         } : null
+      });
+    }
+  });
+
+  // Complete subscription after SetupIntent confirmation
+  app.post('/api/complete-subscription', async (req, res) => {
+    try {
+      const { setupIntentId, customerId, priceId, uid } = req.body;
+      
+      if (!setupIntentId || !customerId || !priceId || !uid) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // Retrieve the SetupIntent to get the payment method
+      const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
+      
+      if (setupIntent.status !== 'succeeded') {
+        return res.status(400).json({ error: 'SetupIntent not succeeded' });
+      }
+      
+      const paymentMethodId = setupIntent.payment_method;
+      
+      // Create the subscription with the confirmed payment method
+      const subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{
+          price: priceId
+        }],
+        default_payment_method: paymentMethodId,
+        collection_method: 'charge_automatically'
+      });
+      
+      console.log('Subscription completed with ID:', subscription.id);
+      
+      // Update user with subscription info
+      await storage.updateUserStripeInfo(uid, customerId, subscription.id);
+      
+      res.json({
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        success: true
+      });
+      
+    } catch (error) {
+      console.error('Complete subscription error:', error);
+      res.status(500).json({ 
+        error: 'Failed to complete subscription',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

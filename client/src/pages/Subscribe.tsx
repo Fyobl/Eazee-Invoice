@@ -28,7 +28,10 @@ if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
 // Initialize Stripe with proper configuration
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
+const SubscribeForm = ({ clientSecret, subscriptionData }: { 
+  clientSecret: string;
+  subscriptionData?: any;
+}) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -44,23 +47,81 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
 
     setIsLoading(true);
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/dashboard`,
-      },
-    });
+    try {
+      if (subscriptionData?.isSetupIntent) {
+        // Setup Intent flow for collecting payment method
+        const { error, setupIntent } = await stripe.confirmSetup({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard`,
+          },
+          redirect: 'if_required'
+        });
 
-    if (error) {
+        if (error) {
+          console.error('Setup error:', error);
+          toast({
+            title: "Payment Setup Failed",
+            description: error.message || 'There was an error setting up your payment method',
+            variant: "destructive",
+          });
+        } else if (setupIntent && setupIntent.status === 'succeeded') {
+          // Complete the subscription
+          const response = await fetch('/api/complete-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              setupIntentId: subscriptionData.setupIntentId,
+              customerId: subscriptionData.customerId,
+              priceId: subscriptionData.priceId,
+              uid: currentUser?.uid
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            toast({
+              title: "Subscription Active!",
+              description: "Your subscription is now active. Welcome to Pro!",
+            });
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 2000);
+          } else {
+            throw new Error(result.details || 'Failed to complete subscription');
+          }
+        }
+      } else {
+        // Legacy PaymentIntent flow
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (error) {
+          toast({
+            title: "Payment Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Payment Successful",
+            description: "Welcome to Eazee Invoice Pro!",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Stripe error:', error);
       toast({
         title: "Payment Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'There was an unexpected error. Please try again.',
         variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Payment Successful",
-        description: "Welcome to Eazee Invoice Pro!",
       });
     }
 
@@ -161,6 +222,7 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
 export const Subscribe = () => {
   const { userData, currentUser, isAdminGrantedSubscriptionExpired } = useAuth();
   const [clientSecret, setClientSecret] = useState("");
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const { toast } = useToast();
@@ -213,6 +275,7 @@ export const Subscribe = () => {
         console.log('Setting clientSecret:', data.clientSecret);
         console.log('Current state before update - loading:', loading, 'clientSecret:', clientSecret);
         setClientSecret(data.clientSecret);
+        setSubscriptionData(data);
         setLoading(false); // Set loading false here when we have client secret
         console.log('State updated - should show payment form now');
       } else {
@@ -480,7 +543,7 @@ export const Subscribe = () => {
             {(() => {
               console.log('Render - clientSecret:', clientSecret, 'loading:', loading);
               return clientSecret ? (
-                <SubscribeForm clientSecret={clientSecret} />
+                <SubscribeForm clientSecret={clientSecret} subscriptionData={subscriptionData} />
               ) : (
                 <div className="text-center py-8">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
