@@ -21,18 +21,19 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// Initialize Stripe - check for live mode vs test mode compatibility
+// Initialize Stripe - switch between test and live mode easily
 const USE_TEST_MODE = import.meta.env.VITE_STRIPE_USE_TEST_MODE === 'true';
 const STRIPE_PUBLIC_KEY = USE_TEST_MODE 
-  ? import.meta.env.VITE_STRIPE_PUBLIC_KEY  // Test key
+  ? import.meta.env.VITE_STRIPE_PUBLIC_KEY  // Test key (pk_test_...)
   : 'pk_live_51RlU9WJfs8qCR8mtjprd7cMgGSOTXQgkOdoNIIyhH26RofzXQUkiHVKh8TjaGvpk4xcH8iZb9PHMYDUGQs2z18jN00Pg9lqxKK'; // Live key
 
 if (!STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: STRIPE_PUBLIC_KEY');
+  const keyType = USE_TEST_MODE ? 'VITE_STRIPE_PUBLIC_KEY (test)' : 'Live public key';
+  throw new Error(`Missing required Stripe key: ${keyType}`);
 }
 
-console.log('Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
-console.log('Frontend Stripe Public Key (first 20 chars):', STRIPE_PUBLIC_KEY?.substring(0, 20));
+console.log('🔑 Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
+console.log('🔑 Stripe Public Key (first 20 chars):', STRIPE_PUBLIC_KEY?.substring(0, 20));
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const SubscribeForm = ({ clientSecret, subscriptionData }: { 

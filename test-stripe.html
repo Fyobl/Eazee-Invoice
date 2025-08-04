@@ -1,57 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stripe Test</title>
+    <title>Stripe Test Mode Setup</title>
     <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .success { border-color: #28a745; background-color: #d4edda; }
+        .error { border-color: #dc3545; background-color: #f8d7da; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .card-element { background: white; padding: 12px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
 </head>
 <body>
-    <div id="card-element"></div>
-    <div id="card-errors" role="alert"></div>
-    <button id="submit">Submit Payment</button>
+    <h1>Stripe Test Mode Configuration</h1>
+    
+    <div class="test-box">
+        <h3>Step 1: Verify Test Mode Setup</h3>
+        <p>This page will test your Stripe configuration using test keys.</p>
+        <p><strong>Test Card:</strong> 4242 4242 4242 4242 (Visa)</p>
+        <p><strong>Expiry:</strong> Any future date</p>
+        <p><strong>CVC:</strong> Any 3 digits</p>
+    </div>
+
+    <div id="test-result" class="test-box" style="display: none;">
+        <h3>Test Result</h3>
+        <div id="result-content"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Step 2: Test Payment Form</h3>
+        <form id="payment-form">
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="test@example.com" required>
+            </div>
+            <div>
+                <label>Card details:</label>
+                <div id="card-element" class="card-element">
+                    <!-- Stripe Elements will create form elements here -->
+                </div>
+            </div>
+            <div id="card-errors" style="color: #dc3545; margin-top: 10px;"></div>
+            <button type="submit" id="submit-button">Test Payment Setup</button>
+        </form>
+    </div>
 
     <script>
-        // Test with live Stripe key
-        const stripe = Stripe('pk_live_51O7OqoJfs8qCR8mt4GwydKNKLqgcITCyTXZMv5iCi3fjGCo16oDTckPIGSRoVdowCHl7Ec6cTqcVqMJ0vgXxO6z900CVvP0fMd');
+        // Replace with your test publishable key
+        const stripe = Stripe('pk_test_51RlU9hQpZxGLM8Pn2uUVPMdN0rVtJW7qfCODhShc86kOBTJBIU8TGqoD0gKHw9QP86Tmu6iw7I1z82f0bgKFSBm900eG1KNlHq');
         
-        // Create a test Payment Intent to see if basic Stripe works
-        fetch('/api/create-subscription', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                uid: 'test-user-' + Date.now(),
-                email: 'test-' + Date.now() + '@example.com',
-                firstName: 'Test',
-                lastName: 'User'
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
-            console.log('Server response:', data);
-            
-            if (data.clientSecret) {
-                console.log('ClientSecret format:', data.clientSecret);
-                console.log('ClientSecret length:', data.clientSecret.length);
-                console.log('ClientSecret starts with:', data.clientSecret.substring(0, 10));
-                
-                // Try to create elements with this clientSecret
-                const elements = stripe.elements({
-                    clientSecret: data.clientSecret
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit-button');
+        const cardErrors = document.getElementById('card-errors');
+        const testResult = document.getElementById('test-result');
+        const resultContent = document.getElementById('result-content');
+
+        cardElement.on('change', ({error}) => {
+            cardErrors.textContent = error ? error.message : '';
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
+
+            try {
+                // Create a test SetupIntent
+                const response = await fetch('/api/create-test-setup-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value
+                    })
                 });
-                
-                const cardElement = elements.create('payment');
-                cardElement.mount('#card-element');
-                
-                cardElement.on('ready', () => {
-                    console.log('Payment element ready!');
+
+                const { clientSecret, error } = await response.json();
+
+                if (error) {
+                    throw new Error(error);
+                }
+
+                const {error: stripeError, setupIntent} = await stripe.confirmSetup({
+                    elements,
+                    clientSecret,
+                    confirmParams: {
+                        return_url: window.location.href,
+                    },
+                    redirect: 'if_required'
                 });
-                
-                cardElement.on('loaderror', (error) => {
-                    console.error('Payment element load error:', error);
-                });
+
+                if (stripeError) {
+                    throw new Error(stripeError.message);
+                }
+
+                // Success
+                testResult.style.display = 'block';
+                testResult.className = 'test-box success';
+                resultContent.innerHTML = `
+                    <h4>✅ Success!</h4>
+                    <p>Stripe test mode is working correctly.</p>
+                    <p><strong>SetupIntent ID:</strong> ${setupIntent.id}</p>
+                    <p><strong>Status:</strong> ${setupIntent.status}</p>
+                    <p>You can now switch to live mode with confidence.</p>
+                `;
+
+            } catch (error) {
+                testResult.style.display = 'block';
+                testResult.className = 'test-box error';
+                resultContent.innerHTML = `
+                    <h4>❌ Error</h4>
+                    <p>${error.message}</p>
+                    <p>Check your Stripe test keys and configuration.</p>
+                `;
             }
-        })
-        .catch(err => {
-            console.error('API Error:', err);
+
+            submitButton.disabled = false;
+            submitButton.textContent = 'Test Payment Setup';
         });
     </script>
 </body>

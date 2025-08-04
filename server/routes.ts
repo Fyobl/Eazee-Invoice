@@ -46,22 +46,65 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// Initialize Stripe - support both test and live modes
+// Initialize Stripe - support both test and live modes  
 const USE_TEST_MODE = process.env.STRIPE_USE_TEST_MODE === 'true';
 const STRIPE_SECRET_KEY = USE_TEST_MODE 
   ? process.env.STRIPE_TEST_SECRET_KEY 
   : process.env.STRIPE_SECRET_KEY;
 
 if (!STRIPE_SECRET_KEY) {
-  throw new Error(`Missing required Stripe secret: ${USE_TEST_MODE ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'}`);
+  const keyType = USE_TEST_MODE ? 'STRIPE_TEST_SECRET_KEY (test)' : 'STRIPE_SECRET_KEY (live)';
+  throw new Error(`Missing required Stripe secret: ${keyType}`);
 }
 
-console.log('Server Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
-console.log('Server Stripe Secret Key (first 20 chars):', STRIPE_SECRET_KEY?.substring(0, 20));
+console.log('🔑 Server Stripe Mode:', USE_TEST_MODE ? 'TEST' : 'LIVE');
+console.log('🔑 Server Stripe Secret Key (first 20 chars):', STRIPE_SECRET_KEY?.substring(0, 20));
+
+// Add account verification check for live mode
+if (!USE_TEST_MODE) {
+  console.log('🔍 Running in LIVE mode - checking account capabilities...');
+}
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: "2025-06-30.basil",
 });
+
+// Function to check Stripe account status
+async function checkStripeAccountStatus() {
+  if (USE_TEST_MODE) {
+    console.log('✅ Test mode - skipping account verification checks');
+    return { status: 'test_mode', ready: true };
+  }
+
+  try {
+    const account = await stripe.accounts.retrieve();
+    console.log('🏢 Account ID:', account.id);
+    console.log('💳 Charges enabled:', account.charges_enabled);
+    console.log('💰 Payouts enabled:', account.payouts_enabled);
+    console.log('🔧 Capabilities:', JSON.stringify(account.capabilities, null, 2));
+    
+    const issues = [];
+    if (!account.charges_enabled) issues.push('Charges not enabled');
+    if (!account.payouts_enabled) issues.push('Payouts not enabled');
+    if (!account.capabilities?.card_payments || account.capabilities.card_payments !== 'active') {
+      issues.push('Card payments not active');
+    }
+    
+    if (issues.length > 0) {
+      console.log('⚠️ Account issues found:', issues.join(', '));
+      return { status: 'restricted', issues, ready: false };
+    }
+    
+    console.log('✅ Stripe account verified and ready for live payments');
+    return { status: 'active', ready: true };
+  } catch (error) {
+    console.error('❌ Stripe account check failed:', error.message);
+    return { status: 'error', error: error.message, ready: false };
+  }
+}
+
+// Check account status on startup
+checkStripeAccountStatus();
 
 export async function setupRoutes(app: Express) {
   
