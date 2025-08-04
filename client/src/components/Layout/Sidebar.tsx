@@ -61,8 +61,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { href: '/email-settings', label: 'Email Settings', icon: Mail },
   ];
 
-  // Add subscription management for all users
-  if (!isSubscriber) {
+  // Add subscription management - check both regular and admin-granted subscriptions
+  const hasAnySubscription = isSubscriber || userData?.isAdminGrantedSubscription;
+  
+  if (!hasAnySubscription) {
     accountNavItems.push({ href: '/subscribe', label: 'Upgrade to Pro', icon: CreditCard });
   } else {
     accountNavItems.push({ href: '/manage-subscription', label: 'Manage Subscription', icon: CreditCard });
