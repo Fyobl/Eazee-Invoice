@@ -1498,6 +1498,53 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // Cancel subscription endpoint
+  app.post('/api/cancel-subscription', requireAuth, async (req, res) => {
+    try {
+      const uid = req.user!.uid;
+      const user = await storage.getUser(uid);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Don't allow canceling admin-granted subscriptions
+      if (user.isAdminGrantedSubscription) {
+        return res.status(400).json({ error: 'Cannot cancel admin-granted subscription' });
+      }
+
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ error: 'No active subscription found' });
+      }
+
+      // Cancel the Stripe subscription at the end of the current period
+      const subscription = await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+
+      console.log(`Subscription ${subscription.id} set to cancel at period end`);
+
+      // Update user's subscription status
+      await storage.updateUserSubscriptionStatus(
+        uid, 
+        'cancelled', 
+        subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : undefined
+      );
+
+      res.json({ 
+        success: true, 
+        message: 'Subscription cancelled successfully',
+        accessUntil: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null
+      });
+    } catch (error) {
+      console.error('Cancel subscription error:', error);
+      res.status(500).json({ 
+        error: 'Failed to cancel subscription',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Stripe webhook endpoint
   app.post('/api/stripe-webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];

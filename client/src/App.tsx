@@ -36,6 +36,7 @@ import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
 import SubscribeNew from "@/pages/SubscribeNew";
+import ManageSubscription from "@/pages/ManageSubscription";
 import { Help } from "@/pages/Help";
 import { StripeProvider } from "@/components/StripeProvider";
 
@@ -188,6 +189,12 @@ function Router() {
       <Route path="/help">
         <ProtectedRoute>
           <Help />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/manage-subscription">
+        <ProtectedRoute>
+          <ManageSubscription />
         </ProtectedRoute>
       </Route>
       

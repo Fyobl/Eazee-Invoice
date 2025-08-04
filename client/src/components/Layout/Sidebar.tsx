@@ -65,7 +65,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   if (!isSubscriber) {
     accountNavItems.push({ href: '/subscribe', label: 'Upgrade to Pro', icon: CreditCard });
   } else {
-    accountNavItems.push({ href: '/subscribe', label: 'Manage Subscription', icon: CreditCard });
+    accountNavItems.push({ href: '/manage-subscription', label: 'Manage Subscription', icon: CreditCard });
   }
 
   if (isAdmin) {
