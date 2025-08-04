@@ -1308,6 +1308,9 @@ export async function setupRoutes(app: Express) {
       
       console.log('SetupIntent created with ID:', setupIntent.id);
       console.log('SetupIntent client_secret:', setupIntent.client_secret ? 'present' : 'missing');
+      console.log('SetupIntent customer:', setupIntent.customer);
+      console.log('Stripe Secret Key (first 20 chars):', process.env.STRIPE_SECRET_KEY?.substring(0, 20));
+      console.log('SetupIntent client_secret (first 30 chars):', setupIntent.client_secret?.substring(0, 30));
 
       // Update user with Stripe info (subscription will be created after payment method is confirmed)
       await storage.updateUserStripeInfo(uid, stripeCustomer.id, null);

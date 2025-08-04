@@ -21,12 +21,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// Initialize Stripe
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+// Initialize Stripe - use the live public key to match the live secret key
+const STRIPE_PUBLIC_KEY = 'pk_live_51RlU9WJfs8qCR8mtjprd7cMgGSOTXQgkOdoNIIyhH26RofzXQUkiHVKh8TjaGvpk4xcH8iZb9PHMYDUGQs2z18jN00Pg9lqxKK';
+if (!STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: STRIPE_PUBLIC_KEY');
 }
 // Initialize Stripe with proper configuration
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+console.log('Frontend Stripe Public Key (first 20 chars):', STRIPE_PUBLIC_KEY?.substring(0, 20));
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const SubscribeForm = ({ clientSecret, subscriptionData }: { 
   clientSecret: string;
