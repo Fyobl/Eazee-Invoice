@@ -45,6 +45,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 4, 2025 - Country Flags & UI Enhancement
+- **Country Flag Feature**: Replaced user initials with country flags in admin panel user list
+- **Database Schema**: Added country field to users table with ISO country codes (defaults to GB)
+- **Flag Display**: Unicode country flags displayed instead of circular initials for better visual identification
+- **International Support**: Added comprehensive country flag mapping for 40+ countries
+- **User Data Enhancement**: Set realistic country codes for existing users based on their profiles
+
 ### August 4, 2025 - Admin Stripe Mode Toggle & Subscription Data Cleanup
 - **Stripe Mode Toggle**: Added admin-only toggle to switch between live and test Stripe modes in admin panel
 - **System Settings Table**: Created new system_settings table to store configuration like stripe_mode

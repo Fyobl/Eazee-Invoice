@@ -18,6 +18,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 import { AdminPasswordManager } from '@/components/AdminPasswordManager';
 import { Switch } from '@/components/ui/switch';
+// Simple country flag mapping - using Unicode flags directly
+const countryFlags: Record<string, string> = {
+  'GB': '🇬🇧', 'US': '🇺🇸', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪', 'FR': '🇫🇷', 
+  'ES': '🇪🇸', 'IT': '🇮🇹', 'NL': '🇳🇱', 'SE': '🇸🇪', 'NO': '🇳🇴', 'DK': '🇩🇰',
+  'FI': '🇫🇮', 'IE': '🇮🇪', 'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹', 'PL': '🇵🇱',
+  'JP': '🇯🇵', 'KR': '🇰🇷', 'CN': '🇨🇳', 'IN': '🇮🇳', 'BR': '🇧🇷', 'MX': '🇲🇽',
+  'AR': '🇦🇷', 'ZA': '🇿🇦', 'EG': '🇪🇬', 'NG': '🇳🇬', 'KE': '🇰🇪', 'MA': '🇲🇦',
+  'TR': '🇹🇷', 'RU': '🇷🇺', 'UA': '🇺🇦', 'GR': '🇬🇷', 'BG': '🇧🇬', 'RO': '🇷🇴',
+  'HR': '🇭🇷', 'SI': '🇸🇮', 'SK': '🇸🇰', 'CZ': '🇨🇿', 'HU': '🇭🇺', 'LT': '🇱🇹',
+  'LV': '🇱🇻', 'EE': '🇪🇪', 'IS': '🇮🇸', 'PT': '🇵🇹', 'LU': '🇱🇺', 'MT': '🇲🇹',
+  'CY': '🇨🇾', 'SG': '🇸🇬', 'MY': '🇲🇾', 'TH': '🇹🇭', 'VN': '🇻🇳', 'PH': '🇵🇭',
+  'ID': '🇮🇩', 'NZ': '🇳🇿', 'IL': '🇮🇱', 'AE': '🇦🇪', 'SA': '🇸🇦', 'QA': '🇶🇦'
+};
 
 export const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -412,11 +425,9 @@ export const AdminPanel = () => {
     return trialEnd.toLocaleDateString();
   };
 
-  const getInitials = (user: any) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-    }
-    return user.email.substring(0, 2).toUpperCase();
+  const getCountryFlagForUser = (user: any) => {
+    const countryCode = user.country || 'GB';
+    return countryFlags[countryCode] || '🇬🇧'; // Fallback to UK flag
   };
 
   const getUserDisplayName = (user: any) => {
@@ -569,11 +580,9 @@ export const AdminPanel = () => {
                     <TableRow key={user.uid}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100">
-                              {getInitials(user)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div className="h-10 w-10 rounded-full flex items-center justify-center text-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            {getCountryFlagForUser(user)}
+                          </div>
                           <div>
                             <div className="font-medium text-slate-900 dark:text-slate-100">
                               {getUserDisplayName(user)}

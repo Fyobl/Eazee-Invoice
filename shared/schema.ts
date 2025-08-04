@@ -28,6 +28,7 @@ export const users = pgTable('users', {
   companyRegistrationNumber: text('company_registration_number'),
   currency: text('currency').notNull().default('GBP'),
   dateFormat: text('date_format').notNull().default('DD/MM/YYYY'),
+  country: text('country').default('GB'), // ISO country code
   // Bank details fields
   bankName: text('bank_name'),
   bankAccountName: text('bank_account_name'),
