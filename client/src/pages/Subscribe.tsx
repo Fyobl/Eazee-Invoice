@@ -30,7 +30,7 @@ const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
