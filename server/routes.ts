@@ -1301,8 +1301,7 @@ export async function setupRoutes(app: Express) {
         currency: 'gbp',
         customer: stripeCustomer.id,
         setup_future_usage: 'off_session',
-        description: 'Eazee Invoice Pro - Monthly Subscription',
-        statement_descriptor_suffix: 'Invoice Pro',
+        description: 'Eazee Invoice Pro Monthly Subscription',
         metadata: {
           subscription_creation: 'true',
           uid: uid

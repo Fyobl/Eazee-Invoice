@@ -19,18 +19,8 @@ export const StripeProvider = ({ children, clientSecret }: StripeProviderProps) 
   const options = clientSecret ? { 
     clientSecret,
     appearance: {
-      theme: 'stripe',
-      variables: {
-        colorPrimary: '#0570de',
-      },
-      rules: {
-        '.Label': {
-          fontWeight: '500',
-        },
-      },
-    },
-    // Force reload to clear any cached business names
-    loader: 'always'
+      theme: 'stripe' as const,
+    }
   } : {};
   
   return (

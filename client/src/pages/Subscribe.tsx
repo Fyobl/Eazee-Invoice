@@ -24,10 +24,8 @@ import {
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
-// Force reload Stripe with cache buster to ensure fresh config
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
-  stripeAccount: undefined, // Ensure we're using the main account
-});
+// Initialize Stripe with proper configuration
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const SubscribeForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
