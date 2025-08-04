@@ -93,12 +93,8 @@ export async function sendSubscriptionNotification(
   // Send notifications based on available environment variables
   const notifications = [];
   
-  // Debug logging
-  console.log('🔍 Checking notification services...');
-  console.log('PUSHOVER_APP_TOKEN exists:', !!process.env.PUSHOVER_APP_TOKEN);
-  console.log('PUSHOVER_USER_KEY exists:', !!process.env.PUSHOVER_USER_KEY);
-  console.log('PUSHOVER_APP_TOKEN length:', process.env.PUSHOVER_APP_TOKEN?.length || 0);
-  console.log('PUSHOVER_USER_KEY length:', process.env.PUSHOVER_USER_KEY?.length || 0);
+  // Clean logging for production
+  console.log('📱 Processing notification for new subscription...');
   
   // Pushover (recommended - simple app for phones)
   const pushoverUserKey = process.env.PUSHOVER_USER_KEY || process.env.PUSHOVER_USER_TOKEN;
