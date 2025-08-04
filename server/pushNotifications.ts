@@ -93,12 +93,20 @@ export async function sendSubscriptionNotification(
   // Send notifications based on available environment variables
   const notifications = [];
   
+  // Debug logging
+  console.log('🔍 Checking notification services...');
+  console.log('PUSHOVER_APP_TOKEN exists:', !!process.env.PUSHOVER_APP_TOKEN);
+  console.log('PUSHOVER_USER_KEY exists:', !!process.env.PUSHOVER_USER_KEY);
+  console.log('PUSHOVER_APP_TOKEN length:', process.env.PUSHOVER_APP_TOKEN?.length || 0);
+  console.log('PUSHOVER_USER_KEY length:', process.env.PUSHOVER_USER_KEY?.length || 0);
+  
   // Pushover (recommended - simple app for phones)
-  if (process.env.PUSHOVER_APP_TOKEN && process.env.PUSHOVER_USER_KEY) {
+  const pushoverUserKey = process.env.PUSHOVER_USER_KEY || process.env.PUSHOVER_USER_TOKEN;
+  if (process.env.PUSHOVER_APP_TOKEN && pushoverUserKey) {
     notifications.push(
       sendPushoverNotification(
         process.env.PUSHOVER_APP_TOKEN,
-        process.env.PUSHOVER_USER_KEY,
+        pushoverUserKey,
         title,
         message,
         1 // High priority for new subscriptions
