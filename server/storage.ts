@@ -76,7 +76,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Authentication methods
-  async registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string): Promise<User> {
+  async registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string, country?: string): Promise<User> {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
     const uid = uuidv4();
@@ -94,6 +94,7 @@ export class DatabaseStorage implements IStorage {
       isSuspended: false,
       isAdmin: false,
       mustChangePassword: false,
+      country: country || 'GB', // Use detected country or default to GB
       createdAt: new Date(),
       updatedAt: new Date()
     };

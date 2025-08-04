@@ -7,6 +7,42 @@ import Papa from "papaparse";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { sendPasswordResetEmail } from "./emailService";
+import * as geoip from 'geoip-lite';
+
+// Utility function to get user's country from IP
+function getUserCountryFromIP(req: Request): string {
+  // Get the real IP address, considering proxies and load balancers
+  const ip = req.headers['x-forwarded-for'] as string || 
+             req.headers['x-real-ip'] as string ||
+             req.connection.remoteAddress ||
+             req.socket.remoteAddress ||
+             (req.connection as any)?.socket?.remoteAddress ||
+             req.ip;
+  
+  console.log('Detecting country for IP:', ip);
+  
+  // Handle IPv6 localhost and development environments
+  if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1') || ip.includes('::ffff:127.0.0.1')) {
+    console.log('Local IP detected, defaulting to GB');
+    return 'GB'; // Default to UK for local development
+  }
+  
+  // Clean up the IP (remove port if present)
+  const cleanIP = ip.split(',')[0].trim().replace(/^::ffff:/, '');
+  
+  try {
+    const geo = geoip.lookup(cleanIP);
+    if (geo && geo.country) {
+      console.log(`IP ${cleanIP} resolved to country: ${geo.country}`);
+      return geo.country;
+    }
+  } catch (error) {
+    console.warn('GeoIP lookup failed:', error);
+  }
+  
+  console.log('Country detection failed, defaulting to GB');
+  return 'GB'; // Default to UK if detection fails
+}
 
 // Authentication middleware
 interface AuthenticatedRequest extends Request {
@@ -123,7 +159,10 @@ export async function setupRoutes(app: Express) {
         return res.status(409).json({ error: 'User already exists' });
       }
       
-      const user = await storage.registerUser(email, password, firstName, lastName, companyName);
+      // Detect user's country from IP address
+      const country = getUserCountryFromIP(req);
+      
+      const user = await storage.registerUser(email, password, firstName, lastName, companyName, country);
       
       // Create session
       req.session.userId = user.uid;
@@ -996,8 +1035,11 @@ export async function setupRoutes(app: Express) {
         return res.status(409).json({ error: 'User already exists' });
       }
       
+      // Detect country for admin-created users too
+      const country = getUserCountryFromIP(req);
+      
       // Create user using storage interface for proper password hashing
-      const user = await storage.registerUser(email, password, firstName, lastName, companyName);
+      const user = await storage.registerUser(email, password, firstName, lastName, companyName, country);
       
       // Update additional fields for admin-created users
       const updateData: any = {
@@ -1184,6 +1226,9 @@ export async function setupRoutes(app: Express) {
 
       let user = await storage.getUser(uid);
       if (!user) {
+        // Detect user's country from IP address
+        const country = getUserCountryFromIP(req);
+        
         // Create user in PostgreSQL if not exists
         const userData = {
           uid,
@@ -1196,6 +1241,7 @@ export async function setupRoutes(app: Express) {
           isSubscriber: false,
           isSuspended: false,
           isAdmin: false,
+          country: country,
           createdAt: new Date(),
           updatedAt: new Date()
         };
