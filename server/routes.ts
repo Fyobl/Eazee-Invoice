@@ -1302,7 +1302,7 @@ export async function setupRoutes(app: Express) {
         customer: stripeCustomer.id,
         setup_future_usage: 'off_session',
         description: 'Eazee Invoice Pro - Monthly Subscription',
-        statement_descriptor: 'Eazee Invoice',
+        statement_descriptor_suffix: 'Invoice Pro',
         metadata: {
           subscription_creation: 'true',
           uid: uid
