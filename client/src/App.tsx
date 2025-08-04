@@ -36,6 +36,7 @@ import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
 import SubscribeNew from "@/pages/SubscribeNew";
+import ManageSubscription from "@/pages/ManageSubscription";
 import { Help } from "@/pages/Help";
 import { StripeProvider } from "@/components/StripeProvider";
 
@@ -51,6 +52,12 @@ function Router() {
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
       <Route path="/subscribe" component={SubscribeNew} />
+      
+      <Route path="/manage-subscription">
+        <ProtectedRoute>
+          <ManageSubscription />
+        </ProtectedRoute>
+      </Route>
       
       {/* Protected routes */}
       <Route path="/dashboard">

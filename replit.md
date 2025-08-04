@@ -45,12 +45,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
-### August 4, 2025 - Country Flags & UI Enhancement
+### August 4, 2025 - Subscription Management System & Real Geolocation
+- **Subscription Management Page**: Created comprehensive `/manage-subscription` page for Pro subscribers showing subscription details, days remaining, and cancellation options
+- **Non-Refundable Policy**: Clear explanation of service terms - non-refundable payments, cancelled subscriptions last until expiry, then account reverts to trial
+- **Subscription Cancellation**: Implemented proper cancellation flow that maintains access until billing period ends
+- **Smart Routing**: Subscribers are automatically redirected from `/subscribe` to `/manage-subscription` page
+- **Real IP Geolocation**: Implemented geoip-lite for authentic country detection during user registration based on actual IP addresses
 - **Country Flag Feature**: Replaced user initials with country flags in admin panel user list
 - **Database Schema**: Added country field to users table with ISO country codes (defaults to GB)
 - **Flag Display**: Unicode country flags displayed instead of circular initials for better visual identification
 - **International Support**: Added comprehensive country flag mapping for 40+ countries
-- **User Data Enhancement**: Set realistic country codes for existing users based on their profiles
 
 ### August 4, 2025 - Admin Stripe Mode Toggle & Subscription Data Cleanup
 - **Stripe Mode Toggle**: Added admin-only toggle to switch between live and test Stripe modes in admin panel
