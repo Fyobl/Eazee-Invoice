@@ -27,7 +27,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [location] = useLocation();
-  const { isAdmin, isSubscriber } = useAuth();
+  const { isAdmin, isSubscriber, userData } = useAuth();
 
   // Prevent background scroll when sidebar is open
   useEffect(() => {
