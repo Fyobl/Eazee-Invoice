@@ -1,6 +1,6 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
-import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, type User } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, type User } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
@@ -1746,6 +1746,65 @@ export async function setupRoutes(app: Express) {
     } catch (error) {
       console.error('❌ Error creating payment intent:', error);
       res.status(500).json({ error: 'Failed to create payment intent' });
+    }
+  });
+
+  // System settings endpoints (admin only)
+  app.get('/api/system-settings/:key', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await storage.getSystemSetting(key);
+      res.json(setting ? { key: setting.key, value: setting.value } : null);
+    } catch (error) {
+      console.error('Error getting system setting:', error);
+      res.status(500).json({ error: 'Failed to get system setting' });
+    }
+  });
+
+  app.post('/api/system-settings', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { key, value } = req.body;
+      if (!key || value === undefined) {
+        return res.status(400).json({ error: 'Key and value are required' });
+      }
+      
+      const setting = await storage.setSystemSetting(key, value);
+      res.json({ key: setting.key, value: setting.value });
+    } catch (error) {
+      console.error('Error setting system setting:', error);
+      res.status(500).json({ error: 'Failed to set system setting' });
+    }
+  });
+
+  // Get current stripe mode endpoint (admin only)
+  app.get('/api/stripe-mode', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const setting = await storage.getSystemSetting('stripe_mode');
+      const currentMode = setting?.value || 'live'; // Default to live mode
+      res.json({ mode: currentMode });
+    } catch (error) {
+      console.error('Error getting stripe mode:', error);
+      res.status(500).json({ error: 'Failed to get stripe mode' });
+    }
+  });
+
+  // Toggle stripe mode endpoint (admin only)
+  app.post('/api/stripe-mode', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { mode } = req.body;
+      if (!mode || !['live', 'test'].includes(mode)) {
+        return res.status(400).json({ error: 'Mode must be "live" or "test"' });
+      }
+      
+      await storage.setSystemSetting('stripe_mode', mode);
+      res.json({ 
+        success: true, 
+        mode,
+        message: `Stripe mode updated to ${mode}. Restart the server for changes to take effect.`
+      });
+    } catch (error) {
+      console.error('Error setting stripe mode:', error);
+      res.status(500).json({ error: 'Failed to set stripe mode' });
     }
   });
 }

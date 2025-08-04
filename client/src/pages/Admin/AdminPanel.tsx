@@ -13,10 +13,11 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail, Settings } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 import { AdminPasswordManager } from '@/components/AdminPasswordManager';
+import { Switch } from '@/components/ui/switch';
 
 export const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,6 +42,7 @@ export const AdminPanel = () => {
     accountType: 'trial' as 'trial' | 'subscription',
     subscriptionMonths: '1'
   });
+  const [stripeMode, setStripeMode] = useState<'live' | 'test'>('live');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -51,6 +53,20 @@ export const AdminPanel = () => {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/users');
       return response.json();
+    }
+  });
+
+  // Fetch current stripe mode
+  const { data: stripeModeData } = useQuery({
+    queryKey: ['/api/stripe-mode'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/stripe-mode');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data?.mode) {
+        setStripeMode(data.mode);
+      }
     }
   });
 
@@ -144,6 +160,24 @@ export const AdminPanel = () => {
     onError: (error: any) => {
       console.error('CSV upload error:', error);
       toast({ title: 'CSV Upload Failed', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Toggle stripe mode mutation
+  const toggleStripeModeMutation = useMutation({
+    mutationFn: async (mode: 'live' | 'test') => {
+      const response = await apiRequest('POST', '/api/stripe-mode', { mode });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: 'Stripe Mode Updated', 
+        description: data.message 
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/stripe-mode'] });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error updating Stripe mode', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -405,6 +439,57 @@ export const AdminPanel = () => {
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Admin Panel</h2>
           <Badge variant="destructive">Admin Only</Badge>
         </div>
+
+        {/* Stripe Mode Toggle */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Payment Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-900 dark:text-slate-100">Stripe Mode</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {stripeMode === 'live' ? 'Live payments - real money' : 'Test payments - no real charges'}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`text-sm font-medium ${stripeMode === 'test' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                  Test
+                </span>
+                <Switch
+                  checked={stripeMode === 'live'}
+                  onCheckedChange={(checked) => {
+                    const newMode = checked ? 'live' : 'test';
+                    setStripeMode(newMode);
+                    toggleStripeModeMutation.mutate(newMode);
+                  }}
+                  disabled={toggleStripeModeMutation.isPending}
+                />
+                <span className={`text-sm font-medium ${stripeMode === 'live' ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                  Live
+                </span>
+              </div>
+            </div>
+            {stripeMode === 'test' && (
+              <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
+                <p className="text-sm text-orange-800 dark:text-orange-200">
+                  ⚠️ Test mode active - no real payments will be processed
+                </p>
+              </div>
+            )}
+            {stripeMode === 'live' && (
+              <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                <p className="text-sm text-green-800 dark:text-green-200">
+                  ✅ Live mode active - real payments will be processed
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Platform Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

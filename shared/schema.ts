@@ -43,6 +43,13 @@ export const sessions = pgTable('sessions', {
   expire: timestamp('expire').notNull(),
 });
 
+export const systemSettings = pgTable('system_settings', {
+  id: serial('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 
 
 export const customers = pgTable('customers', {
@@ -209,6 +216,8 @@ export const selectStatementInvoiceSchema = createSelectSchema(statementInvoices
 export const selectRecycleBinSchema = createSelectSchema(recycleBin);
 export const selectSessionSchema = createSelectSchema(sessions);
 export const selectPasswordResetTokenSchema = createSelectSchema(passwordResetTokens);
+export const insertSystemSettingSchema = createInsertSchema(systemSettings);
+export const selectSystemSettingSchema = createSelectSchema(systemSettings);
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -231,6 +240,8 @@ export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = typeof systemSettings.$inferInsert;
 
 export interface InvoiceItem {
   id: string;

@@ -1,4 +1,4 @@
-import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken } from "@shared/schema";
+import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, systemSettings, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken, type SystemSetting, type InsertSystemSetting } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -23,6 +23,9 @@ export interface IStorage {
   resetPasswordWithToken(token: string, newPassword: string): Promise<boolean>;
   // Admin password management
   adminSetUserPassword(userUid: string, newPassword: string): Promise<boolean>;
+  // System settings methods
+  getSystemSetting(key: string): Promise<SystemSetting | undefined>;
+  setSystemSetting(key: string, value: string): Promise<SystemSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -261,6 +264,31 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error setting user password:', error);
       return false;
+    }
+  }
+
+  // System settings methods
+  async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
+    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    return setting || undefined;
+  }
+
+  async setSystemSetting(key: string, value: string): Promise<SystemSetting> {
+    // Try to update existing setting first
+    const existing = await this.getSystemSetting(key);
+    
+    if (existing) {
+      const [updated] = await db.update(systemSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(systemSettings.key, key))
+        .returning();
+      return updated;
+    } else {
+      // Create new setting
+      const [created] = await db.insert(systemSettings)
+        .values({ key, value })
+        .returning();
+      return created;
     }
   }
 
