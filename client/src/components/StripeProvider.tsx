@@ -16,7 +16,20 @@ interface StripeProviderProps {
 }
 
 export const StripeProvider = ({ children, clientSecret }: StripeProviderProps) => {
-  const options = clientSecret ? { clientSecret } : {};
+  const options = clientSecret ? { 
+    clientSecret,
+    appearance: {
+      theme: 'stripe',
+      variables: {
+        colorPrimary: '#0570de',
+      },
+      rules: {
+        '.Label': {
+          fontWeight: '500',
+        },
+      },
+    }
+  } : {};
   
   return (
     <Elements stripe={stripePromise} options={options}>
