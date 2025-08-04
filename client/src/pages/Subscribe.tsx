@@ -191,6 +191,7 @@ export const Subscribe = () => {
   };
 
   const createSubscription = async () => {
+    console.log('Starting createSubscription...', { currentUser: currentUser?.uid, userData: userData?.firstName });
     try {
       const response = await fetch('/api/create-subscription', {
         method: 'POST',
@@ -205,13 +206,16 @@ export const Subscribe = () => {
         }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
       console.log('Subscription API response:', data);
       
       if (data.clientSecret) {
         console.log('Setting clientSecret:', data.clientSecret);
+        console.log('Current state before update - loading:', loading, 'clientSecret:', clientSecret);
         setClientSecret(data.clientSecret);
         setLoading(false); // Set loading false here when we have client secret
+        console.log('State updated - should show payment form now');
       } else {
         console.error('No clientSecret in response:', data);
         throw new Error(data.error || 'Failed to create subscription');
@@ -293,7 +297,7 @@ export const Subscribe = () => {
   // If user is already subscribed and not cancelled, show subscription management
   if (subscriptionStatus?.isSubscriber && subscriptionStatus?.status !== 'cancelled') {
     return (
-      <Layout>
+      <Layout title="Subscription Management">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">Subscription Management</h1>
@@ -374,7 +378,7 @@ export const Subscribe = () => {
 
   // Show subscription signup form
   return (
-    <Layout>
+    <Layout title="Upgrade to Pro">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Upgrade to Pro</h1>
@@ -473,18 +477,21 @@ export const Subscribe = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {clientSecret ? (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <SubscribeForm clientSecret={clientSecret} />
-              </Elements>
-            ) : (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                <p className="text-slate-600 dark:text-slate-400">
-                  Setting up your subscription...
-                </p>
-              </div>
-            )}
+            {(() => {
+              console.log('Render - clientSecret:', clientSecret, 'loading:', loading);
+              return clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <SubscribeForm clientSecret={clientSecret} />
+                </Elements>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Setting up your subscription...
+                  </p>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
