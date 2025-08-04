@@ -45,6 +45,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 4, 2025 - Admin Stripe Mode Toggle & Subscription Data Cleanup
+- **Stripe Mode Toggle**: Added admin-only toggle to switch between live and test Stripe modes in admin panel
+- **System Settings Table**: Created new system_settings table to store configuration like stripe_mode
+- **API Endpoints**: Added `/api/stripe-mode` endpoints for getting/setting payment mode (admin only)
+- **Subscription Data Fix**: Corrected subscription end dates to be realistic for monthly billing (30 days) vs admin grants (permanent)
+- **User Cleanup**: Removed 13 test users created during development, keeping only legitimate accounts
+- **Database Integrity**: Fixed "N/A" subscription expiry display issue with proper date handling
+
 ### August 4, 2025 - Complete Stripe Subscription System Rebuild (PaymentIntent Approach)
 - **Fresh Implementation**: Completely rebuilt Stripe subscription system using PaymentIntent approach instead of SetupIntent
 - **Key Mismatch Resolution**: Fixed client_secret mismatch errors that were causing 400 errors from api.stripe.com
