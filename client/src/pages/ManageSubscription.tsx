@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Layout } from "@/components/Layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +25,18 @@ export default function ManageSubscription() {
 
   if (!user?.isSubscriber) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>No Active Subscription</CardTitle>
-            <CardDescription>
-              You don't have an active subscription. Please subscribe to access premium features.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Layout title="Manage Subscription">
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>No Active Subscription</CardTitle>
+              <CardDescription>
+                You don't have an active subscription. Please subscribe to access premium features.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </Layout>
     );
   }
 
@@ -94,7 +97,8 @@ export default function ManageSubscription() {
   const isExpiringSoon = typeof daysRemaining === 'number' && daysRemaining <= 7;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <Layout title="Manage Subscription">
+      <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Manage Subscription</h1>
         <Badge variant={user.isSubscriber ? "default" : "secondary"}>
@@ -274,6 +278,7 @@ export default function ManageSubscription() {
           </CardHeader>
         </Card>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }
