@@ -409,8 +409,11 @@ export const AdminPanel = () => {
         return 'Expired';
       }
       
-      // Calculate days left
-      const daysLeft = Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      // Calculate days left - use floor instead of ceil to be more accurate
+      // and ensure we're using consistent UTC time for calculation
+      const periodEndUTC = new Date(periodEnd.toISOString());
+      const nowUTC = new Date(now.toISOString());
+      const daysLeft = Math.floor((periodEndUTC.getTime() - nowUTC.getTime()) / (1000 * 60 * 60 * 24));
       
       // Special handling for permanent subscriptions (year 2099)
       if (periodEnd.getFullYear() === 2099) {
@@ -430,8 +433,8 @@ export const AdminPanel = () => {
       return 'Trial Expired';
     }
     
-    // Calculate days left in trial
-    const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    // Calculate days left in trial - use floor for consistency
+    const daysLeft = Math.floor((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return `${daysLeft} days left`;
   };
 
