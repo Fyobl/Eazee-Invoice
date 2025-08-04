@@ -375,7 +375,17 @@ export const AdminPanel = () => {
   };
 
   const getTrialEndDate = (user: any) => {
-    if (user.isSubscriber && user.subscriptionCurrentPeriodEnd) {
+    if (user.isSubscriber) {
+      // Handle admin-granted subscriptions without end dates
+      if (user.isAdminGrantedSubscription && !user.subscriptionCurrentPeriodEnd) {
+        return 'Admin Grant (No Expiry)';
+      }
+      
+      // Handle Stripe subscriptions without proper end dates
+      if (!user.subscriptionCurrentPeriodEnd) {
+        return 'Active (No End Date Set)';
+      }
+      
       const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
       const now = new Date();
       
@@ -394,7 +404,7 @@ export const AdminPanel = () => {
       
       return `${daysLeft} days left`;
     }
-    if (user.isSubscriber) return 'N/A';
+    
     if (user.isSuspended) return 'Suspended';
     
     const trialStart = new Date(user.trialStartDate);
