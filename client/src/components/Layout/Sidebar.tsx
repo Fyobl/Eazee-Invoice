@@ -27,7 +27,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [location] = useLocation();
-  const { isAdmin, isSubscriber } = useAuth();
+  const { isAdmin, isSubscriber, currentUser } = useAuth();
 
   // Prevent background scroll when sidebar is open
   useEffect(() => {
@@ -62,7 +62,14 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   ];
 
   // Add subscription management for all users
-  if (!isSubscriber) {
+  // Show "Upgrade to Pro" for trial users and non-subscribers
+  // Show "Manage Subscription" only for users with actual active subscriptions
+  const hasActiveSubscription = isSubscriber && (
+    currentUser?.isAdminGrantedSubscription || 
+    (currentUser?.subscriptionCurrentPeriodEnd && new Date(currentUser.subscriptionCurrentPeriodEnd) > new Date())
+  );
+
+  if (!hasActiveSubscription) {
     accountNavItems.push({ href: '/subscribe', label: 'Upgrade to Pro', icon: CreditCard });
   } else {
     accountNavItems.push({ href: '/manage-subscription', label: 'Manage Subscription', icon: CreditCard });

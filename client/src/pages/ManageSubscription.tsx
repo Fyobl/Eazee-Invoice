@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout/Layout";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,22 +23,46 @@ export default function ManageSubscription() {
   const { currentUser: user } = useAuth();
   const { toast } = useToast();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [, setLocation] = useLocation();
 
-  if (!user?.isSubscriber) {
+  // Redirect users without active subscriptions to the subscribe page
+  useEffect(() => {
+    if (user) {
+      const hasActiveSubscription = user.isAdminGrantedSubscription || 
+        (user.subscriptionCurrentPeriodEnd && new Date(user.subscriptionCurrentPeriodEnd) > new Date());
+      
+      if (!hasActiveSubscription) {
+        console.log('User does not have an active subscription, redirecting to subscribe page');
+        setLocation('/subscribe');
+      }
+    }
+  }, [user, setLocation]);
+
+  // Show loading state while checking user status
+  if (!user) {
     return (
       <Layout title="Manage Subscription">
         <div className="container mx-auto p-6">
           <Card>
             <CardHeader>
-              <CardTitle>No Active Subscription</CardTitle>
+              <CardTitle>Loading...</CardTitle>
               <CardDescription>
-                You don't have an active subscription. Please subscribe to access premium features.
+                Checking your subscription status...
               </CardDescription>
             </CardHeader>
           </Card>
         </div>
       </Layout>
     );
+  }
+
+  // This should not render for users without active subscriptions due to the redirect above,
+  // but keeping as a fallback
+  const hasActiveSubscription = user.isAdminGrantedSubscription || 
+    (user.subscriptionCurrentPeriodEnd && new Date(user.subscriptionCurrentPeriodEnd) > new Date());
+  
+  if (!hasActiveSubscription) {
+    return null;
   }
 
   // Calculate days remaining

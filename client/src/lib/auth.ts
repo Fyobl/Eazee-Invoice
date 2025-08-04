@@ -150,6 +150,10 @@ export const hasActiveSubscription = (user: AuthUser): boolean => {
   if (!user.isSubscriber) return false;
   if (user.subscriptionStatus === 'cancelled') return false;
   
+  // Admin-granted subscriptions are always considered active (unless cancelled)
+  if (user.isAdminGrantedSubscription) return true;
+  
+  // For regular subscriptions, check the end date
   if (user.subscriptionCurrentPeriodEnd) {
     const now = new Date();
     const periodEnd = new Date(user.subscriptionCurrentPeriodEnd);
