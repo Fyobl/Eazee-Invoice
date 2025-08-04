@@ -45,6 +45,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 4, 2025 - Admin Password Management & Help Page Updates
+- **Admin Password Management**: Added comprehensive admin password management functionality with two options:
+  - Send password reset emails to users (generates secure reset tokens via Brevo)
+  - Directly set new passwords for users (immediate password change)
+- **UI Integration**: Password management options integrated into admin panel dropdown menu alongside other admin actions
+- **Help Page Enhancement**: Added support contact details (support@eazeeinvoice.com) prominently at the top of help page
+- **Product Management Documentation**: Updated help page to include comprehensive bulk CSV upload instructions for products section
+- **Security Features**: Admin-only access controls with proper validation and error handling for password management operations
+
 ### August 2, 2025 - Password Reset System Implementation (Brevo Integration)
 - **Complete Password Reset Flow**: Implemented secure password reset functionality using email-based token verification
 - **Brevo Email Service Integration**: Integrated Brevo (formerly SendInBlue) email service for sending password reset emails with professional HTML templates

@@ -125,6 +125,42 @@ export const Help = () => {
             "Use the edit function to modify existing products"
           ],
           tip: "💡 Include tax-inclusive or tax-exclusive pricing based on your business model"
+        },
+        {
+          title: "Bulk Product Import",
+          description: "Import multiple products using CSV files",
+          details: [
+            "Navigate to the Products section in the sidebar",
+            "Click 'Upload CSV' button on the products page",
+            "Download the CSV template first (contains proper formatting)",
+            "Fill in your product data following the template format",
+            "Include: Product Name, Description, Unit Price, Tax Rate",
+            "Upload the completed CSV file and review import results"
+          ],
+          tip: "💡 Use the CSV template to ensure all products import correctly with proper pricing and tax information",
+          visual: (
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <h6 className="font-medium mb-2">Product Import Process:</h6>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Package className="h-4 w-4 text-blue-500" />
+                  <span>Navigate to Products</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Upload className="h-4 w-4 text-green-500" />
+                  <span>Upload CSV File</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FileDown className="h-4 w-4 text-purple-500" />
+                  <span>Download Template First</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Edit className="h-4 w-4 text-orange-500" />
+                  <span>Review Import Results</span>
+                </div>
+              </div>
+            </div>
+          )
         }
       ]
     },
@@ -429,6 +465,30 @@ export const Help = () => {
             generate quotes, and grow your freelance business.
           </p>
         </div>
+
+        {/* Support Contact */}
+        <Card className="mb-8 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                Need Help? Contact Support
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-3">
+                Our support team is here to help you with any questions or issues.
+              </p>
+              <a 
+                href="mailto:support@eazeeinvoice.com"
+                className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+              >
+                <Mail className="h-4 w-4" />
+                support@eazeeinvoice.com
+              </a>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Navigation */}
         <Card className="mb-8">
