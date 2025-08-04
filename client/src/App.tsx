@@ -35,7 +35,6 @@ import { EmailSettings } from "@/pages/EmailSettings";
 import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
-import { Subscribe } from "@/pages/Subscribe";
 import SubscribeNew from "@/pages/SubscribeNew";
 import { Help } from "@/pages/Help";
 import { StripeProvider } from "@/components/StripeProvider";
@@ -51,8 +50,7 @@ function Router() {
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
-      <Route path="/subscribe" component={Subscribe} />
-      <Route path="/subscribe-new" component={SubscribeNew} />
+      <Route path="/subscribe" component={SubscribeNew} />
       
       {/* Protected routes */}
       <Route path="/dashboard">

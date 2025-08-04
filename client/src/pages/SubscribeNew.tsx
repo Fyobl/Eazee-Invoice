@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Layout } from '@/components/Layout/Layout';
 import { CheckCircle, Star } from 'lucide-react';
 
 // Fresh Stripe initialization - using live keys
@@ -107,6 +108,9 @@ export default function SubscribeNew() {
   useEffect(() => {
     if (currentUser) {
       createPaymentIntent();
+    } else {
+      // Stop loading if no user is authenticated
+      setIsLoading(false);
     }
   }, [currentUser]);
 
@@ -127,23 +131,46 @@ export default function SubscribeNew() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Setting up payment...</p>
+      <Layout title="Subscribe to Pro">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p>Setting up payment...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Layout title="Subscribe to Pro">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">Subscribe to Pro</h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Please log in to access subscription features
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/login'}
+              size="lg"
+            >
+              Login to Continue
+            </Button>
+          </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <Layout title="Subscribe to Pro">
+      <div className="max-w-4xl mx-auto p-6">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold mb-4">
             Upgrade to Pro
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
+          <p className="text-xl text-muted-foreground">
             Unlock unlimited invoices and premium features
           </p>
         </div>
@@ -199,6 +226,6 @@ export default function SubscribeNew() {
           </Card>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
