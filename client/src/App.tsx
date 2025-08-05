@@ -16,6 +16,10 @@ import { Register } from "@/pages/Auth/Register";
 import { LoginPage } from "@/pages/Auth/LoginPage";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
+import { AboutUs } from "@/pages/AboutUs";
+import { PrivacyPolicy } from "@/pages/PrivacyPolicy";
+import { TermsOfService } from "@/pages/TermsOfService";
+import { ReleaseNotes } from "@/pages/ReleaseNotes";
 
 // Protected pages
 import { Dashboard } from "@/pages/Dashboard";
@@ -52,6 +56,10 @@ function Router() {
       <Route path="/trial-expired" component={TrialExpired} />
       <Route path="/suspended" component={Suspended} />
       <Route path="/subscribe" component={SubscribeNew} />
+      <Route path="/about" component={AboutUs} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/release-notes" component={ReleaseNotes} />
       
       {/* Protected routes */}
       <Route path="/dashboard">

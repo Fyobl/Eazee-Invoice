@@ -79,9 +79,11 @@ export const Landing = () => {
               PDF generation, email integration, and comprehensive analytics. Built for freelancers and small businesses.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => setShowRegister(true)}>
-                Start 7-Day Free Trial
-              </Button>
+              <Link href="/register">
+                <Button size="lg">
+                  Start 7-Day Free Trial
+                </Button>
+              </Link>
               <Button variant="outline" size="lg" onClick={scrollToFeatures}>
                 View Features
               </Button>
@@ -203,9 +205,11 @@ export const Landing = () => {
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer management</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics</li>
                 </ul>
-                <Button className="w-full" onClick={() => setShowRegister(true)}>
-                  Start Free Trial
-                </Button>
+                <Link href="/register">
+                  <Button className="w-full">
+                    Start Free Trial
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
             
@@ -231,6 +235,77 @@ export const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900 dark:bg-black text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            {/* Company Info */}
+            <div className="md:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <FileText className="h-8 w-8 text-primary" />
+                <span className="text-xl font-bold">Eazee Invoice</span>
+              </div>
+              <p className="text-slate-300 mb-4 max-w-md">
+                Professional invoice management solution for freelancers and small businesses. 
+                Streamline your billing process with powerful tools and comprehensive analytics.
+              </p>
+              <p className="text-slate-400 text-sm">
+                © 2024 Eazee Invoice. All rights reserved.
+              </p>
+            </div>
+
+            {/* Company Links */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/about" className="text-slate-300 hover:text-white transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-slate-300 hover:text-white transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/release-notes" className="text-slate-300 hover:text-white transition-colors">
+                    Release Notes
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support Links */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/help" className="text-slate-300 hover:text-white transition-colors">
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/login" className="text-slate-300 hover:text-white transition-colors">
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="text-slate-300 hover:text-white transition-colors">
+                    Sign Up
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
