@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail, Settings } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail, Settings, Package, Receipt, BarChart3 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 import { AdminPasswordManager } from '@/components/AdminPasswordManager';
@@ -58,6 +58,8 @@ export const AdminPanel = () => {
   const [stripeMode, setStripeMode] = useState<'live' | 'test'>('live');
   const [isTogglingMode, setIsTogglingMode] = useState(false);
   const [isTestingNotification, setIsTestingNotification] = useState(false);
+  const [userStatsDialog, setUserStatsDialog] = useState(false);
+  const [selectedUserForStats, setSelectedUserForStats] = useState<any>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,12 +79,25 @@ export const AdminPanel = () => {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/stripe-mode');
       return response.json();
-    },
-    onSuccess: (data) => {
-      if (data?.mode) {
-        setStripeMode(data.mode);
-      }
     }
+  });
+
+  // Update stripe mode when data changes
+  useEffect(() => {
+    if (stripeModeData?.mode) {
+      setStripeMode(stripeModeData.mode);
+    }
+  }, [stripeModeData]);
+
+  // Fetch user statistics
+  const { data: userStats, isLoading: userStatsLoading } = useQuery({
+    queryKey: ['/api/users', selectedUserForStats?.uid, 'stats'],
+    queryFn: async () => {
+      if (!selectedUserForStats?.uid) return null;
+      const response = await apiRequest('GET', `/api/users/${selectedUserForStats.uid}/stats`);
+      return response.json();
+    },
+    enabled: !!selectedUserForStats?.uid
   });
 
   // Don't fetch invoices for admin panel since they're user-specific
@@ -399,6 +414,11 @@ export const AdminPanel = () => {
     setTimeout(() => setIsTestingNotification(false), 2000);
   };
 
+  const handleShowUserStats = (user: any) => {
+    setSelectedUserForStats(user);
+    setUserStatsDialog(true);
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type === 'text/csv') {
@@ -640,7 +660,11 @@ export const AdminPanel = () => {
                   return (
                     <TableRow key={user.uid}>
                       <TableCell>
-                        <div className="flex items-center space-x-3">
+                        <div 
+                          className="flex items-center space-x-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded-md transition-colors"
+                          onClick={() => handleShowUserStats(user)}
+                          title="Click to view user statistics"
+                        >
                           <div className="h-10 w-10 rounded-full flex items-center justify-center text-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                             {getCountryFlagForUser(user)}
                           </div>
@@ -1072,6 +1096,145 @@ export const AdminPanel = () => {
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Delete User Permanently
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Statistics Dialog */}
+        <Dialog open={userStatsDialog} onOpenChange={setUserStatsDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                User Statistics - {selectedUserForStats ? getUserDisplayName(selectedUserForStats) : ''}
+              </DialogTitle>
+              <DialogDescription>
+                View detailed statistics for this user's account activity
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {userStatsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-slate-600 dark:text-slate-400">Loading statistics...</div>
+                </div>
+              ) : userStats ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Invoices</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{userStats.invoices}</p>
+                        </div>
+                        <Receipt className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Quotes</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{userStats.quotes}</p>
+                        </div>
+                        <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Statements</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{userStats.statements}</p>
+                        </div>
+                        <BarChart3 className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Customers</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{userStats.customers}</p>
+                        </div>
+                        <Users className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Products</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{userStats.products}</p>
+                        </div>
+                        <Package className="h-8 w-8 text-teal-600 dark:text-teal-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Account Status</p>
+                          <div className="mt-1">
+                            {selectedUserForStats && (
+                              <Badge className={getUserStatus(selectedUserForStats).color}>
+                                {getUserStatus(selectedUserForStats).text}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Crown className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+                  Failed to load statistics
+                </div>
+              )}
+              
+              {selectedUserForStats && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">User Details</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-slate-600 dark:text-slate-400">Email:</span>
+                      <span className="ml-2 text-slate-900 dark:text-slate-100">{selectedUserForStats.email}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-600 dark:text-slate-400">Company:</span>
+                      <span className="ml-2 text-slate-900 dark:text-slate-100">{selectedUserForStats.companyName || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-600 dark:text-slate-400">Joined:</span>
+                      <span className="ml-2 text-slate-900 dark:text-slate-100">
+                        {new Date(selectedUserForStats.trialStartDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-600 dark:text-slate-400">Country:</span>
+                      <span className="ml-2 text-slate-900 dark:text-slate-100">
+                        {getCountryFlagForUser(selectedUserForStats)} {selectedUserForStats.country || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setUserStatsDialog(false)}>
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>

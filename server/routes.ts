@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
 import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, type User } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
 import Stripe from "stripe";
@@ -1111,6 +1111,31 @@ export async function setupRoutes(app: Express) {
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  });
+
+  // Get user statistics endpoint for admin
+  app.get('/api/users/:uid/stats', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const uid = req.params.uid;
+      
+      // Get counts for all user data
+      const [invoicesCount] = await db.select({ count: sql<number>`count(*)` }).from(invoices).where(eq(invoices.uid, uid));
+      const [quotesCount] = await db.select({ count: sql<number>`count(*)` }).from(quotes).where(eq(quotes.uid, uid));
+      const [statementsCount] = await db.select({ count: sql<number>`count(*)` }).from(statements).where(eq(statements.uid, uid));
+      const [customersCount] = await db.select({ count: sql<number>`count(*)` }).from(customers).where(eq(customers.uid, uid));
+      const [productsCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.uid, uid));
+      
+      res.json({
+        invoices: invoicesCount.count || 0,
+        quotes: quotesCount.count || 0,
+        statements: statementsCount.count || 0,
+        customers: customersCount.count || 0,
+        products: productsCount.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      res.status(500).json({ error: 'Failed to fetch user statistics' });
     }
   });
 
