@@ -45,6 +45,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 5, 2025 - Landing Page Footer & Company Information Pages ✅ COMPLETED
+- **Complete Footer Implementation**: Added comprehensive footer to landing page with company links and support navigation
+- **Company Information Pages**: Created About Us, Privacy Policy, Terms of Service, and Release Notes pages with professional content
+- **Support Page**: Built dedicated Support page with contact details (support@eazeeinvoice.com) accessible without login
+- **Public Route Registration**: All company pages registered as public routes for unrestricted access
+- **Consistent Design**: All pages follow uniform design pattern with proper navigation headers and footers
+- **Contact Information**: Privacy Policy updated with clear support email contact details as requested
+- **Navigation Updates**: Footer links updated to point to new Support page instead of protected Help Center
+
 ### August 4, 2025 - Push Notification System for New Subscriptions ✅ COMPLETED
 - **Live Pushover Integration**: Successfully configured and tested Pushover notifications for instant phone alerts
 - **Comprehensive Notification System**: Implemented multi-platform push notifications when users subscribe

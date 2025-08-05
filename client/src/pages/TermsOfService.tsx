@@ -378,7 +378,7 @@ export const TermsOfService = () => {
               <Link href="/privacy" className="text-slate-300 hover:text-white transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/help" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="/support" className="text-slate-300 hover:text-white transition-colors">
                 Support
               </Link>
             </div>

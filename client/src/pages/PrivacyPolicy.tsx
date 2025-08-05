@@ -278,11 +278,19 @@ export const PrivacyPolicy = () => {
               <CardContent>
                 <p className="text-slate-600 dark:text-slate-300 mb-4">
                   If you have questions about this Privacy Policy or how we handle your data, 
-                  please contact us through our support system in the application or reach out 
-                  to us directly.
+                  please contact us:
                 </p>
+                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg mb-4">
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Support Contact</h4>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Email: <a href="mailto:support@eazeeinvoice.com" className="text-primary hover:underline">
+                      support@eazeeinvoice.com
+                    </a>
+                  </p>
+                </div>
                 <p className="text-slate-600 dark:text-slate-300">
-                  We're committed to addressing any privacy concerns promptly and transparently.
+                  We're committed to addressing any privacy concerns promptly and transparently. 
+                  We typically respond to privacy-related inquiries within 24-48 hours.
                 </p>
               </CardContent>
             </Card>
@@ -321,7 +329,7 @@ export const PrivacyPolicy = () => {
               <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
                 Terms of Service
               </Link>
-              <Link href="/help" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="/support" className="text-slate-300 hover:text-white transition-colors">
                 Support
               </Link>
             </div>

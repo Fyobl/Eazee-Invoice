@@ -395,7 +395,7 @@ export const ReleaseNotes = () => {
             Your feedback drives our development. Let us know what features you'd like to see next!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/help">
+            <Link href="/support">
               <Button size="lg" variant="outline">
                 Send Feedback
               </Button>
@@ -426,6 +426,9 @@ export const ReleaseNotes = () => {
               </Link>
               <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
                 Terms of Service
+              </Link>
+              <Link href="/support" className="text-slate-300 hover:text-white transition-colors">
+                Support
               </Link>
             </div>
           </div>

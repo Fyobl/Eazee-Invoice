@@ -235,7 +235,7 @@ export const AboutUs = () => {
               <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
                 Terms of Service
               </Link>
-              <Link href="/help" className="text-slate-300 hover:text-white transition-colors">
+              <Link href="/support" className="text-slate-300 hover:text-white transition-colors">
                 Support
               </Link>
             </div>

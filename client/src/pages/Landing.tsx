@@ -287,8 +287,8 @@ export const Landing = () => {
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/help" className="text-slate-300 hover:text-white transition-colors">
-                    Help Center
+                  <Link href="/support" className="text-slate-300 hover:text-white transition-colors">
+                    Support
                   </Link>
                 </li>
                 <li>

@@ -20,6 +20,7 @@ import { AboutUs } from "@/pages/AboutUs";
 import { PrivacyPolicy } from "@/pages/PrivacyPolicy";
 import { TermsOfService } from "@/pages/TermsOfService";
 import { ReleaseNotes } from "@/pages/ReleaseNotes";
+import { Support } from "@/pages/Support";
 
 // Protected pages
 import { Dashboard } from "@/pages/Dashboard";
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/release-notes" component={ReleaseNotes} />
+      <Route path="/support" component={Support} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
