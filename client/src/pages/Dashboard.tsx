@@ -17,7 +17,7 @@ export const Dashboard = () => {
   const [location, setLocation] = useState<string>('');
   const [weatherLoading, setWeatherLoading] = useState(true);
 
-  const totalRevenue = invoices?.reduce((sum, invoice) => sum + parseFloat(invoice.total), 0) || 0;
+  const totalRevenue = invoices?.reduce((sum: number, invoice: any) => sum + parseFloat(invoice.total), 0) || 0;
 
   // Weather functionality
   useEffect(() => {
@@ -65,8 +65,8 @@ export const Dashboard = () => {
           console.log('Got location:', latitude, longitude);
           
           await fetchWeatherForLocation(latitude, longitude, 'Your Location');
-        } catch (geoError) {
-          console.log('Geolocation failed, using fallback:', geoError.message);
+        } catch (geoError: unknown) {
+          console.log('Geolocation failed, using fallback:', (geoError as Error).message);
           // Fallback to London weather
           await fetchWeatherForLocation(51.5074, -0.1278, 'London');
         }
@@ -136,7 +136,7 @@ export const Dashboard = () => {
     },
     {
       title: 'Active Quotes',
-      value: quotes?.filter(q => q.status === 'sent').length || 0,
+      value: quotes?.filter((q: any) => q.status === 'sent').length || 0,
       icon: Quote,
       color: 'text-emerald-600 dark:text-emerald-400'
     },
@@ -171,11 +171,11 @@ export const Dashboard = () => {
   ];
 
   // Generate real recent activity from database
-  const recentActivity = [];
+  const recentActivity: any[] = [];
   
   // Add recent invoices
   const recentInvoices = invoices?.slice(0, 2) || [];
-  recentInvoices.forEach(invoice => {
+  recentInvoices.forEach((invoice: any) => {
     const timeAgo = getTimeAgo(invoice.createdAt);
     recentActivity.push({
       action: `Invoice ${invoice.number} created for ${invoice.customerName}`,
@@ -186,7 +186,7 @@ export const Dashboard = () => {
   
   // Add recent quotes
   const recentQuotes = quotes?.slice(0, 2) || [];
-  recentQuotes.forEach(quote => {
+  recentQuotes.forEach((quote: any) => {
     const timeAgo = getTimeAgo(quote.createdAt);
     recentActivity.push({
       action: `Quote ${quote.number} created for ${quote.customerName}`,
@@ -197,7 +197,7 @@ export const Dashboard = () => {
   
   // Add recent customers
   const recentCustomers = customers?.slice(0, 1) || [];
-  recentCustomers.forEach(customer => {
+  recentCustomers.forEach((customer: any) => {
     const timeAgo = getTimeAgo(customer.createdAt);
     recentActivity.push({
       action: `New customer "${customer.name}" added`,
@@ -207,7 +207,7 @@ export const Dashboard = () => {
   });
   
   // Sort by creation time (most recent first) and limit to 5
-  recentActivity.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  recentActivity.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   const limitedActivity = recentActivity.slice(0, 5);
   
   // Helper function to calculate time ago

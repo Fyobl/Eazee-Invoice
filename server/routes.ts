@@ -10,6 +10,13 @@ import { sendPasswordResetEmail } from "./emailService";
 import { sendSubscriptionNotification } from "./pushNotifications";
 import * as geoip from 'geoip-lite';
 
+// Extend session interface to include userId
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+  }
+}
+
 // Utility function to get user's country from IP
 function getUserCountryFromIP(req: Request): string {
   // Get the real IP address, considering proxies and load balancers
@@ -57,7 +64,7 @@ const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextF
     return res.status(401).json({ error: 'Authentication required' });
   }
   
-  const user = await storage.getUser(sessionId);
+  const user = await storage.getUser(String(sessionId));
   if (!user) {
     return res.status(401).json({ error: 'User not found' });
   }
@@ -135,8 +142,8 @@ async function checkStripeAccountStatus() {
     console.log('✅ Stripe account verified and ready for live payments');
     return { status: 'active', ready: true };
   } catch (error) {
-    console.error('❌ Stripe account check failed:', error.message);
-    return { status: 'error', error: error.message, ready: false };
+    console.error('❌ Stripe account check failed:', (error as Error).message);
+    return { status: 'error', error: (error as Error).message, ready: false };
   }
 }
 
@@ -196,7 +203,7 @@ export async function setupRoutes(app: Express) {
       const user = await storage.registerUser(email, password, firstName, lastName, companyName, country);
       
       // Create session
-      req.session.userId = user.uid;
+      req.session.userId = parseInt(user.uid);
       
       res.json({ user: { ...user, passwordHash: undefined } });
     } catch (error) {
@@ -219,7 +226,7 @@ export async function setupRoutes(app: Express) {
       }
       
       // Set session
-      req.session.userId = user.uid;
+      req.session.userId = parseInt(user.uid);
       
       res.json({ user: { ...user, passwordHash: undefined } });
     } catch (error) {
@@ -244,7 +251,7 @@ export async function setupRoutes(app: Express) {
     }
   });
   
-  app.post('/api/change-password', requireAuth, async (req, res) => {
+  app.post('/api/change-password', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { currentPassword, newPassword } = req.body;
       
@@ -281,7 +288,7 @@ export async function setupRoutes(app: Express) {
     }
   });
   
-  app.get('/api/me', requireAuth, async (req, res) => {
+  app.get('/api/me', requireAuth, async (req: AuthenticatedRequest, res) => {
     res.json({ user: { ...req.user!, passwordHash: undefined } });
   });
 
@@ -1197,7 +1204,7 @@ export async function setupRoutes(app: Express) {
       let errorCount = 0;
       const errors: string[] = [];
 
-      for (const [index, row] of parseResult.data.entries()) {
+      for (const [index, row] of Array.from((parseResult.data as any[]).entries())) {
         try {
           if (type === 'customers') {
             // Validate customer data - support both old and new CSV formats
@@ -1412,8 +1419,8 @@ export async function setupRoutes(app: Express) {
           
           if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
             const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
-            if (latestInvoice.payment_intent && typeof latestInvoice.payment_intent === 'object') {
-              const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent;
+            if ((latestInvoice as any).payment_intent && typeof (latestInvoice as any).payment_intent === 'object') {
+              const paymentIntent = (latestInvoice as any).payment_intent as Stripe.PaymentIntent;
               return res.json({
                 subscriptionId: subscription.id,
                 clientSecret: paymentIntent.client_secret,
@@ -1425,7 +1432,7 @@ export async function setupRoutes(app: Express) {
           // If subscription doesn't exist (e.g., switching from test to live keys), clear the old data
           if (stripeError.code === 'resource_missing') {
             console.log('Old subscription not found in live mode, clearing user data...');
-            await storage.updateUserStripeInfo(uid, null, null);
+            await storage.updateUserStripeInfo(uid, null as any, null as any);
             user.stripeCustomerId = null;
             user.stripeSubscriptionId = null;
           } else {
@@ -1505,7 +1512,7 @@ export async function setupRoutes(app: Express) {
       console.log('SetupIntent client_secret (first 30 chars):', setupIntent.client_secret?.substring(0, 30));
 
       // Update user with Stripe info (subscription will be created after payment method is confirmed)
-      await storage.updateUserStripeInfo(uid, stripeCustomer.id, null);
+      await storage.updateUserStripeInfo(uid, stripeCustomer.id, null as any);
 
       // Return the setup intent for collecting payment method
       res.json({
@@ -1568,7 +1575,7 @@ export async function setupRoutes(app: Express) {
         items: [{
           price: priceId
         }],
-        default_payment_method: paymentMethodId,
+        default_payment_method: paymentMethodId as string,
         collection_method: 'charge_automatically'
       });
       
@@ -1593,7 +1600,7 @@ export async function setupRoutes(app: Express) {
   });
 
   // Cancel subscription endpoint
-  app.post('/api/cancel-subscription', requireAuth, async (req, res) => {
+  app.post('/api/cancel-subscription', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const uid = req.user!.uid;
       const user = await storage.getUser(uid);
@@ -1622,13 +1629,13 @@ export async function setupRoutes(app: Express) {
       await storage.updateUserSubscriptionStatus(
         uid, 
         'cancelled', 
-        subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : undefined
+        (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined
       );
 
       res.json({ 
         success: true, 
         message: 'Subscription cancelled successfully',
-        accessUntil: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null
+        accessUntil: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : null
       });
     } catch (error) {
       console.error('Cancel subscription error:', error);
@@ -1662,7 +1669,7 @@ export async function setupRoutes(app: Express) {
           await storage.updateUserSubscriptionStatus(
             newCustomer.metadata.uid,
             newSubscription.status,
-            new Date(newSubscription.current_period_end * 1000)
+            new Date((newSubscription as any).current_period_end * 1000)
           );
           
           // Send push notification for new subscriptions only
@@ -1686,7 +1693,7 @@ export async function setupRoutes(app: Express) {
           await storage.updateUserSubscriptionStatus(
             updatedCustomer.metadata.uid,
             updatedSubscription.status,
-            new Date(updatedSubscription.current_period_end * 1000)
+            new Date((updatedSubscription as any).current_period_end * 1000)
           );
         }
         break;
@@ -1705,15 +1712,15 @@ export async function setupRoutes(app: Express) {
         
       case 'invoice.payment_succeeded':
         const invoice = event.data.object as Stripe.Invoice;
-        if (invoice.subscription) {
-          const invoiceSubscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        if ((invoice as any).subscription) {
+          const invoiceSubscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
           const invoiceCustomer = await stripe.customers.retrieve(invoiceSubscription.customer as string);
           
           if (invoiceCustomer && !invoiceCustomer.deleted && invoiceCustomer.metadata?.uid) {
             await storage.updateUserSubscriptionStatus(
               invoiceCustomer.metadata.uid,
               invoiceSubscription.status,
-              new Date(invoiceSubscription.current_period_end * 1000)
+              new Date((invoiceSubscription as any).current_period_end * 1000)
             );
           }
         }
@@ -1721,15 +1728,15 @@ export async function setupRoutes(app: Express) {
         
       case 'invoice.payment_failed':
         const failedInvoice = event.data.object as Stripe.Invoice;
-        if (failedInvoice.subscription) {
-          const failedSubscription = await stripe.subscriptions.retrieve(failedInvoice.subscription as string);
+        if ((failedInvoice as any).subscription) {
+          const failedSubscription = await stripe.subscriptions.retrieve((failedInvoice as any).subscription as string);
           const failedCustomer = await stripe.customers.retrieve(failedSubscription.customer as string);
           
           if (failedCustomer && !failedCustomer.deleted && failedCustomer.metadata?.uid) {
             await storage.updateUserSubscriptionStatus(
               failedCustomer.metadata.uid,
               'past_due',
-              new Date(failedSubscription.current_period_end * 1000)
+              new Date((failedSubscription as any).current_period_end * 1000)
             );
           }
         }
@@ -1812,14 +1819,14 @@ export async function setupRoutes(app: Express) {
           // Only update if the Stripe subscription is actually active
           if (subscription.status === 'active') {
             subscriptionInfo.status = subscription.status;
-            subscriptionInfo.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+            subscriptionInfo.currentPeriodEnd = new Date((subscription as any).current_period_end * 1000);
             subscriptionInfo.isSubscriber = true;
             
             // Update database with latest info
             await storage.updateUserSubscriptionStatus(
               uid,
               subscription.status,
-              new Date(subscription.current_period_end * 1000)
+              new Date((subscription as any).current_period_end * 1000)
             );
           }
         } catch (error) {
@@ -1906,7 +1913,7 @@ export async function setupRoutes(app: Express) {
           .set({ 
             isSubscriber: false,
             subscriptionStatus: 'cancelled',
-            subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            subscriptionCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
             updatedAt: new Date()
           })
           .where(eq(users.uid, uid));
@@ -1915,7 +1922,7 @@ export async function setupRoutes(app: Express) {
       res.json({ 
         success: true, 
         message: 'Subscription has been cancelled. Access has been revoked immediately.',
-        cancelAt: new Date(subscription.current_period_end * 1000)
+        cancelAt: new Date((subscription as any).current_period_end * 1000)
       });
     } catch (error) {
       console.error('Error canceling subscription:', error);
@@ -1934,8 +1941,8 @@ export async function setupRoutes(app: Express) {
       if (!stripeCustomerId) {
         console.log('🆕 Creating new Stripe customer');
         const customer = await stripe.customers.create({
-          email: user.email,
-          name: user.displayName,
+          email: user.email || undefined,
+          name: user.displayName || undefined,
           metadata: { userId: user.uid }
         });
         stripeCustomerId = customer.id;
