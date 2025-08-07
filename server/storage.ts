@@ -8,6 +8,7 @@ import crypto from "crypto";
 // Storage interface for user operations
 export interface IStorage {
   getUser(uid: string): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserStripeInfo(uid: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
@@ -31,6 +32,11 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(uid: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.uid, uid));
+    return user || undefined;
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
