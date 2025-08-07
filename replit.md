@@ -45,6 +45,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 7, 2025 - Customer Display & Admin Statistics Fix ✅ COMPLETED
+- **Customer List Authentication Issue**: Resolved temporary session/caching problem that prevented customers from displaying on the customer page
+- **Admin Panel Statistics Correction**: Fixed admin user statistics to exclude deleted items from counts (customers, invoices, quotes, statements, products)
+- **Data Consistency**: Admin panel now shows accurate counts matching what users see in their actual data views
+- **Database Query Optimization**: Updated admin stats queries to filter by `isDeleted = false` for all data types
+
 ### August 5, 2025 - Landing Page Footer & Company Information Pages ✅ COMPLETED
 - **Complete Footer Implementation**: Added comprehensive footer to landing page with company links and support navigation
 - **Company Information Pages**: Created About Us, Privacy Policy, Terms of Service, and Release Notes pages with professional content
