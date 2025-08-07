@@ -45,7 +45,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
-### August 7, 2025 - Address Form Restructure & Customer Schema Updates ✅ COMPLETED
+### August 7, 2025 - Address Form Restructure & Layout Optimization ✅ COMPLETED
 - **Structured Address Form**: Replaced single address textarea with separate fields (Address Line 1, Address Line 2, Town, County, Post Code)
 - **Database Schema Enhancement**: Added individual address columns while maintaining backward compatibility with existing address field
 - **Form Validation**: Address Line 1, Town, and Post Code are required; Address Line 2 and County are optional
@@ -56,6 +56,9 @@ Preferred communication style: Simple, everyday language.
 - **Auto-Refresh Implementation**: CSV upload now automatically refreshes customer list to show newly imported customers
 - **UI Enhancement**: Updated customer list table and details dialog to display both Business Name and Contact Name
 - **User Experience**: Clean, organized form layout matching CSV template structure for consistent data entry
+- **Layout Optimization**: Added maximum width container (`max-w-7xl`) to prevent content stretching on large screens
+- **Responsive Grid Enhancement**: Improved dashboard grid with `xl:grid-cols-3` for better scaling on extra-large displays
+- **Visual Balance**: Content now properly centered with appropriate proportions across all screen sizes
 
 ### August 7, 2025 - Customer Display & Admin Statistics Fix ✅ COMPLETED
 - **Customer List Authentication Issue**: Resolved temporary session/caching problem that prevented customers from displaying on the customer page
