@@ -1119,12 +1119,12 @@ export async function setupRoutes(app: Express) {
     try {
       const uid = req.params.uid;
       
-      // Get counts for all user data
-      const [invoicesCount] = await db.select({ count: sql<number>`count(*)` }).from(invoices).where(eq(invoices.uid, uid));
-      const [quotesCount] = await db.select({ count: sql<number>`count(*)` }).from(quotes).where(eq(quotes.uid, uid));
-      const [statementsCount] = await db.select({ count: sql<number>`count(*)` }).from(statements).where(eq(statements.uid, uid));
-      const [customersCount] = await db.select({ count: sql<number>`count(*)` }).from(customers).where(eq(customers.uid, uid));
-      const [productsCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(eq(products.uid, uid));
+      // Get counts for all user data (excluding deleted items)
+      const [invoicesCount] = await db.select({ count: sql<number>`count(*)` }).from(invoices).where(and(eq(invoices.uid, uid), eq(invoices.isDeleted, false)));
+      const [quotesCount] = await db.select({ count: sql<number>`count(*)` }).from(quotes).where(and(eq(quotes.uid, uid), eq(quotes.isDeleted, false)));
+      const [statementsCount] = await db.select({ count: sql<number>`count(*)` }).from(statements).where(and(eq(statements.uid, uid), eq(statements.isDeleted, false)));
+      const [customersCount] = await db.select({ count: sql<number>`count(*)` }).from(customers).where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)));
+      const [productsCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(and(eq(products.uid, uid), eq(products.isDeleted, false)));
       
       res.json({
         invoices: invoicesCount.count || 0,
