@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useCustomers } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal, Download, Upload, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, User, MoreHorizontal, Download, Upload } from 'lucide-react';
 import { Link } from 'wouter';
 import { Customer } from '@shared/schema';
 
@@ -20,19 +20,9 @@ export const CustomerList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   
-  const { data: customers, isLoading: loading, remove: deleteCustomer, add: addCustomer, refetch } = useCustomers();
+  const { data: customers, isLoading: loading, remove: deleteCustomer, add: addCustomer } = useCustomers();
   const { toast } = useToast();
   const { currentUser } = useAuth();
-
-  // Debug logging
-  console.log('CustomerList - Current user:', currentUser);
-  console.log('CustomerList - Customers data:', customers);
-  console.log('CustomerList - Loading state:', loading);
-
-  // Debug logging
-  console.log('CustomerList - Current user:', currentUser);
-  console.log('CustomerList - Customers data:', customers);
-  console.log('CustomerList - Loading state:', loading);
 
   const filteredCustomers = customers?.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,10 +140,6 @@ Bob Johnson,bob@example.com,07555123456,789 Pine Road,Birmingham,United Kingdom,
             <p className="text-slate-600 dark:text-slate-400">Manage your customer database</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={refetch} className="w-full sm:w-auto">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
             <Button variant="outline" onClick={downloadCustomerTemplate} className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
               Download Template
