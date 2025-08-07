@@ -56,7 +56,8 @@ export const systemSettings = pgTable('system_settings', {
 export const customers = pgTable('customers', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull(),
-  name: text('name').notNull(),
+  name: text('name').notNull(), // Business Name
+  contactName: text('contact_name'), // Contact Name
   email: text('email').notNull(),
   phone: text('phone'),
   address: text('address').notNull(),

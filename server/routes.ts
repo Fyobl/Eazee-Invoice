@@ -1172,16 +1172,17 @@ export async function setupRoutes(app: Express) {
           if (type === 'customers') {
             // Validate customer data - support both old and new CSV formats
             const customerData = row as any;
-            const customerName = customerData['Customer Name'] || customerData.name;
+            const businessName = customerData['Business Name'] || customerData['Customer Name'] || customerData.name;
+            const contactName = customerData['Contact Name'] || customerData.contactName;
             const email = customerData['Email'] || customerData.email;
             
-            if (!customerName || !email) {
-              throw new Error(`Row ${index + 1}: Customer Name and Email are required`);
+            if (!businessName || !email) {
+              throw new Error(`Row ${index + 1}: Business Name and Email are required`);
             }
 
             // Additional validation
-            if (!customerName.trim()) {
-              throw new Error(`Row ${index + 1}: Customer Name cannot be empty`);
+            if (!businessName.trim()) {
+              throw new Error(`Row ${index + 1}: Business Name cannot be empty`);
             }
             
             if (!email.trim()) {
@@ -1212,7 +1213,8 @@ export async function setupRoutes(app: Express) {
             // Insert customer
             await db.insert(customers).values({
               uid: userId,
-              name: customerName.trim(),
+              name: businessName.trim(),
+              contactName: contactName?.trim() || null,
               email: email.trim(),
               phone: phone.trim(),
               address: fullAddress

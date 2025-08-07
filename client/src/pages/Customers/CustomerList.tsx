@@ -48,10 +48,10 @@ export const CustomerList = () => {
   };
 
   const downloadCustomerTemplate = () => {
-    const csvContent = `Customer Name,Email,Phone,Address Line 1,Address Line 2,Town,County,Post Code
-John Smith,john@example.com,07123456789,123 Main Street,Apt 4B,London,Greater London,SW1A 1AA
-Jane Doe,jane@example.com,07987654321,456 Oak Avenue,,Manchester,Lancashire,M1 2AB
-Bob Johnson,bob@example.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Midlands,B1 1AA`;
+    const csvContent = `Business Name,Contact Name,Email,Phone,Address Line 1,Address Line 2,Town,County,Post Code
+Smith Electronics Ltd,John Smith,john@smithelectronics.com,07123456789,123 Main Street,Apt 4B,London,Greater London,SW1A 1AA
+Oak Avenue Consulting,Jane Doe,jane@oakavenue.com,07987654321,456 Oak Avenue,,Manchester,Lancashire,M1 2AB
+Pine Road Services,Bob Johnson,bob@pineroad.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Midlands,B1 1AA`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -188,7 +188,8 @@ Bob Johnson,bob@example.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Mi
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Business Name</TableHead>
+                  <TableHead>Contact Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Actions</TableHead>
@@ -202,6 +203,7 @@ Bob Johnson,bob@example.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Mi
                     onClick={() => handleCustomerClick(customer)}
                   >
                     <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell>{customer.contactName || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Mail className="h-4 w-4 text-gray-400" />
@@ -268,6 +270,11 @@ Bob Johnson,bob@example.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Mi
                   <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">
                     {selectedCustomer.name}
                   </h3>
+                  {selectedCustomer.contactName && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Contact: {selectedCustomer.contactName}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-3">

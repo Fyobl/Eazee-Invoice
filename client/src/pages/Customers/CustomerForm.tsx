@@ -15,7 +15,8 @@ import { useLocation, useRoute } from 'wouter';
 import { Customer } from '@shared/schema';
 
 const customerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Business Name is required'),
+  contactName: z.string().optional(),
   email: z.string().email('Valid email is required'),
   phone: z.string().optional(),
   address: z.string().min(1, 'Address is required')
@@ -41,6 +42,7 @@ export const CustomerForm = () => {
     resolver: zodResolver(customerSchema),
     defaultValues: {
       name: '',
+      contactName: '',
       email: '',
       phone: '',
       address: ''
@@ -52,6 +54,7 @@ export const CustomerForm = () => {
     if (isEditing && existingCustomer) {
       form.reset({
         name: existingCustomer.name,
+        contactName: existingCustomer.contactName || '',
         email: existingCustomer.email,
         phone: existingCustomer.phone || '',
         address: existingCustomer.address
@@ -70,6 +73,7 @@ export const CustomerForm = () => {
         // Update existing customer
         const updateData: Partial<Customer> = {
           name: data.name,
+          contactName: data.contactName,
           email: data.email,
           phone: data.phone,
           address: data.address,
@@ -82,6 +86,7 @@ export const CustomerForm = () => {
         const customer: Partial<Customer> = {
           uid: currentUser.uid,
           name: data.name,
+          contactName: data.contactName,
           email: data.email,
           phone: data.phone,
           address: data.address,
@@ -128,15 +133,31 @@ export const CustomerForm = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Business Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter customer name" {...field} />
+                          <Input placeholder="Enter business name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   
+                  <FormField
+                    control={form.control}
+                    name="contactName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter contact name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="email"
@@ -150,21 +171,23 @@ export const CustomerForm = () => {
                       </FormItem>
                     )}
                   />
+                  
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 <FormField
                   control={form.control}
