@@ -44,6 +44,8 @@ Preferred communication style: Simple, everyday language.
 - Admin password management allowing email resets or direct password setting.
 - Implemented a secure password reset system with email-based token verification.
 - Fixed session cookie configuration for robust login persistence across deployments.
+- Resolved all TypeScript compilation errors preventing deployment (August 2025).
+- Fixed session persistence issue causing login redirection failures.
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
