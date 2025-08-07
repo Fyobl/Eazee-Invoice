@@ -45,14 +45,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
-### August 7, 2025 - Customer Schema Update & CSV Auto-Refresh ✅ COMPLETED
+### August 7, 2025 - Address Form Restructure & Customer Schema Updates ✅ COMPLETED
+- **Structured Address Form**: Replaced single address textarea with separate fields (Address Line 1, Address Line 2, Town, County, Post Code)
+- **Database Schema Enhancement**: Added individual address columns while maintaining backward compatibility with existing address field
+- **Form Validation**: Address Line 1, Town, and Post Code are required; Address Line 2 and County are optional
 - **Customer Schema Enhancement**: Changed "Customer Name" to "Business Name" and added new "Contact Name" field across all forms and tables
-- **Database Migration**: Added `contact_name` column to customers table with proper NULL handling for optional field
+- **Database Migration**: Added `contact_name` and address component columns to customers table with proper NULL handling
 - **CSV Template Update**: Enhanced CSV template with Business Name, Contact Name, Email, Phone, and structured address components
-- **Backward Compatibility**: CSV upload supports both old format (Customer Name) and new format (Business Name + Contact Name)
+- **Backward Compatibility**: CSV upload and form editing support both old and new address formats
 - **Auto-Refresh Implementation**: CSV upload now automatically refreshes customer list to show newly imported customers
 - **UI Enhancement**: Updated customer list table and details dialog to display both Business Name and Contact Name
-- **Form Validation**: Updated form schema to require Business Name and make Contact Name optional
+- **User Experience**: Clean, organized form layout matching CSV template structure for consistent data entry
 
 ### August 7, 2025 - Customer Display & Admin Statistics Fix ✅ COMPLETED
 - **Customer List Authentication Issue**: Resolved temporary session/caching problem that prevented customers from displaying on the customer page
