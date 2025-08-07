@@ -66,8 +66,85 @@ export const Landing = () => {
         </div>
       </header>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/5 to-slate-100 dark:from-primary/10 dark:to-gray-800 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-primary/5 to-slate-100 dark:from-primary/10 dark:to-gray-800 py-20 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 opacity-10 dark:opacity-5">
+          {/* Office Scene Animation */}
+          <div className="relative w-full h-full">
+            {/* Floating Papers Animation */}
+            <div className="absolute top-10 left-10 animate-float-slow">
+              <svg width="40" height="50" viewBox="0 0 40 50" className="text-slate-600 dark:text-slate-400">
+                <rect x="5" y="8" width="30" height="38" rx="2" fill="currentColor" opacity="0.6"/>
+                <rect x="10" y="14" width="20" height="2" rx="1" fill="white"/>
+                <rect x="10" y="18" width="15" height="2" rx="1" fill="white"/>
+                <rect x="10" y="22" width="18" height="2" rx="1" fill="white"/>
+                <rect x="10" y="26" width="12" height="2" rx="1" fill="white"/>
+              </svg>
+            </div>
+            
+            <div className="absolute top-32 right-20 animate-float-medium">
+              <svg width="35" height="45" viewBox="0 0 35 45" className="text-blue-500 dark:text-blue-400">
+                <rect x="3" y="6" width="28" height="35" rx="2" fill="currentColor" opacity="0.7"/>
+                <rect x="8" y="12" width="18" height="2" rx="1" fill="white"/>
+                <rect x="8" y="16" width="14" height="2" rx="1" fill="white"/>
+                <rect x="8" y="20" width="16" height="2" rx="1" fill="white"/>
+              </svg>
+            </div>
+            
+            {/* Computer/Laptop Icons */}
+            <div className="absolute bottom-20 left-1/4 animate-pulse-slow">
+              <svg width="60" height="40" viewBox="0 0 60 40" className="text-slate-500 dark:text-slate-300">
+                <rect x="5" y="5" width="50" height="30" rx="3" fill="currentColor" opacity="0.5"/>
+                <rect x="8" y="8" width="44" height="24" rx="1" fill="white" opacity="0.8"/>
+                <rect x="25" y="35" width="10" height="3" rx="1" fill="currentColor" opacity="0.5"/>
+                <rect x="15" y="37" width="30" height="2" rx="1" fill="currentColor" opacity="0.5"/>
+              </svg>
+            </div>
+            
+            <div className="absolute top-16 right-1/3 animate-bounce-slow">
+              <svg width="50" height="35" viewBox="0 0 50 35" className="text-green-500 dark:text-green-400">
+                <rect x="3" y="3" width="44" height="26" rx="2" fill="currentColor" opacity="0.6"/>
+                <rect x="6" y="6" width="38" height="20" rx="1" fill="white" opacity="0.9"/>
+                <rect x="20" y="29" width="10" height="3" rx="1" fill="currentColor" opacity="0.6"/>
+              </svg>
+            </div>
+            
+            {/* People Silhouettes */}
+            <div className="absolute bottom-10 right-1/4 animate-fade-in-out">
+              <svg width="30" height="60" viewBox="0 0 30 60" className="text-slate-600 dark:text-slate-400">
+                <circle cx="15" cy="12" r="8" fill="currentColor" opacity="0.4"/>
+                <rect x="8" y="20" width="14" height="25" rx="7" fill="currentColor" opacity="0.4"/>
+                <rect x="5" y="30" width="8" height="20" rx="4" fill="currentColor" opacity="0.3"/>
+                <rect x="17" y="30" width="8" height="20" rx="4" fill="currentColor" opacity="0.3"/>
+              </svg>
+            </div>
+            
+            <div className="absolute top-1/3 left-1/5 animate-sway">
+              <svg width="25" height="55" viewBox="0 0 25 55" className="text-purple-500 dark:text-purple-400">
+                <circle cx="12.5" cy="10" r="7" fill="currentColor" opacity="0.5"/>
+                <rect x="6" y="17" width="13" height="23" rx="6" fill="currentColor" opacity="0.5"/>
+                <rect x="3" y="28" width="7" height="18" rx="3" fill="currentColor" opacity="0.4"/>
+                <rect x="15" y="28" width="7" height="18" rx="3" fill="currentColor" opacity="0.4"/>
+              </svg>
+            </div>
+            
+            {/* Geometric Office Elements */}
+            <div className="absolute top-20 left-1/3 animate-rotate-slow">
+              <svg width="40" height="40" viewBox="0 0 40 40" className="text-orange-400 dark:text-orange-300">
+                <rect x="10" y="10" width="20" height="20" rx="2" fill="currentColor" opacity="0.3" transform="rotate(45 20 20)"/>
+              </svg>
+            </div>
+            
+            <div className="absolute bottom-1/3 right-10 animate-float-reverse">
+              <svg width="35" height="35" viewBox="0 0 35 35" className="text-indigo-400 dark:text-indigo-300">
+                <circle cx="17.5" cy="17.5" r="15" fill="currentColor" opacity="0.3"/>
+                <circle cx="17.5" cy="17.5" r="8" fill="white" opacity="0.6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
               Professional Invoice Management
