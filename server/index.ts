@@ -38,6 +38,8 @@ app.use(session({
   },
 }));
 
+
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -148,6 +150,36 @@ async function monitorDatabaseConnection() {
 
 (async () => {
   try {
+    // Health check endpoints for deployment - must be before other routes
+    app.get('/health', (_req, res) => {
+      res.status(200).json({ 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        env: process.env.NODE_ENV || 'development'
+      });
+    });
+
+    // Deployment readiness endpoint
+    app.get('/ready', async (_req, res) => {
+      try {
+        // Test database connection
+        await pool.query('SELECT 1');
+        res.status(200).json({ 
+          status: 'ready',
+          timestamp: new Date().toISOString(),
+          database: 'connected'
+        });
+      } catch (error) {
+        res.status(503).json({ 
+          status: 'not ready',
+          timestamp: new Date().toISOString(),
+          database: 'disconnected',
+          error: (error as Error).message
+        });
+      }
+    });
+
     await setupRoutes(app);
 
     // Enhanced error handler with database error detection
@@ -178,8 +210,48 @@ async function monitorDatabaseConnection() {
       log(`serving on http://${host}:${port}`);
     });
 
+    // Configure server timeouts for better deployment stability
+    server.keepAliveTimeout = 65000; // 65 seconds (longer than most load balancers)
+    server.headersTimeout = 66000; // Must be longer than keepAliveTimeout
+    server.requestTimeout = 300000; // 5 minutes for long-running requests
+    server.timeout = 300000; // 5 minutes socket timeout
+
     // Start database monitoring
     monitorDatabaseConnection();
+
+    // Graceful shutdown handling for deployment
+    const gracefulShutdown = (signal: string) => {
+      log(`Received ${signal}, starting graceful shutdown...`);
+      
+      server.close((err) => {
+        if (err) {
+          log('Error during server shutdown: ' + err.message);
+          process.exit(1);
+        }
+        
+        log('HTTP server closed');
+        
+        // Close database connections
+        pool.end()
+          .then(() => {
+            log('Database connections closed');
+            process.exit(0);
+          })
+          .catch((poolErr) => {
+            log('Error closing database pool: ' + poolErr.message);
+            process.exit(1);
+          });
+      });
+      
+      // Force close after 30 seconds
+      setTimeout(() => {
+        log('Forced shutdown after timeout');
+        process.exit(1);
+      }, 30000);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route

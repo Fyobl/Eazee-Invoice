@@ -144,6 +144,36 @@ async function checkStripeAccountStatus() {
 checkStripeAccountStatus();
 
 export async function setupRoutes(app: Express) {
+  // Health check endpoints for deployment - must be first to avoid being intercepted
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      env: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Deployment readiness endpoint
+  app.get('/ready', async (_req, res) => {
+    try {
+      // Test database connection using the existing pool from db.ts
+      const { pool } = await import('./db');
+      await pool.query('SELECT 1');
+      res.status(200).json({ 
+        status: 'ready',
+        timestamp: new Date().toISOString(),
+        database: 'connected'
+      });
+    } catch (error) {
+      res.status(503).json({ 
+        status: 'not ready',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected',
+        error: (error as Error).message
+      });
+    }
+  });
   
   // Authentication routes
   app.post('/api/register', async (req, res) => {
