@@ -241,7 +241,7 @@ export const generatePDF = async (
         }
         .bank-detail-item {
           display: flex;
-          justify-content: space-between;
+          gap: 8px;
         }
         .bank-detail-label {
           font-weight: bold;
