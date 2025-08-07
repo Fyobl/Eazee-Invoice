@@ -45,6 +45,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+### August 7, 2025 - Customer Schema Update & CSV Auto-Refresh ✅ COMPLETED
+- **Customer Schema Enhancement**: Changed "Customer Name" to "Business Name" and added new "Contact Name" field across all forms and tables
+- **Database Migration**: Added `contact_name` column to customers table with proper NULL handling for optional field
+- **CSV Template Update**: Enhanced CSV template with Business Name, Contact Name, Email, Phone, and structured address components
+- **Backward Compatibility**: CSV upload supports both old format (Customer Name) and new format (Business Name + Contact Name)
+- **Auto-Refresh Implementation**: CSV upload now automatically refreshes customer list to show newly imported customers
+- **UI Enhancement**: Updated customer list table and details dialog to display both Business Name and Contact Name
+- **Form Validation**: Updated form schema to require Business Name and make Contact Name optional
+
 ### August 7, 2025 - Customer Display & Admin Statistics Fix ✅ COMPLETED
 - **Customer List Authentication Issue**: Resolved temporary session/caching problem that prevented customers from displaying on the customer page
 - **Admin Panel Statistics Correction**: Fixed admin user statistics to exclude deleted items from counts (customers, invoices, quotes, statements, products)
