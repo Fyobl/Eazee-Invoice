@@ -46,6 +46,7 @@ Preferred communication style: Simple, everyday language.
 - Fixed session cookie configuration for robust login persistence across deployments.
 - Resolved all TypeScript compilation errors preventing deployment (August 2025).
 - Fixed session persistence issue causing login redirection failures.
+- Corrected PDF payment details formatting to eliminate spacing gaps (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.

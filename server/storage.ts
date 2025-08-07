@@ -184,7 +184,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(passwordResetTokens)
       .where(and(
         eq(passwordResetTokens.email, email),
-        gt(new Date(), passwordResetTokens.expiresAt)
+        gt(passwordResetTokens.expiresAt, new Date())
       ));
 
     // Generate secure random token
