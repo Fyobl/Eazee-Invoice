@@ -96,6 +96,10 @@ export const useDatabase = (collectionName: string) => {
     },
   });
 
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: [collectionName] });
+  };
+
   return {
     data: data || [],
     isLoading,
@@ -105,6 +109,7 @@ export const useDatabase = (collectionName: string) => {
     create: createMutation.mutate,
     update: updateMutation.mutate,
     remove: deleteMutation.mutate,
+    refetch,
     addMutation: createMutation,
     createMutation: createMutation,
     updateMutation: updateMutation,
