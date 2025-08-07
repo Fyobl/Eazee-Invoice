@@ -48,10 +48,10 @@ export const CustomerList = () => {
   };
 
   const downloadCustomerTemplate = () => {
-    const csvContent = `name,email,phone,address,city,country,taxNumber
-John Smith,john@example.com,07123456789,123 Main Street,London,United Kingdom,GB123456789
-Jane Doe,jane@example.com,07987654321,456 Oak Avenue,Manchester,United Kingdom,GB987654321
-Bob Johnson,bob@example.com,07555123456,789 Pine Road,Birmingham,United Kingdom,GB555123456`;
+    const csvContent = `Customer Name,Email,Phone,Address Line 1,Address Line 2,Town,County,Post Code
+John Smith,john@example.com,07123456789,123 Main Street,Apt 4B,London,Greater London,SW1A 1AA
+Jane Doe,jane@example.com,07987654321,456 Oak Avenue,,Manchester,Lancashire,M1 2AB
+Bob Johnson,bob@example.com,07555123456,789 Pine Road,Unit 12,Birmingham,West Midlands,B1 1AA`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);

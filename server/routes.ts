@@ -1170,28 +1170,52 @@ export async function setupRoutes(app: Express) {
       for (const [index, row] of parseResult.data.entries()) {
         try {
           if (type === 'customers') {
-            // Validate customer data
+            // Validate customer data - support both old and new CSV formats
             const customerData = row as any;
-            if (!customerData.name || !customerData.email) {
-              throw new Error(`Row ${index + 1}: Name and email are required`);
+            const customerName = customerData['Customer Name'] || customerData.name;
+            const email = customerData['Email'] || customerData.email;
+            
+            if (!customerName || !email) {
+              throw new Error(`Row ${index + 1}: Customer Name and Email are required`);
             }
 
             // Additional validation
-            if (!customerData.name.trim()) {
-              throw new Error(`Row ${index + 1}: Name cannot be empty`);
+            if (!customerName.trim()) {
+              throw new Error(`Row ${index + 1}: Customer Name cannot be empty`);
             }
             
-            if (!customerData.email.trim()) {
+            if (!email.trim()) {
               throw new Error(`Row ${index + 1}: Email cannot be empty`);
             }
+
+            // Build address from separate components (new format) or use single address field (old format)
+            let fullAddress = '';
+            if (customerData['Address Line 1']) {
+              // New format with separate address components
+              const addressParts = [
+                customerData['Address Line 1']?.trim(),
+                customerData['Address Line 2']?.trim(),
+                customerData['Town']?.trim(),
+                customerData['County']?.trim(),
+                customerData['Post Code']?.trim()
+              ].filter(part => part && part.length > 0);
+              
+              fullAddress = addressParts.join('\n');
+            } else {
+              // Old format with single address field
+              fullAddress = customerData.address?.trim() || '';
+            }
+
+            // Get phone from either format
+            const phone = customerData['Phone'] || customerData.phone || '';
 
             // Insert customer
             await db.insert(customers).values({
               uid: userId,
-              name: customerData.name.trim(),
-              email: customerData.email.trim(),
-              phone: customerData.phone?.trim() || '',
-              address: customerData.address?.trim() || ''
+              name: customerName.trim(),
+              email: email.trim(),
+              phone: phone.trim(),
+              address: fullAddress
             });
 
             successCount++;
