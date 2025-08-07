@@ -60,7 +60,12 @@ export const customers = pgTable('customers', {
   contactName: text('contact_name'), // Contact Name
   email: text('email').notNull(),
   phone: text('phone'),
-  address: text('address').notNull(),
+  address: text('address').notNull(), // Keep for backward compatibility
+  addressLine1: text('address_line_1'),
+  addressLine2: text('address_line_2'),
+  town: text('town'),
+  county: text('county'),
+  postCode: text('post_code'),
   isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

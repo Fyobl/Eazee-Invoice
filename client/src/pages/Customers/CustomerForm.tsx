@@ -19,7 +19,11 @@ const customerSchema = z.object({
   contactName: z.string().optional(),
   email: z.string().email('Valid email is required'),
   phone: z.string().optional(),
-  address: z.string().min(1, 'Address is required')
+  addressLine1: z.string().min(1, 'Address Line 1 is required'),
+  addressLine2: z.string().optional(),
+  town: z.string().min(1, 'Town is required'),
+  county: z.string().optional(),
+  postCode: z.string().min(1, 'Post Code is required')
 });
 
 type CustomerForm = z.infer<typeof customerSchema>;
@@ -45,19 +49,47 @@ export const CustomerForm = () => {
       contactName: '',
       email: '',
       phone: '',
-      address: ''
+      addressLine1: '',
+      addressLine2: '',
+      town: '',
+      county: '',
+      postCode: ''
     }
   });
 
   // Load existing customer data when editing
   useEffect(() => {
     if (isEditing && existingCustomer) {
+      // Parse existing address for backward compatibility
+      let addressLine1 = '', addressLine2 = '', town = '', county = '', postCode = '';
+      
+      if (existingCustomer.addressLine1) {
+        // New format with separate fields
+        addressLine1 = existingCustomer.addressLine1 || '';
+        addressLine2 = existingCustomer.addressLine2 || '';
+        town = existingCustomer.town || '';
+        county = existingCustomer.county || '';
+        postCode = existingCustomer.postCode || '';
+      } else if (existingCustomer.address) {
+        // Parse old single address field
+        const addressParts = existingCustomer.address.split('\n');
+        addressLine1 = addressParts[0] || '';
+        addressLine2 = addressParts[1] || '';
+        town = addressParts[2] || '';
+        county = addressParts[3] || '';
+        postCode = addressParts[4] || '';
+      }
+      
       form.reset({
         name: existingCustomer.name,
         contactName: existingCustomer.contactName || '',
         email: existingCustomer.email,
         phone: existingCustomer.phone || '',
-        address: existingCustomer.address
+        addressLine1,
+        addressLine2,
+        town,
+        county,
+        postCode
       });
     }
   }, [isEditing, existingCustomer, form]);
@@ -69,6 +101,16 @@ export const CustomerForm = () => {
     setSuccess(null);
 
     try {
+      // Build combined address for backward compatibility
+      const addressParts = [
+        data.addressLine1,
+        data.addressLine2,
+        data.town,
+        data.county,
+        data.postCode
+      ].filter(part => part && part.trim().length > 0);
+      const combinedAddress = addressParts.join('\n');
+
       if (isEditing && customerId) {
         // Update existing customer
         const updateData: Partial<Customer> = {
@@ -76,7 +118,12 @@ export const CustomerForm = () => {
           contactName: data.contactName,
           email: data.email,
           phone: data.phone,
-          address: data.address,
+          address: combinedAddress,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          town: data.town,
+          county: data.county,
+          postCode: data.postCode,
         };
         
         updateCustomer({ id: customerId, data: updateData });
@@ -89,7 +136,12 @@ export const CustomerForm = () => {
           contactName: data.contactName,
           email: data.email,
           phone: data.phone,
-          address: data.address,
+          address: combinedAddress,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          town: data.town,
+          county: data.county,
+          postCode: data.postCode,
           isDeleted: false
         };
 
@@ -189,23 +241,84 @@ export const CustomerForm = () => {
 
 
 
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter customer address"
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Address Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Address</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="addressLine1"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address Line 1</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter address line 1" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="addressLine2"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address Line 2 (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter address line 2" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="town"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Town</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter town" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="county"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>County (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter county" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="postCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Post Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter post code" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
                 <div className="flex justify-end space-x-4">
                   <Button type="button" variant="outline" onClick={() => setLocation('/customers')}>

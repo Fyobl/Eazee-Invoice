@@ -1210,6 +1210,13 @@ export async function setupRoutes(app: Express) {
             // Get phone from either format
             const phone = customerData['Phone'] || customerData.phone || '';
 
+            // Extract individual address components for new schema
+            const addressLine1 = customerData['Address Line 1']?.trim() || '';
+            const addressLine2 = customerData['Address Line 2']?.trim() || '';
+            const town = customerData['Town']?.trim() || '';
+            const county = customerData['County']?.trim() || '';
+            const postCode = customerData['Post Code']?.trim() || '';
+
             // Insert customer
             await db.insert(customers).values({
               uid: userId,
@@ -1217,7 +1224,12 @@ export async function setupRoutes(app: Express) {
               contactName: contactName?.trim() || null,
               email: email.trim(),
               phone: phone.trim(),
-              address: fullAddress
+              address: fullAddress,
+              addressLine1: addressLine1 || null,
+              addressLine2: addressLine2 || null,
+              town: town || null,
+              county: county || null,
+              postCode: postCode || null
             });
 
             successCount++;
