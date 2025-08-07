@@ -5,10 +5,14 @@ import { pool } from "./db";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
+import path from "path";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve attached assets (videos, images, etc.)
+app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
 // Session middleware
 const PgSession = ConnectPgSimple(session);
