@@ -226,7 +226,7 @@ export const Dashboard = () => {
   return (
     <Layout title="Dashboard">
       {/* 2x3 Grid Layout: Welcome/Weather, Invoices/Quotes, Customers/This Month */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-6">
         {/* Row 1: Welcome Back (Left) */}
         <Card>
           <CardContent className="p-6">

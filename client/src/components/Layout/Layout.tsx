@@ -18,7 +18,9 @@ export const Layout = ({ title, children }: LayoutProps) => {
         <Header title={title} onMenuClick={() => setSidebarOpen(true)} />
         
         <main className="flex-1 p-6">
-          {children}
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
