@@ -20,7 +20,7 @@ export const CustomerList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   
-  const { data: customers, isLoading: loading, remove: deleteCustomer, add: addCustomer } = useCustomers();
+  const { data: customers, isLoading: loading, remove: deleteCustomer, add: addCustomer, refetch } = useCustomers();
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
@@ -103,6 +103,9 @@ Pine Road Services,Bob Johnson,bob@pineroad.com,07555123456,789 Pine Road,Unit 1
           description: `Successfully imported ${data.successCount} customers.` 
         });
       }
+      
+      // Refresh customer list to show newly uploaded customers
+      refetch();
       
       // Reset the file input
       event.target.value = '';
