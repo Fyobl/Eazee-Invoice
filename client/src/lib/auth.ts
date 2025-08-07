@@ -135,15 +135,17 @@ export const getTrialDaysLeft = (user: AuthUser): number => {
   if (!user.trialStartDate) return 0;
   
   const trialStart = new Date(user.trialStartDate);
+  const trialEnd = new Date(trialStart.getTime() + (7 * 24 * 60 * 60 * 1000));
   const now = new Date();
   
-  // Calculate days passed since trial started
-  const daysPassed = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+  // Check if trial is expired
+  if (trialEnd <= now) {
+    return 0;
+  }
   
-  // Trial is 7 days total, so days left = 7 - days passed
-  const daysLeft = Math.max(0, 7 - daysPassed);
-  
-  return daysLeft;
+  // Calculate days left in trial - use floor for consistency with admin panel
+  const daysLeft = Math.floor((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, daysLeft);
 };
 
 export const hasActiveSubscription = (user: AuthUser): boolean => {
