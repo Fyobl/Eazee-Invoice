@@ -26,6 +26,41 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add security headers
+app.use((req, res, next) => {
+  // Content Security Policy - Prevents XSS attacks
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https: blob:; " +
+    "connect-src 'self' https://api.stripe.com https://api.openweathermap.org https://api.open-meteo.com; " +
+    "frame-src https://js.stripe.com https://checkout.stripe.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self';"
+  );
+  
+  // X-Frame-Options - Prevents clickjacking attacks
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  
+  // X-Content-Type-Options - Prevents MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Referrer Policy - Controls referrer information
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions Policy - Controls browser features
+  res.setHeader('Permissions-Policy', 
+    'camera=(), microphone=(), geolocation=(), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+  );
+  
+  // X-XSS-Protection - Additional XSS protection (legacy browsers)
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  next();
+});
+
 // Serve attached assets (videos, images, etc.)
 app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
