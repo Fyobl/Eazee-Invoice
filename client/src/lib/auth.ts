@@ -37,6 +37,10 @@ export const registerUser = async (
   lastName: string, 
   companyName: string
 ): Promise<AuthUser> => {
+  // Clear any existing cached data first
+  localStorage.removeItem('userData');
+  localStorage.removeItem('authUser');
+  
   const response = await apiRequest('POST', '/api/register', {
     email,
     password,
@@ -50,10 +54,17 @@ export const registerUser = async (
     throw new Error(data.error || 'Registration failed');
   }
   
+  // Store fresh user data
+  localStorage.setItem('userData', JSON.stringify(data.user));
+  
   return data.user;
 };
 
 export const loginUser = async (email: string, password: string): Promise<AuthUser> => {
+  // Clear any existing cached data first
+  localStorage.removeItem('userData');
+  localStorage.removeItem('authUser');
+  
   const response = await apiRequest('POST', '/api/login', {
     email,
     password
@@ -63,6 +74,9 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
   if (!response.ok) {
     throw new Error(data.error || 'Login failed');
   }
+  
+  // Store fresh user data
+  localStorage.setItem('userData', JSON.stringify(data.user));
   
   return data.user;
 };

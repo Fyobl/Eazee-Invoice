@@ -34,18 +34,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     try {
+      // Always fetch fresh data from server, don't rely on localStorage
       const user = await getCurrentUser();
       setCurrentUser(user);
       
       if (user) {
+        // Update localStorage with fresh data
         localStorage.setItem('userData', JSON.stringify(user));
       } else {
+        // Clear all cached data if no user
         localStorage.removeItem('userData');
+        localStorage.removeItem('authUser');
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
       setCurrentUser(null);
+      // Clear cached data on error
       localStorage.removeItem('userData');
+      localStorage.removeItem('authUser');
     }
   };
 
