@@ -16,7 +16,7 @@ export const Support = () => {
                 <img 
                   src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
                   alt="Eazee Invoice" 
-                  className="h-10 w-auto"
+                  className="h-16 w-auto"
                 />
               </div>
             </Link>

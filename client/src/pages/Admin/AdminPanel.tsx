@@ -13,12 +13,13 @@ import { Banner } from '@/components/ui/banner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail, Settings, Package, Receipt, BarChart3 } from 'lucide-react';
+import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus, Shield, Ban, Clock, Crown, Upload, Download, FileSpreadsheet, Infinity, Trash2, Key, Mail, Settings, Package, Receipt, BarChart3, Globe } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 import { AdminPasswordManager } from '@/components/AdminPasswordManager';
 import { AdminEmailManager } from '@/components/AdminEmailManager';
 import { Switch } from '@/components/ui/switch';
+import { Link } from 'wouter';
 // Simple country flag mapping - using Unicode flags directly
 const countryFlags: Record<string, string> = {
   'GB': '🇬🇧', 'US': '🇺🇸', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪', 'FR': '🇫🇷', 
@@ -589,6 +590,32 @@ export const AdminPanel = () => {
                   <Settings className="h-4 w-4" />
                   {isTestingNotification ? 'Sending...' : 'Test Notification'}
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Website Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Website Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium text-slate-900 dark:text-slate-100">Meta Data & SEO</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                  Manage meta tags, SEO settings, and social media sharing
+                </p>
+                <Link href="/admin/meta-manager">
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Manage Meta Data
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>

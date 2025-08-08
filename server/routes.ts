@@ -628,6 +628,126 @@ export async function setupRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to set user password' });
     }
   });
+
+  // Meta Data Management routes
+  app.get('/api/meta-settings', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const metaSettings = await db.select().from(systemSettings)
+        .where(sql`key LIKE 'meta_%'`);
+      
+      const settingsObj: Record<string, string> = {};
+      metaSettings.forEach(setting => {
+        settingsObj[setting.key] = setting.value;
+      });
+      
+      // Provide defaults if not set
+      const defaultSettings = {
+        meta_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_keywords: 'invoice software, freelance invoicing, small business billing, professional quotes, invoice generator, PDF invoices, business management, accounting software',
+        meta_og_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_og_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_twitter_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_twitter_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_author: 'Eazee Invoice',
+        meta_site_name: 'Eazee Invoice',
+        meta_canonical_url: 'https://eazeeinvoice.replit.app/'
+      };
+      
+      // Merge defaults with saved settings
+      const finalSettings = { ...defaultSettings, ...settingsObj };
+      
+      res.json(finalSettings);
+    } catch (error) {
+      console.error('Error fetching meta settings:', error);
+      res.status(500).json({ error: 'Failed to fetch meta settings' });
+    }
+  });
+
+  app.put('/api/meta-settings', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const allowedKeys = [
+        'meta_title', 'meta_description', 'meta_keywords',
+        'meta_og_title', 'meta_og_description',
+        'meta_twitter_title', 'meta_twitter_description',
+        'meta_author', 'meta_site_name', 'meta_canonical_url'
+      ];
+      
+      const updates = req.body;
+      
+      for (const [key, value] of Object.entries(updates)) {
+        if (allowedKeys.includes(key) && typeof value === 'string') {
+          // Check if setting exists
+          const existing = await db.select().from(systemSettings)
+            .where(eq(systemSettings.key, key))
+            .limit(1);
+          
+          if (existing.length > 0) {
+            // Update existing
+            await db.update(systemSettings)
+              .set({ value: value as string, updatedAt: new Date() })
+              .where(eq(systemSettings.key, key));
+          } else {
+            // Insert new
+            await db.insert(systemSettings)
+              .values({ key, value: value as string });
+          }
+        }
+      }
+      
+      res.json({ success: true, message: 'Meta settings updated successfully' });
+    } catch (error) {
+      console.error('Error updating meta settings:', error);
+      res.status(500).json({ error: 'Failed to update meta settings' });
+    }
+  });
+
+  // Public meta data route (no auth required)
+  app.get('/api/meta-data', async (req, res) => {
+    try {
+      const metaSettings = await db.select().from(systemSettings)
+        .where(sql`key LIKE 'meta_%'`);
+      
+      const settingsObj: Record<string, string> = {};
+      metaSettings.forEach(setting => {
+        settingsObj[setting.key] = setting.value;
+      });
+      
+      // Provide defaults if not set
+      const defaultSettings = {
+        meta_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_keywords: 'invoice software, freelance invoicing, small business billing, professional quotes, invoice generator, PDF invoices, business management, accounting software',
+        meta_og_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_og_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_twitter_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_twitter_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_author: 'Eazee Invoice',
+        meta_site_name: 'Eazee Invoice',
+        meta_canonical_url: 'https://eazeeinvoice.replit.app/'
+      };
+      
+      // Merge defaults with saved settings
+      const finalSettings = { ...defaultSettings, ...settingsObj };
+      
+      res.json(finalSettings);
+    } catch (error) {
+      console.error('Error fetching public meta data:', error);
+      // Return defaults on error
+      res.json({
+        meta_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_keywords: 'invoice software, freelance invoicing, small business billing, professional quotes, invoice generator, PDF invoices, business management, accounting software',
+        meta_og_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_og_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_twitter_title: 'Eazee Invoice - Professional Invoice Management for Freelancers & Small Business',
+        meta_twitter_description: 'Professional invoicing software for freelancers and small businesses. Create unlimited invoices, quotes, and statements with PDF generation, email integration, and comprehensive business analytics. Start your 7-day free trial today.',
+        meta_author: 'Eazee Invoice',
+        meta_site_name: 'Eazee Invoice',
+        meta_canonical_url: 'https://eazeeinvoice.replit.app/'
+      });
+    }
+  });
   
   // Customers routes
   app.get('/api/customers', requireAuth, async (req: AuthenticatedRequest, res) => {

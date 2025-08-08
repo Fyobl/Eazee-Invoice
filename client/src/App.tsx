@@ -40,6 +40,7 @@ import { EmailSettings } from "@/pages/EmailSettings";
 import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
+import { MetaDataManager } from "@/pages/Admin/MetaDataManager";
 import SubscribeNew from "@/pages/SubscribeNew";
 import ManageSubscription from "@/pages/ManageSubscription";
 import { Help } from "@/pages/Help";
@@ -193,6 +194,12 @@ function Router() {
       <Route path="/admin">
         <ProtectedRoute>
           <AdminPanel />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/meta-manager">
+        <ProtectedRoute>
+          <MetaDataManager />
         </ProtectedRoute>
       </Route>
       

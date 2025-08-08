@@ -99,7 +99,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             <img 
               src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
               alt="Eazee Invoice" 
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
           </div>
           <button onClick={onClose}>
