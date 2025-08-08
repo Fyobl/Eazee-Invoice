@@ -36,7 +36,7 @@ Preferred communication style: Simple, everyday language.
 - Enhanced customer schema with separate "Business Name" and "Contact Name" fields.
 - Implemented consistent layout optimization using max-width containers and responsive grid enhancements.
 - Admin panel includes accurate user statistics by excluding deleted items.
-- Implemented a complete footer and company information pages (About Us, Privacy Policy, Terms of Service, Release Notes, Support).
+- Implemented a complete footer and company information pages (About Us, Privacy Policy, Terms of Service, Support).
 - Configured real-time push notifications for new subscriptions (Pushover, Telegram, Discord).
 - Display country flags instead of initials in the admin user list.
 - Admin-only toggle for Stripe live/test mode.

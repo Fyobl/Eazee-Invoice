@@ -289,11 +289,7 @@ export const Landing = () => {
                     Terms of Service
                   </Link>
                 </li>
-                <li>
-                  <Link href="/release-notes" className="text-slate-300 hover:text-white transition-colors">
-                    Release Notes
-                  </Link>
-                </li>
+
               </ul>
             </div>
 
