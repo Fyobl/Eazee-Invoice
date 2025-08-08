@@ -128,17 +128,7 @@ export function SetupChecklist({ isOpen, onOpenChange }: SetupChecklistProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>Complete setup</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => dismissMutation.mutate()}
-              disabled={dismissMutation.isPending}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle>Complete setup</DialogTitle>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Get your invoice system up and running
           </p>
