@@ -16,13 +16,13 @@ import { Settings, Globe, Share2, Twitter, Facebook, Search } from 'lucide-react
 import { Banner } from '@/components/ui/banner';
 
 const metaSchema = z.object({
-  meta_title: z.string().min(1, 'Title is required').max(60, 'Title should be under 60 characters for best SEO'),
-  meta_description: z.string().min(1, 'Description is required').max(160, 'Description should be under 160 characters for best SEO'),
+  meta_title: z.string().min(1, 'Title is required').max(70, 'Title should be under 70 characters for best SEO'),
+  meta_description: z.string().min(1, 'Description is required').max(300, 'Description should be under 300 characters for best SEO'),
   meta_keywords: z.string().min(1, 'Keywords are required'),
-  meta_og_title: z.string().min(1, 'Open Graph title is required').max(60, 'OG title should be under 60 characters'),
-  meta_og_description: z.string().min(1, 'Open Graph description is required').max(160, 'OG description should be under 160 characters'),
-  meta_twitter_title: z.string().min(1, 'Twitter title is required').max(60, 'Twitter title should be under 60 characters'),
-  meta_twitter_description: z.string().min(1, 'Twitter description is required').max(160, 'Twitter description should be under 160 characters'),
+  meta_og_title: z.string().min(1, 'Open Graph title is required').max(70, 'OG title should be under 70 characters'),
+  meta_og_description: z.string().min(1, 'Open Graph description is required').max(300, 'OG description should be under 300 characters'),
+  meta_twitter_title: z.string().min(1, 'Twitter title is required').max(70, 'Twitter title should be under 70 characters'),
+  meta_twitter_description: z.string().min(1, 'Twitter description is required').max(300, 'Twitter description should be under 300 characters'),
   meta_author: z.string().min(1, 'Author is required'),
   meta_site_name: z.string().min(1, 'Site name is required'),
   meta_canonical_url: z.string().url('Must be a valid URL')
@@ -135,8 +135,8 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        The main title that appears in search results and browser tabs. Keep under 60 characters.
-                        Current length: {field.value?.length || 0}/60
+                        The main title that appears in search results and browser tabs. Keep under 70 characters.
+                        Current length: {field.value?.length || 0}/70
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -157,8 +157,8 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        The description that appears under your title in search results. Keep under 160 characters.
-                        Current length: {field.value?.length || 0}/160
+                        The description that appears under your title in search results. Keep under 300 characters.
+                        Current length: {field.value?.length || 0}/300
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -209,7 +209,7 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Title when shared on Facebook, LinkedIn, etc. Current length: {field.value?.length || 0}/60
+                        Title when shared on Facebook, LinkedIn, etc. Current length: {field.value?.length || 0}/70
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -230,7 +230,7 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Description when shared on social media. Current length: {field.value?.length || 0}/160
+                        Description when shared on social media. Current length: {field.value?.length || 0}/300
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -261,7 +261,7 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Title when shared on Twitter. Current length: {field.value?.length || 0}/60
+                        Title when shared on Twitter. Current length: {field.value?.length || 0}/70
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -282,7 +282,7 @@ export const MetaDataManager = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Description when shared on Twitter. Current length: {field.value?.length || 0}/160
+                        Description when shared on Twitter. Current length: {field.value?.length || 0}/300
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
