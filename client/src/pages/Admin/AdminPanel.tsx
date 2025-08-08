@@ -17,6 +17,7 @@ import { Users, DollarSign, FileText, TrendingUp, Plus, MoreHorizontal, UserPlus
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@shared/schema';
 import { AdminPasswordManager } from '@/components/AdminPasswordManager';
+import { AdminEmailManager } from '@/components/AdminEmailManager';
 import { Switch } from '@/components/ui/switch';
 // Simple country flag mapping - using Unicode flags directly
 const countryFlags: Record<string, string> = {
@@ -696,6 +697,7 @@ export const AdminPanel = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <AdminPasswordManager user={user} />
+                            <AdminEmailManager user={user} />
                             {!user.isSubscriber && (
                               <DropdownMenuItem onClick={() => handleGrantSubscription(user)}>
                                 <Shield className="h-4 w-4 mr-2" />

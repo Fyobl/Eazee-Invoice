@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
 import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, onboardingProgress, type User } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, ne } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
 import Stripe from "stripe";
@@ -9,6 +9,7 @@ import { storage } from "./storage";
 import { sendPasswordResetEmail } from "./emailService";
 import { sendSubscriptionNotification } from "./pushNotifications";
 import * as geoip from 'geoip-lite';
+import bcrypt from "bcrypt";
 
 // Extend session interface to include userId
 declare module 'express-session' {
@@ -517,6 +518,32 @@ export async function setupRoutes(app: Express) {
   });
 
   // Admin password management routes
+  // Verify password route for email changes
+  app.post('/api/verify-password', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { password } = req.body;
+      
+      if (!password) {
+        return res.status(400).json({ error: 'Password is required' });
+      }
+
+      const user = await storage.getUser(req.user!.uid);
+      if (!user || !user.passwordHash) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const isValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isValid) {
+        return res.status(400).json({ error: 'Invalid password' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Password verification error:', error);
+      res.status(500).json({ error: 'Failed to verify password' });
+    }
+  });
+
   app.post('/api/admin/send-password-reset', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       // Check if user is admin
@@ -1234,6 +1261,21 @@ export async function setupRoutes(app: Express) {
       // Check if user is updating their own profile or if they're an admin
       if (req.user!.uid !== uid && !req.user!.isAdmin) {
         return res.status(403).json({ error: 'You can only update your own profile' });
+      }
+
+      // If email is being updated, check for uniqueness
+      if (updateData.email) {
+        const existingUser = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.email, updateData.email),
+            ne(users.uid, uid)  // Exclude current user
+          ))
+          .limit(1);
+        
+        if (existingUser.length > 0) {
+          return res.status(400).json({ error: 'Email address is already in use' });
+        }
       }
       
       // Convert date strings to Date objects for timestamp fields

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { changePassword, deleteAccount } from '@/lib/auth';
-import { Clock, Crown, AlertTriangle, User } from 'lucide-react';
+import { Clock, Crown, AlertTriangle, User, Mail } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -37,9 +37,15 @@ const personalInfoSchema = z.object({
   lastName: z.string().min(1, 'Last name is required').max(50, 'Last name must be less than 50 characters')
 });
 
+const emailChangeSchema = z.object({
+  newEmail: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required')
+});
+
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteAccountForm = z.infer<typeof deleteAccountSchema>;
 type PersonalInfoForm = z.infer<typeof personalInfoSchema>;
+type EmailChangeForm = z.infer<typeof emailChangeSchema>;
 
 export const Account = () => {
   const [, setLocation] = useLocation();
@@ -50,6 +56,7 @@ export const Account = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [personalInfoLoading, setPersonalInfoLoading] = useState(false);
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
 
   const passwordForm = useForm<PasswordForm>({
     resolver: zodResolver(passwordSchema),
@@ -73,6 +80,14 @@ export const Account = () => {
     defaultValues: {
       firstName: userData?.firstName || '',
       lastName: userData?.lastName || ''
+    }
+  });
+
+  const emailChangeForm = useForm<EmailChangeForm>({
+    resolver: zodResolver(emailChangeSchema),
+    defaultValues: {
+      newEmail: '',
+      password: ''
     }
   });
 
@@ -142,6 +157,48 @@ export const Account = () => {
       setError(err instanceof Error ? err.message : 'Failed to update personal information');
     } finally {
       setPersonalInfoLoading(false);
+    }
+  };
+
+  const onEmailChangeSubmit = async (data: EmailChangeForm) => {
+    if (!currentUser) return;
+    
+    setEmailChangeLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // First verify the current password
+      const verifyResponse = await apiRequest('POST', '/api/verify-password', {
+        password: data.password
+      });
+      
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json();
+        throw new Error(errorData.error || 'Invalid password');
+      }
+
+      // Update the email
+      const updateResponse = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
+        email: data.newEmail
+      });
+      
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(errorData.error || 'Failed to update email');
+      }
+      
+      toast({
+        title: "Email Updated",
+        description: "Your email address has been updated successfully!"
+      });
+      
+      emailChangeForm.reset();
+      window.location.reload(); // Refresh to get updated data
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update email address');
+    } finally {
+      setEmailChangeLoading(false);
     }
   };
 
@@ -259,6 +316,66 @@ export const Account = () => {
                 
                 <Button type="submit" disabled={personalInfoLoading}>
                   {personalInfoLoading ? 'Updating...' : 'Update Personal Information'}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        {/* Change Email */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Mail className="h-5 w-5" />
+              <span>Change Email Address</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Current email: <span className="font-medium text-slate-900 dark:text-slate-100">{userData?.email}</span>
+              </p>
+            </div>
+            <Form {...emailChangeForm}>
+              <form onSubmit={emailChangeForm.handleSubmit(onEmailChangeSubmit)} className="space-y-4 max-w-md">
+                <FormField
+                  control={emailChangeForm.control}
+                  name="newEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Email Address</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email" 
+                          placeholder="Enter your new email address" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={emailChangeForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Current Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="Enter your current password" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" disabled={emailChangeLoading}>
+                  {emailChangeLoading ? 'Updating Email...' : 'Update Email Address'}
                 </Button>
               </form>
             </Form>
