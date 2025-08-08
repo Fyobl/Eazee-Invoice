@@ -20,7 +20,11 @@ import { useToast } from '@/hooks/use-toast';
 
 const settingsSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
-  companyAddress: z.string().min(1, 'Address is required'),
+  addressLine1: z.string().min(1, 'Address line 1 is required'),
+  addressLine2: z.string().optional(),
+  town: z.string().min(1, 'Town is required'),
+  county: z.string().optional(),
+  postCode: z.string().min(1, 'Post code is required'),
   companyVatNumber: z.string().optional(),
   companyRegistrationNumber: z.string().optional(),
   currency: z.string().min(1, 'Currency is required'),
@@ -49,7 +53,11 @@ export const Settings = () => {
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       companyName: '',
-      companyAddress: '',
+      addressLine1: '',
+      addressLine2: '',
+      town: '',
+      county: '',
+      postCode: '',
       companyVatNumber: '',
       companyRegistrationNumber: '',
       currency: 'GBP',
@@ -61,11 +69,31 @@ export const Settings = () => {
     }
   });
 
+  // Helper function to parse address from database format
+  const parseAddress = (address: string) => {
+    if (!address) return { addressLine1: '', addressLine2: '', town: '', county: '', postCode: '' };
+    
+    const lines = address.split('\n').filter(line => line.trim());
+    return {
+      addressLine1: lines[0] || '',
+      addressLine2: lines[1] || '',
+      town: lines[2] || '',
+      county: lines[3] || '',
+      postCode: lines[4] || ''
+    };
+  };
+
   useEffect(() => {
     if (currentUser) {
+      const addressFields = parseAddress(currentUser.companyAddress || '');
+      
       form.reset({
         companyName: currentUser.companyName || '',
-        companyAddress: currentUser.companyAddress || '',
+        addressLine1: addressFields.addressLine1,
+        addressLine2: addressFields.addressLine2,
+        town: addressFields.town,
+        county: addressFields.county,
+        postCode: addressFields.postCode,
         companyVatNumber: currentUser.companyVatNumber || '',
         companyRegistrationNumber: currentUser.companyRegistrationNumber || '',
         currency: currentUser.currency || 'GBP',
@@ -198,9 +226,20 @@ export const Settings = () => {
     setLoading(true);
 
     try {
+      // Combine address fields into single string for PDF compatibility
+      const addressParts = [
+        data.addressLine1,
+        data.addressLine2,
+        data.town,
+        data.county,
+        data.postCode
+      ].filter(part => part && part.trim());
+      
+      const companyAddress = addressParts.join('\n');
+      
       const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
         companyName: data.companyName,
-        companyAddress: data.companyAddress,
+        companyAddress: companyAddress,
         companyVatNumber: data.companyVatNumber,
         companyRegistrationNumber: data.companyRegistrationNumber,
         currency: data.currency,
@@ -354,26 +393,84 @@ export const Settings = () => {
                 <CardTitle>Business Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="companyAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Address</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Enter your business address"
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="space-y-4">
+                  {/* Address Fields */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="addressLine1"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address Line 1</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter address line 1" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="addressLine2"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address Line 2 (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter address line 2" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="town"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Town</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter town" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="county"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>County (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter county" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="postCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Post Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter post code" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* VAT and Registration Numbers */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
                     <FormField
                       control={form.control}
                       name="companyVatNumber"
