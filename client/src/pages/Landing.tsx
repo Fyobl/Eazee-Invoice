@@ -51,7 +51,7 @@ export const Landing = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <img 
-                src="/attached_assets/Eazee Invoice Logo Blue Background Small_1754663816740.png" 
+                src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                 alt="Eazee Invoice" 
                 className="h-16 w-auto"
               />
@@ -262,7 +262,7 @@ export const Landing = () => {
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <img 
-                  src="/attached_assets/Eazee Invoice Logo Blue Background Small_1754663816740.png" 
+                  src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                   alt="Eazee Invoice" 
                   className="h-16 w-auto"
                 />
