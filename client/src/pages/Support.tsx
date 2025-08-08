@@ -429,7 +429,7 @@ export const Support = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <img 
-                src="/attached_assets/image_1754664494024.png" 
+                src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                 alt="Eazee Invoice" 
                 className="h-8 w-auto"
               />
