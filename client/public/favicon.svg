@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .e-letter {
+        fill: #ff6b35;
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+        font-size: 80px;
+      }
+    </style>
+  </defs>
+  <rect width="100" height="100" fill="#ff6b35" rx="15"/>
+  <text x="50" y="75" text-anchor="middle" class="e-letter" fill="white">E</text>
+</svg>
