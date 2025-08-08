@@ -14,7 +14,7 @@ export const PrivacyPolicy = () => {
             <Link href="/">
               <div className="flex items-center space-x-2 cursor-pointer">
                 <img 
-                  src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
+                  src="/attached_assets/Eazee Invoice Logo Blue Background Small_1754663816740.png" 
                   alt="Eazee Invoice" 
                   className="h-16 w-auto"
                 />

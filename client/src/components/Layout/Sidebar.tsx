@@ -97,7 +97,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <img 
-              src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
+              src="/attached_assets/Eazee Invoice Logo Blue Background Small_1754663816740.png" 
               alt="Eazee Invoice" 
               className="h-12 w-auto"
             />
