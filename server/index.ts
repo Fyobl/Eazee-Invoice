@@ -11,6 +11,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add CORS headers for external access
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
+  next();
+});
+
 // Serve attached assets (videos, images, etc.)
 app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
@@ -160,6 +175,39 @@ async function monitorDatabaseConnection() {
       });
     });
 
+    // Robots.txt for better SEO and external access
+    app.get('/robots.txt', (req, res) => {
+      res.type('text/plain');
+      res.send(
+        'User-agent: *\n' +
+        'Allow: /\n' +
+        'Allow: /about\n' +
+        'Allow: /privacy\n' +
+        'Allow: /terms\n' +
+        'Allow: /support\n' +
+        'Disallow: /admin\n' +
+        'Disallow: /api\n' +
+        '\n' +
+        'Sitemap: ' + (req.protocol + '://' + req.get('host') + '/sitemap.xml')
+      );
+    });
+
+    // Simple sitemap for better discoverability
+    app.get('/sitemap.xml', (req, res) => {
+      const baseUrl = req.protocol + '://' + req.get('host');
+      res.type('application/xml');
+      res.send(
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+        '  <url><loc>' + baseUrl + '/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n' +
+        '  <url><loc>' + baseUrl + '/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n' +
+        '  <url><loc>' + baseUrl + '/privacy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>\n' +
+        '  <url><loc>' + baseUrl + '/terms</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>\n' +
+        '  <url><loc>' + baseUrl + '/support</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n' +
+        '</urlset>'
+      );
+    });
+
     // Deployment readiness endpoint
     app.get('/ready', async (_req, res) => {
       try {
@@ -178,6 +226,16 @@ async function monitorDatabaseConnection() {
           error: (error as Error).message
         });
       }
+    });
+
+    // Simple public endpoint for external services
+    app.get('/api/status', (_req, res) => {
+      res.status(200).json({
+        status: 'online',
+        service: 'Eazee Invoice',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      });
     });
 
     await setupRoutes(app);
