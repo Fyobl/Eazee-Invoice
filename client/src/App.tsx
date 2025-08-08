@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/Layout/ProtectedRoute";
+import { useEffect } from "react";
 
 // Public pages
 import { Landing } from "@/pages/Landing";
@@ -46,9 +47,23 @@ import ManageSubscription from "@/pages/ManageSubscription";
 import { Help } from "@/pages/Help";
 import { StripeProvider } from "@/components/StripeProvider";
 
+// Component to handle scroll restoration on route changes
+function ScrollRestoration() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    // Scroll to top whenever the route changes
+    window.scrollTo(0, 0);
+  }, [location]);
+  
+  return null;
+}
+
 function Router() {
   return (
-    <Switch>
+    <>
+      <ScrollRestoration />
+      <Switch>
       {/* Public routes */}
       <Route path="/" component={Landing} />
       <Route path="/login" component={LoginPage} />
@@ -217,7 +232,8 @@ function Router() {
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </>
   );
 }
 
