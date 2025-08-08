@@ -1,4 +1,4 @@
-import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, systemSettings, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken, type SystemSetting, type InsertSystemSetting } from "@shared/schema";
+import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, systemSettings, onboardingProgress, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken, type SystemSetting, type InsertSystemSetting, type OnboardingProgress, type InsertOnboardingProgress } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -27,6 +27,11 @@ export interface IStorage {
   // System settings methods
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(key: string, value: string): Promise<SystemSetting>;
+  // Onboarding methods
+  getOnboardingProgress(uid: string): Promise<OnboardingProgress | undefined>;
+  updateOnboardingProgress(uid: string, updates: Partial<OnboardingProgress>): Promise<OnboardingProgress>;
+  createOnboardingProgress(uid: string): Promise<OnboardingProgress>;
+  dismissOnboarding(uid: string): Promise<OnboardingProgress>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -297,6 +302,53 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Onboarding methods
+  async getOnboardingProgress(uid: string): Promise<OnboardingProgress | undefined> {
+    const [progress] = await db.select().from(onboardingProgress).where(eq(onboardingProgress.uid, uid));
+    return progress || undefined;
+  }
+
+  async createOnboardingProgress(uid: string): Promise<OnboardingProgress> {
+    const progressData: InsertOnboardingProgress = {
+      uid,
+      companyBrandingComplete: false,
+      logoUploaded: false,
+      firstCustomerAdded: false,
+      firstProductAdded: false,
+      firstQuoteCreated: false,
+      firstInvoiceCreated: false,
+      firstQuoteConverted: false,
+      isOnboardingDismissed: false
+    };
+
+    const [progress] = await db
+      .insert(onboardingProgress)
+      .values(progressData)
+      .returning();
+    return progress;
+  }
+
+  async updateOnboardingProgress(uid: string, updates: Partial<OnboardingProgress>): Promise<OnboardingProgress> {
+    // First try to get existing progress
+    let progress = await this.getOnboardingProgress(uid);
+    
+    if (!progress) {
+      // Create if doesn't exist
+      progress = await this.createOnboardingProgress(uid);
+    }
+
+    const [updated] = await db
+      .update(onboardingProgress)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(onboardingProgress.uid, uid))
+      .returning();
+    return updated;
+  }
+
+  async dismissOnboarding(uid: string): Promise<OnboardingProgress> {
+    return this.updateOnboardingProgress(uid, { isOnboardingDismissed: true });
   }
 
 }

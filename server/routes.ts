@@ -1,6 +1,6 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { db, executeWithRetry } from "./db";
-import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, type User } from "@shared/schema";
+import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, onboardingProgress, type User } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import multer from "multer";
 import Papa from "papaparse";
@@ -150,6 +150,80 @@ async function checkStripeAccountStatus() {
 // Check account status on startup
 checkStripeAccountStatus();
 
+// Helper function to automatically detect onboarding completion status
+async function updateOnboardingCompletionStatus(uid: string) {
+  try {
+    // Get current progress
+    let progress = await storage.getOnboardingProgress(uid);
+    if (!progress) {
+      progress = await storage.createOnboardingProgress(uid);
+    }
+
+    // Get user data
+    const user = await storage.getUser(uid);
+    if (!user) return progress;
+
+    // Check if company branding is complete
+    const companyBrandingComplete = !!(user.companyName && user.companyAddress);
+    const logoUploaded = !!user.companyLogo;
+
+    // Check if user has added customers
+    const customerCount = await db.select({ count: sql<number>`count(*)` })
+      .from(customers)
+      .where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)));
+    const firstCustomerAdded = customerCount[0].count > 0;
+
+    // Check if user has added products  
+    const productCount = await db.select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(and(eq(products.uid, uid), eq(products.isDeleted, false)));
+    const firstProductAdded = productCount[0].count > 0;
+
+    // Check if user has created quotes
+    const quoteCount = await db.select({ count: sql<number>`count(*)` })
+      .from(quotes)
+      .where(and(eq(quotes.uid, uid), eq(quotes.isDeleted, false)));
+    const firstQuoteCreated = quoteCount[0].count > 0;
+
+    // Check if user has created invoices
+    const invoiceCount = await db.select({ count: sql<number>`count(*)` })
+      .from(invoices)
+      .where(and(eq(invoices.uid, uid), eq(invoices.isDeleted, false)));
+    const firstInvoiceCreated = invoiceCount[0].count > 0;
+
+    // Check if user has converted quotes to invoices (check if any invoice has same customer as quote)
+    const quotesData = await db.select().from(quotes)
+      .where(and(eq(quotes.uid, uid), eq(quotes.isDeleted, false)));
+    const invoicesData = await db.select().from(invoices)
+      .where(and(eq(invoices.uid, uid), eq(invoices.isDeleted, false)));
+    
+    const firstQuoteConverted = quotesData.some(quote => 
+      invoicesData.some(invoice => invoice.customerId === quote.customerId)
+    );
+
+    // Update progress with detected values
+    const updates = {
+      companyBrandingComplete,
+      logoUploaded,
+      firstCustomerAdded,
+      firstProductAdded,
+      firstQuoteCreated,
+      firstInvoiceCreated,
+      firstQuoteConverted
+    };
+
+    return await storage.updateOnboardingProgress(uid, updates);
+  } catch (error) {
+    console.error('Error updating onboarding completion status:', error);
+    // Return existing progress or create new one
+    let fallbackProgress = await storage.getOnboardingProgress(uid);
+    if (!fallbackProgress) {
+      fallbackProgress = await storage.createOnboardingProgress(uid);
+    }
+    return fallbackProgress;
+  }
+}
+
 export async function setupRoutes(app: Express) {
   // Health check endpoints for deployment - must be first to avoid being intercepted
   app.get('/health', (_req, res) => {
@@ -297,6 +371,51 @@ export async function setupRoutes(app: Express) {
   
   app.get('/api/me', requireAuth, async (req: AuthenticatedRequest, res) => {
     res.json({ user: { ...req.user!, passwordHash: undefined } });
+  });
+
+  // Onboarding routes
+  app.get('/api/onboarding-progress', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const uid = req.user!.uid;
+      let progress = await storage.getOnboardingProgress(uid);
+      
+      if (!progress) {
+        // Create initial progress if it doesn't exist
+        progress = await storage.createOnboardingProgress(uid);
+      }
+
+      // Auto-detect completion status
+      progress = await updateOnboardingCompletionStatus(uid);
+      
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching onboarding progress:', error);
+      res.status(500).json({ error: 'Failed to fetch onboarding progress' });
+    }
+  });
+
+  app.put('/api/onboarding-progress', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const uid = req.user!.uid;
+      const updates = req.body;
+      
+      const progress = await storage.updateOnboardingProgress(uid, updates);
+      res.json(progress);
+    } catch (error) {
+      console.error('Error updating onboarding progress:', error);
+      res.status(500).json({ error: 'Failed to update onboarding progress' });
+    }
+  });
+
+  app.post('/api/onboarding-dismiss', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const uid = req.user!.uid;
+      const progress = await storage.dismissOnboarding(uid);
+      res.json(progress);
+    } catch (error) {
+      console.error('Error dismissing onboarding:', error);
+      res.status(500).json({ error: 'Failed to dismiss onboarding' });
+    }
   });
 
   // Password reset routes

@@ -51,6 +51,21 @@ export const systemSettings = pgTable('system_settings', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const onboardingProgress = pgTable('onboarding_progress', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  companyBrandingComplete: boolean('company_branding_complete').default(false),
+  logoUploaded: boolean('logo_uploaded').default(false),
+  firstCustomerAdded: boolean('first_customer_added').default(false),
+  firstProductAdded: boolean('first_product_added').default(false),
+  firstQuoteCreated: boolean('first_quote_created').default(false),
+  firstInvoiceCreated: boolean('first_invoice_created').default(false),
+  firstQuoteConverted: boolean('first_quote_converted').default(false),
+  isOnboardingDismissed: boolean('is_onboarding_dismissed').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 
 
 export const customers = pgTable('customers', {
@@ -167,12 +182,13 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   customers: many(customers),
   products: many(products),
   invoices: many(invoices),
   quotes: many(quotes),
   statements: many(statements),
+  onboardingProgress: one(onboardingProgress),
 }));
 
 export const customersRelations = relations(customers, ({ one }) => ({
@@ -200,6 +216,10 @@ export const statementInvoicesRelations = relations(statementInvoices, ({ one })
   statement: one(statements, { fields: [statementInvoices.statementId], references: [statements.id] }),
 }));
 
+export const onboardingProgressRelations = relations(onboardingProgress, ({ one }) => ({
+  user: one(users, { fields: [onboardingProgress.uid], references: [users.uid] }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertCustomerSchema = createInsertSchema(customers);
@@ -211,6 +231,7 @@ export const insertStatementInvoiceSchema = createInsertSchema(statementInvoices
 export const insertRecycleBinSchema = createInsertSchema(recycleBin);
 export const insertSessionSchema = createInsertSchema(sessions);
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
+export const insertOnboardingProgressSchema = createInsertSchema(onboardingProgress);
 
 // Select schemas
 export const selectUserSchema = createSelectSchema(users);
@@ -223,6 +244,7 @@ export const selectStatementInvoiceSchema = createSelectSchema(statementInvoices
 export const selectRecycleBinSchema = createSelectSchema(recycleBin);
 export const selectSessionSchema = createSelectSchema(sessions);
 export const selectPasswordResetTokenSchema = createSelectSchema(passwordResetTokens);
+export const selectOnboardingProgressSchema = createSelectSchema(onboardingProgress);
 export const insertSystemSettingSchema = createInsertSchema(systemSettings);
 export const selectSystemSettingSchema = createSelectSchema(systemSettings);
 
@@ -247,6 +269,8 @@ export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
+export type InsertOnboardingProgress = typeof onboardingProgress.$inferInsert;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = typeof systemSettings.$inferInsert;
 

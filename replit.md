@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 - **Company Branding**: Per-user branding (logo, name, address) on all generated documents and emails.
 - **Dashboard**: Redesigned 2x3 grid with welcome message and local weather integration.
 - **Help Page**: Comprehensive help page with instructions, diagrams, demos, and feature highlights.
+- **User Onboarding**: Interactive setup checklist with 7 guided tasks (company branding, logo upload, customers, products, quotes, invoices, conversions). Features automatic completion detection, dismissible interface, and progress tracking via dedicated database table.
 
 ### System Design Choices
 - Structured address forms for customer data.
@@ -47,6 +48,7 @@ Preferred communication style: Simple, everyday language.
 - Resolved all TypeScript compilation errors preventing deployment (August 2025).
 - Fixed session persistence issue causing login redirection failures.
 - Corrected PDF payment details formatting to eliminate spacing gaps (August 2025).
+- Added comprehensive onboarding system with progress tracking and guided setup checklist (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.

@@ -7,6 +7,7 @@ import { FileText, Quote, FileBarChart, Users, Plus, TrendingUp, Sun, Cloud, Clo
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';
 import React from 'react';
+import { OnboardingTrigger } from '@/components/Onboarding/OnboardingTrigger';
 
 export const Dashboard = () => {
   const { userData } = useAuth();
@@ -225,6 +226,9 @@ export const Dashboard = () => {
 
   return (
     <Layout title="Dashboard">
+      {/* Onboarding checklist trigger */}
+      <OnboardingTrigger />
+      
       {/* 2x3 Grid Layout: Welcome/Weather, Invoices/Quotes, Customers/This Month */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-6">
         {/* Row 1: Welcome Back (Left) */}
