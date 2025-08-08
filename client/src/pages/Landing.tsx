@@ -53,7 +53,7 @@ export const Landing = () => {
               <img 
                 src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                 alt="Eazee Invoice" 
-                className="h-16 w-auto"
+                className="h-10 w-auto"
               />
             </div>
             <div className="flex items-center space-x-4">
@@ -264,7 +264,7 @@ export const Landing = () => {
                 <img 
                   src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                   alt="Eazee Invoice" 
-                  className="h-16 w-auto"
+                  className="h-10 w-auto"
                 />
               </div>
               <p className="text-slate-300 mb-4 max-w-md">

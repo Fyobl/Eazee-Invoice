@@ -16,7 +16,7 @@ export const TermsOfService = () => {
                 <img 
                   src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
                   alt="Eazee Invoice" 
-                  className="h-16 w-auto"
+                  className="h-10 w-auto"
                 />
               </div>
             </Link>
