@@ -220,25 +220,81 @@ async function monitorDatabaseConnection() {
         'Allow: /privacy\n' +
         'Allow: /terms\n' +
         'Allow: /support\n' +
+        'Allow: /login\n' +
+        'Allow: /register\n' +
         'Disallow: /admin\n' +
-        'Disallow: /api\n' +
+        'Disallow: /api/\n' +
+        'Disallow: /dashboard\n' +
+        'Disallow: /invoices\n' +
+        'Disallow: /quotes\n' +
+        'Disallow: /statements\n' +
+        'Disallow: /customers\n' +
+        'Disallow: /products\n' +
+        'Disallow: /reports\n' +
+        'Disallow: /settings\n' +
+        'Disallow: /account\n' +
+        'Disallow: /email-settings\n' +
+        'Disallow: /manage-subscription\n' +
+        'Disallow: /subscribe\n' +
+        'Disallow: /recycle-bin\n' +
+        '\n' +
+        'Crawl-delay: 1\n' +
         '\n' +
         'Sitemap: ' + (req.protocol + '://' + req.get('host') + '/sitemap.xml')
       );
     });
 
-    // Simple sitemap for better discoverability
+    // Comprehensive sitemap for better discoverability
     app.get('/sitemap.xml', (req, res) => {
       const baseUrl = req.protocol + '://' + req.get('host');
+      const currentDate = new Date().toISOString().split('T')[0];
+      
       res.type('application/xml');
       res.send(
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-        '  <url><loc>' + baseUrl + '/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n' +
-        '  <url><loc>' + baseUrl + '/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n' +
-        '  <url><loc>' + baseUrl + '/privacy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>\n' +
-        '  <url><loc>' + baseUrl + '/terms</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>\n' +
-        '  <url><loc>' + baseUrl + '/support</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>weekly</changefreq>\n' +
+        '    <priority>1.0</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/about</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>monthly</changefreq>\n' +
+        '    <priority>0.8</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/support</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>monthly</changefreq>\n' +
+        '    <priority>0.7</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/privacy</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>yearly</changefreq>\n' +
+        '    <priority>0.5</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/terms</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>yearly</changefreq>\n' +
+        '    <priority>0.5</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/login</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>yearly</changefreq>\n' +
+        '    <priority>0.3</priority>\n' +
+        '  </url>\n' +
+        '  <url>\n' +
+        '    <loc>' + baseUrl + '/register</loc>\n' +
+        '    <lastmod>' + currentDate + '</lastmod>\n' +
+        '    <changefreq>yearly</changefreq>\n' +
+        '    <priority>0.6</priority>\n' +
+        '  </url>\n' +
         '</urlset>'
       );
     });
