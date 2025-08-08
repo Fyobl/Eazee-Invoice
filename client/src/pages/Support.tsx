@@ -13,8 +13,11 @@ export const Support = () => {
           <div className="flex justify-between items-center py-4">
             <Link href="/">
               <div className="flex items-center space-x-2 cursor-pointer">
-                <FileText className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-slate-900 dark:text-white">Eazee Invoice</span>
+                <img 
+                  src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
+                  alt="Eazee Invoice" 
+                  className="h-10 w-auto"
+                />
               </div>
             </Link>
             <div className="flex items-center space-x-4">

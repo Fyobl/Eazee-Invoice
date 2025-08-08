@@ -96,8 +96,11 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       )}>
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center space-x-2">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">Eazee Invoice</span>
+            <img 
+              src="/attached_assets/Eazee Invoice Logo Transparent_1754663377946.png" 
+              alt="Eazee Invoice" 
+              className="h-8 w-auto"
+            />
           </div>
           <button onClick={onClose}>
             <X className="h-5 w-5 text-slate-500 dark:text-slate-400" />
