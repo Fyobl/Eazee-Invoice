@@ -234,7 +234,10 @@ export const AdminPanel = () => {
   const activeTrials = users?.filter((user: any) => !user.isSubscriber && !user.isSuspended).length || 0;
   const subscribers = users?.filter((user: any) => user.isSubscriber).length || 0;
   const suspendedUsers = users?.filter((user: any) => user.isSuspended).length || 0;
-  const mockRevenue = subscribers * 29; // Assuming £29/month
+  // Calculate revenue based on current pricing: £5.99/month for monthly, £64.69/year for annual
+  // Since we can't distinguish between monthly/yearly subscribers in current data structure,
+  // we'll use the monthly rate as the conservative estimate
+  const monthlyRevenue = subscribers * 5.99; // £5.99/month per subscriber
 
   const handleGrantSubscription = async (user: any) => {
     setSelectedUser(user);
@@ -504,7 +507,7 @@ export const AdminPanel = () => {
     { title: 'Total Users', value: totalUsers.toString(), icon: Users, color: 'text-blue-600 dark:text-blue-400' },
     { title: 'Active Trials', value: activeTrials.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
     { title: 'Subscribers', value: subscribers.toString(), icon: Crown, color: 'text-green-600 dark:text-green-400' },
-    { title: 'Revenue (Est.)', value: `£${mockRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-blue-600 dark:text-blue-400' }
+    { title: 'Monthly Revenue (Est.)', value: `£${monthlyRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 dark:text-green-400' }
   ];
 
   if (loading) {
