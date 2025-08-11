@@ -13,6 +13,7 @@ export const TrialExpired = () => {
 
   const handleLogout = async () => {
     await logoutUser();
+    navigate('/');
   };
 
   const handleSubscribe = () => {
