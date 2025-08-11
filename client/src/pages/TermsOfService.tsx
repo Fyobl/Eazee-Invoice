@@ -159,19 +159,27 @@ export const TermsOfService = () => {
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Subscription Plans</h4>
                   <p className="text-slate-600 dark:text-slate-300">
-                    After the trial period, continued use requires a paid subscription at £5.99 per month. 
-                    Billing is processed monthly through Stripe, our payment processor.
+                    After the trial period, continued use requires a paid subscription. We offer two billing options:
+                  </p>
+                  <ul className="list-disc list-inside text-slate-600 dark:text-slate-300 mt-2 space-y-1">
+                    <li><strong>Monthly Plan:</strong> £5.99 per month, billed monthly</li>
+                    <li><strong>Annual Plan:</strong> £64.69 per year (equivalent to £5.39/month, saving 10%)</li>
+                  </ul>
+                  <p className="text-slate-600 dark:text-slate-300 mt-2">
+                    All billing is processed securely through Stripe, our payment processor.
                   </p>
                 </div>
 
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Payment Terms</h4>
                   <ul className="list-disc list-inside text-slate-600 dark:text-slate-300 space-y-1">
-                    <li>Subscriptions are billed monthly in advance</li>
+                    <li>Monthly subscriptions are billed monthly in advance</li>
+                    <li>Annual subscriptions are billed yearly in advance</li>
                     <li>All fees are non-refundable except as required by law</li>
                     <li>Failed payments may result in service suspension</li>
                     <li>Price changes will be communicated with 30 days notice</li>
                     <li>You can cancel your subscription at any time</li>
+                    <li>Annual subscribers receive a 10% discount compared to monthly billing</li>
                   </ul>
                 </div>
 
