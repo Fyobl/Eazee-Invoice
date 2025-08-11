@@ -234,10 +234,11 @@ export const AdminPanel = () => {
   const activeTrials = users?.filter((user: any) => !user.isSubscriber && !user.isSuspended).length || 0;
   const subscribers = users?.filter((user: any) => user.isSubscriber).length || 0;
   const suspendedUsers = users?.filter((user: any) => user.isSuspended).length || 0;
-  // Calculate revenue based on current pricing: £5.99/month for monthly, £64.69/year for annual
-  // Since we can't distinguish between monthly/yearly subscribers in current data structure,
-  // we'll use the monthly rate as the conservative estimate
-  const monthlyRevenue = subscribers * 5.99; // £5.99/month per subscriber
+  // Calculate revenue estimates based on current pricing
+  // Monthly: £5.99/month, Annual: £64.69/year (£5.39/month equivalent)
+  // Since we can't distinguish between monthly/yearly subscribers, show both scenarios
+  const monthlyOnlyRevenue = subscribers * 5.99; // All monthly subscribers
+  const averageRevenue = subscribers * 5.69; // Blended estimate (50% monthly £5.99 + 50% yearly £5.39)
 
   const handleGrantSubscription = async (user: any) => {
     setSelectedUser(user);
@@ -507,7 +508,7 @@ export const AdminPanel = () => {
     { title: 'Total Users', value: totalUsers.toString(), icon: Users, color: 'text-blue-600 dark:text-blue-400' },
     { title: 'Active Trials', value: activeTrials.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
     { title: 'Subscribers', value: subscribers.toString(), icon: Crown, color: 'text-green-600 dark:text-green-400' },
-    { title: 'Monthly Revenue (Est.)', value: `£${monthlyRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 dark:text-green-400' }
+    { title: 'Monthly Revenue (Est.)', value: `£${averageRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 dark:text-green-400' }
   ];
 
   if (loading) {
@@ -647,6 +648,13 @@ export const AdminPanel = () => {
                     <div>
                       <p className="text-sm text-slate-600 dark:text-slate-400">{stat.title}</p>
                       <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
+                      {stat.title === 'Monthly Revenue (Est.)' && (
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 space-y-1">
+                          <div>All Monthly (£5.99): £{monthlyOnlyRevenue.toFixed(2)}</div>
+                          <div>50/50 Split: £{averageRevenue.toFixed(2)}</div>
+                          <div className="text-xs opacity-75">*Annual = £5.39/month</div>
+                        </div>
+                      )}
                     </div>
                     <Icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
