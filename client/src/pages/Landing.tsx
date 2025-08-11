@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Quote, Users, DollarSign, CheckCircle, RotateCcw, Mail, BarChart3 } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useLocation } from 'wouter';
 export const Landing = () => {
   const { currentUser, hasAccess, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const [billingFrequency, setBillingFrequency] = useState<'monthly' | 'yearly'>('monthly');
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -209,6 +210,37 @@ export const Landing = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Simple, Transparent Pricing</h2>
             <p className="text-xl text-slate-600 dark:text-slate-300">Start with our free trial, upgrade when you're ready</p>
+            
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center mt-8 mb-8">
+              <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-sm">
+                <button 
+                  onClick={() => setBillingFrequency('monthly')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    billingFrequency === 'monthly' 
+                      ? 'bg-primary text-white' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button 
+                  onClick={() => setBillingFrequency('yearly')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    billingFrequency === 'yearly' 
+                      ? 'bg-primary text-white' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Yearly
+                </button>
+              </div>
+              <div className="ml-3 text-sm">
+                <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full font-medium">
+                  Save 10%
+                </span>
+              </div>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -237,7 +269,24 @@ export const Landing = () => {
               </div>
               <CardContent className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pro Plan</h3>
-                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">£5.99<span className="text-lg text-slate-600 dark:text-slate-400">/month</span></div>
+                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                  <span>
+                    {billingFrequency === 'monthly' ? '£5.99' : '£64.69'}
+                  </span>
+                  <span className="text-lg text-slate-600 dark:text-slate-400">
+                    /{billingFrequency === 'monthly' ? 'month' : 'year'}
+                  </span>
+                </div>
+                {billingFrequency === 'yearly' && (
+                  <div className="text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
+                    Save £7.19 per year (10% off)
+                  </div>
+                )}
+                {billingFrequency === 'monthly' && (
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    or £64.69/year (save 10%)
+                  </div>
+                )}
                 <p className="text-slate-600 dark:text-slate-300 mb-6">Everything in trial, plus unlimited usage</p>
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Everything in trial</li>

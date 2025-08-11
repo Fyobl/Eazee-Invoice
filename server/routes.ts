@@ -1766,10 +1766,12 @@ export async function setupRoutes(app: Express) {
           limit: 100
         });
         
-        let price = prices.data.find(p => p.unit_amount === 599);
+        // Look for both monthly and yearly prices
+        let monthlyPrice = prices.data.find(p => p.unit_amount === 599 && p.recurring?.interval === 'month');
+        let yearlyPrice = prices.data.find(p => p.unit_amount === 6469 && p.recurring?.interval === 'year');
         
-        if (!price) {
-          price = await stripe.prices.create({
+        if (!monthlyPrice) {
+          monthlyPrice = await stripe.prices.create({
             currency: 'gbp',
             product: product.id,
             unit_amount: 599, // £5.99 in pence
@@ -1778,6 +1780,20 @@ export async function setupRoutes(app: Express) {
             }
           });
         }
+        
+        if (!yearlyPrice) {
+          yearlyPrice = await stripe.prices.create({
+            currency: 'gbp',
+            product: product.id,
+            unit_amount: 6469, // £64.69 in pence
+            recurring: {
+              interval: 'year'
+            }
+          });
+        }
+        
+        // Use monthly price by default (this might need to be dynamic based on user selection)
+        let price = monthlyPrice;
         
         priceId = price.id;
       }
@@ -2222,7 +2238,11 @@ export async function setupRoutes(app: Express) {
   app.post('/api/create-payment-intent', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user!;
-      console.log('🔄 Creating fresh PaymentIntent for user:', user.uid);
+      const { billingFrequency = 'monthly' } = req.body;
+      console.log('🔄 Creating fresh PaymentIntent for user:', user.uid, 'billing:', billingFrequency);
+      
+      // Calculate amount based on billing frequency
+      const amount = billingFrequency === 'yearly' ? 6469 : 599; // £64.69 or £5.99 in pence
       
       // Create or get Stripe customer
       let stripeCustomerId = user.stripeCustomerId;
@@ -2243,22 +2263,25 @@ export async function setupRoutes(app: Express) {
       
       // Create PaymentIntent for subscription payment
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 599, // £5.99 in pence
+        amount,
         currency: 'gbp',
         customer: stripeCustomerId,
         setup_future_usage: 'off_session',
         metadata: {
           userId: user.uid,
-          type: 'subscription_payment'
+          type: 'subscription_payment',
+          billingFrequency
         }
       });
       
-      console.log('✅ PaymentIntent created:', paymentIntent.id);
+      console.log('✅ PaymentIntent created:', paymentIntent.id, 'amount:', amount, 'pence');
       console.log('🔑 Client secret (first 30 chars):', paymentIntent.client_secret?.substring(0, 30));
       
       res.json({
         clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id
+        paymentIntentId: paymentIntent.id,
+        amount,
+        billingFrequency
       });
     } catch (error) {
       console.error('❌ Error creating payment intent:', error);

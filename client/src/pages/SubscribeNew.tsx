@@ -11,7 +11,7 @@ import { CheckCircle, Star } from 'lucide-react';
 // Fresh Stripe initialization - using live keys
 const stripePromise = loadStripe('pk_live_51RlU9WJfs8qCR8mtjprd7cMgGSOTXQgkOdoNIIyhH26RofzXQUkiHVKh8TjaGvpk4xcH8iZb9PHMYDUGQs2z18jN00Pg9lqxKK');
 
-const PaymentForm = ({ clientSecret, paymentIntentId }: { clientSecret: string; paymentIntentId: string }) => {
+const PaymentForm = ({ clientSecret, paymentIntentId, billingFrequency }: { clientSecret: string; paymentIntentId: string; billingFrequency: 'monthly' | 'yearly' }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +88,7 @@ const PaymentForm = ({ clientSecret, paymentIntentId }: { clientSecret: string; 
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
       <Button type="submit" disabled={!stripe || isLoading} className="w-full" size="lg">
-        {isLoading ? 'Processing...' : 'Subscribe - £5.99/month'}
+{isLoading ? 'Processing...' : `Subscribe - ${billingFrequency === 'monthly' ? '£5.99/month' : '£64.69/year'}`}
       </Button>
       {currentUser?.isAdmin && (
         <Button type="button" onClick={handleAdminTest} variant="outline" className="w-full">
@@ -104,6 +104,7 @@ export default function SubscribeNew() {
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [billingFrequency, setBillingFrequency] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     if (currentUser) {
@@ -112,13 +113,14 @@ export default function SubscribeNew() {
       // Stop loading if no user is authenticated
       setIsLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, billingFrequency]); // Re-create payment intent when billing frequency changes
 
   const createPaymentIntent = async () => {
     try {
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ billingFrequency })
       });
       const data = await response.json();
       setClientSecret(data.clientSecret);
@@ -208,14 +210,54 @@ export default function SubscribeNew() {
             <CardHeader>
               <CardTitle>Start Your Subscription</CardTitle>
               <CardDescription>
-                <span className="text-2xl font-bold text-green-600">£5.99/month</span>
-                <span className="text-gray-500 ml-2">• Cancel anytime</span>
+                {/* Billing Toggle */}
+                <div className="flex items-center justify-center mb-6">
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-lg p-1 shadow-sm">
+                    <button 
+                      onClick={() => setBillingFrequency('monthly')}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        billingFrequency === 'monthly' 
+                          ? 'bg-primary text-white' 
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button 
+                      onClick={() => setBillingFrequency('yearly')}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        billingFrequency === 'yearly' 
+                          ? 'bg-primary text-white' 
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Yearly
+                    </button>
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full font-medium">
+                      Save 10%
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-green-600">
+                    {billingFrequency === 'monthly' ? '£5.99/month' : '£64.69/year'}
+                  </span>
+                  <span className="text-gray-500 ml-2">• Cancel anytime</span>
+                  {billingFrequency === 'yearly' && (
+                    <div className="text-sm text-green-600 mt-2">
+                      Save £7.19 per year (10% off monthly)
+                    </div>
+                  )}
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
               {clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <PaymentForm clientSecret={clientSecret} paymentIntentId={paymentIntentId} />
+                  <PaymentForm clientSecret={clientSecret} paymentIntentId={paymentIntentId} billingFrequency={billingFrequency} />
                 </Elements>
               ) : (
                 <div className="text-center py-8">
