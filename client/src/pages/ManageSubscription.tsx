@@ -193,7 +193,7 @@ export default function ManageSubscription() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Monthly Cost:</span>
               <span className="text-sm font-semibold">
-                {user.isAdminGrantedSubscription ? "Free" : "£19.99"}
+                {user.isAdminGrantedSubscription ? "Free" : "£5.99"}
               </span>
             </div>
 

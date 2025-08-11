@@ -80,7 +80,7 @@ Once you've added your chosen service secrets:
 
 When someone subscribes, you'll receive:
 - **Title**: "🎉 New Subscription!"
-- **Message**: "[Customer Name] ([email]) just subscribed for £19.99/month"
+- **Message**: "[Customer Name] ([email]) just subscribed for £5.99/month"
 - **Time**: UK time zone
 - **Sound**: Special notification sound (Pushover)
 

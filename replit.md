@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 - **Technical Implementations**: Automatic restart for database connection failures, database health monitoring, exponential backoff retry, and global error handling with specific solutions for Replit environment issues.
 
 ### Core Features
-- **User & Subscription Management**: 7-day trial system, flag-based access control, admin panel for full user lifecycle management (creation, suspension, subscription granting, permanent subscription, deletion). Integrated Stripe for monthly billing (£19.99/month GBP) with webhook support.
+- **User & Subscription Management**: 7-day trial system, flag-based access control, admin panel for full user lifecycle management (creation, suspension, subscription granting, permanent subscription, deletion). Integrated Stripe for monthly billing (£5.99/month GBP) with webhook support.
 - **Document Management**: Creation, tracking, and management of invoices, quotes, and statements. Features include HTML-to-PDF export, soft deletion with recovery, status management (e.g., Invoices: Unpaid, Paid, Overdue), quote-to-invoice conversion, and immutable statement snapshots.
 - **Customer & Product Management**: Comprehensive profiles and catalogs with pricing and tax rates. Supports CSV import/export for bulk data and searchable selection in forms.
 - **Reporting**: Business reports including VAT, Top Customers, Best Sellers, and Period Takings, all with PDF export and customizable date ranges.

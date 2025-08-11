@@ -108,7 +108,7 @@ export const Landing = () => {
             </div>
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                7-day free trial • Then £19.99/month • Cancel anytime
+                7-day free trial • Then £5.99/month • Cancel anytime
               </p>
             </div>
           </div>
@@ -237,7 +237,7 @@ export const Landing = () => {
               </div>
               <CardContent className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pro Plan</h3>
-                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">£19.99<span className="text-lg text-slate-600 dark:text-slate-400">/month</span></div>
+                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">£5.99<span className="text-lg text-slate-600 dark:text-slate-400">/month</span></div>
                 <p className="text-slate-600 dark:text-slate-300 mb-6">Everything in trial, plus unlimited usage</p>
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Everything in trial</li>

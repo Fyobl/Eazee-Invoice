@@ -88,7 +88,7 @@ const PaymentForm = ({ clientSecret, paymentIntentId }: { clientSecret: string; 
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
       <Button type="submit" disabled={!stripe || isLoading} className="w-full" size="lg">
-        {isLoading ? 'Processing...' : 'Subscribe - £19.99/month'}
+        {isLoading ? 'Processing...' : 'Subscribe - £5.99/month'}
       </Button>
       {currentUser?.isAdmin && (
         <Button type="button" onClick={handleAdminTest} variant="outline" className="w-full">
@@ -208,7 +208,7 @@ export default function SubscribeNew() {
             <CardHeader>
               <CardTitle>Start Your Subscription</CardTitle>
               <CardDescription>
-                <span className="text-2xl font-bold text-green-600">£19.99/month</span>
+                <span className="text-2xl font-bold text-green-600">£5.99/month</span>
                 <span className="text-gray-500 ml-2">• Cancel anytime</span>
               </CardDescription>
             </CardHeader>

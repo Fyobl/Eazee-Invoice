@@ -159,7 +159,7 @@ export const TermsOfService = () => {
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Subscription Plans</h4>
                   <p className="text-slate-600 dark:text-slate-300">
-                    After the trial period, continued use requires a paid subscription at £19.99 per month. 
+                    After the trial period, continued use requires a paid subscription at £5.99 per month. 
                     Billing is processed monthly through Stripe, our payment processor.
                   </p>
                 </div>
