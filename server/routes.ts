@@ -278,7 +278,7 @@ export async function setupRoutes(app: Express) {
       const user = await storage.registerUser(email, password, firstName, lastName, companyName, country);
       
       // Create session
-      req.session.userId = parseInt(user.uid);
+      req.session.userId = user.id;
       
       res.json({ user: { ...user, passwordHash: undefined } });
     } catch (error) {
