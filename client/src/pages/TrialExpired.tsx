@@ -45,7 +45,7 @@ export const TrialExpired = () => {
 
             <div className="space-y-3">
               <Button className="w-full" size="lg" onClick={handleSubscribe}>
-                Upgrade to Pro - £19.99/month
+                Upgrade to Pro - £5.99/month
               </Button>
               
               <Button 

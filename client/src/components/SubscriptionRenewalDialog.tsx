@@ -78,7 +78,7 @@ export const SubscriptionRenewalDialog = ({ open, onClose }: SubscriptionRenewal
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-center">
-              <span className="text-2xl font-bold">£19.99</span>
+              <span className="text-2xl font-bold">£5.99</span>
               <span className="text-slate-600 dark:text-slate-400">/month</span>
             </div>
             

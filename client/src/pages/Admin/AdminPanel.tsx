@@ -1064,7 +1064,7 @@ export const AdminPanel = () => {
                       <li>Headers: name, description, unitPrice, taxRate, category</li>
                       <li>All fields are required</li>
                       <li>unitPrice and taxRate must be numbers</li>
-                      <li>Use decimal format (e.g., 19.99)</li>
+                      <li>Use decimal format (e.g., 5.99)</li>
                     </ul>
                   )}
                 </div>

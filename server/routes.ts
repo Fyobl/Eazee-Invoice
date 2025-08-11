@@ -1766,13 +1766,13 @@ export async function setupRoutes(app: Express) {
           limit: 100
         });
         
-        let price = prices.data.find(p => p.unit_amount === 1999);
+        let price = prices.data.find(p => p.unit_amount === 599);
         
         if (!price) {
           price = await stripe.prices.create({
             currency: 'gbp',
             product: product.id,
-            unit_amount: 1999, // £19.99 in pence
+            unit_amount: 599, // £5.99 in pence
             recurring: {
               interval: 'month'
             }
@@ -1964,7 +1964,7 @@ export async function setupRoutes(app: Express) {
           const customerName = newCustomer.name || 'Unknown Customer';
           const customerEmail = newCustomer.email || 'No email';
           const amount = newSubscription.items.data[0]?.price?.unit_amount ? 
-            (newSubscription.items.data[0].price.unit_amount / 100) : 19.99;
+            (newSubscription.items.data[0].price.unit_amount / 100) : 5.99;
           const currency = newSubscription.items.data[0]?.price?.currency?.toUpperCase() || 'GBP';
           
           // Send notification in background (don't block webhook response)
@@ -2243,7 +2243,7 @@ export async function setupRoutes(app: Express) {
       
       // Create PaymentIntent for subscription payment
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 1999, // £19.99 in pence
+        amount: 599, // £5.99 in pence
         currency: 'gbp',
         customer: stripeCustomerId,
         setup_future_usage: 'off_session',

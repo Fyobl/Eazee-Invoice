@@ -151,7 +151,7 @@ export async function sendTestNotification() {
   return sendSubscriptionNotification(
     'test@example.com',
     'Test User',
-    19.99,
+    5.99,
     'GBP'
   );
 }
