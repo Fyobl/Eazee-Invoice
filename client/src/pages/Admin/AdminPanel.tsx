@@ -392,14 +392,14 @@ export const AdminPanel = () => {
 
   // Test notification mutation
   const testNotificationMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/test-notification');
+    mutationFn: async (billingFrequency: 'monthly' | 'yearly') => {
+      const response = await apiRequest('POST', '/api/test-notification', { billingFrequency });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ 
         title: 'Test notification sent!', 
-        description: 'Check your phone for the notification'
+        description: data.message || 'Check your phone for the notification'
       });
     },
     onError: (error: any) => {
@@ -410,9 +410,9 @@ export const AdminPanel = () => {
     }
   });
 
-  const handleTestNotification = () => {
+  const handleTestNotification = (billingFrequency: 'monthly' | 'yearly') => {
     setIsTestingNotification(true);
-    testNotificationMutation.mutate();
+    testNotificationMutation.mutate(billingFrequency);
     setTimeout(() => setIsTestingNotification(false), 2000);
   };
 
@@ -580,16 +580,28 @@ export const AdminPanel = () => {
                     Test phone notifications for new subscriptions
                   </p>
                 </div>
-                <Button
-                  onClick={handleTestNotification}
-                  disabled={isTestingNotification || testNotificationMutation.isPending}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  {isTestingNotification ? 'Sending...' : 'Test Notification'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleTestNotification('monthly')}
+                    disabled={isTestingNotification || testNotificationMutation.isPending}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {isTestingNotification ? 'Sending...' : 'Test Monthly'}
+                  </Button>
+                  <Button
+                    onClick={() => handleTestNotification('yearly')}
+                    disabled={isTestingNotification || testNotificationMutation.isPending}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {isTestingNotification ? 'Sending...' : 'Test Yearly'}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

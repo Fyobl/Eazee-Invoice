@@ -85,10 +85,12 @@ export async function sendSubscriptionNotification(
   customerEmail: string,
   customerName: string,
   subscriptionAmount: number,
-  currency: string = 'GBP'
+  currency: string = 'GBP',
+  billingFrequency: string = 'monthly'
 ) {
   const title = '🎉 New Subscription!';
-  const message = `${customerName} (${customerEmail}) just subscribed for ${currency === 'GBP' ? '£' : '$'}${subscriptionAmount}/month`;
+  const frequencyText = billingFrequency === 'yearly' ? '/year' : '/month';
+  const message = `${customerName} (${customerEmail}) just subscribed for ${currency === 'GBP' ? '£' : '$'}${subscriptionAmount}${frequencyText}`;
   
   // Send notifications based on available environment variables
   const notifications = [];
@@ -147,11 +149,15 @@ export async function sendSubscriptionNotification(
 }
 
 // Test notification function for setup verification
-export async function sendTestNotification() {
+export async function sendTestNotification(billingFrequency: 'monthly' | 'yearly' = 'monthly') {
+  const amount = billingFrequency === 'monthly' ? 5.99 : 64.69;
+  const frequency = billingFrequency === 'monthly' ? 'monthly' : 'yearly';
+  
   return sendSubscriptionNotification(
     'test@example.com',
     'Test User',
-    5.99,
-    'GBP'
+    amount,
+    'GBP',
+    frequency
   );
 }

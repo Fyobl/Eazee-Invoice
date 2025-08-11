@@ -2053,9 +2053,10 @@ export async function setupRoutes(app: Express) {
   // Test notification endpoint (admin only)
   app.post('/api/test-notification', requireAuth, requireAdmin, async (req, res) => {
     try {
+      const { billingFrequency = 'monthly' } = req.body;
       const { sendTestNotification } = await import('./pushNotifications');
-      await sendTestNotification();
-      res.json({ success: true, message: 'Test notification sent successfully' });
+      await sendTestNotification(billingFrequency);
+      res.json({ success: true, message: `Test notification sent successfully (${billingFrequency} billing)` });
     } catch (error) {
       console.error('Test notification failed:', error);
       res.status(500).json({ error: 'Failed to send test notification' });
