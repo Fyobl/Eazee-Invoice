@@ -109,7 +109,7 @@ export const Landing = () => {
             </div>
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                7-day free trial • Then £5.99/month • Cancel anytime
+                7-day free trial • Then £5.99/month or £64.69/year • Cancel anytime
               </p>
             </div>
           </div>
