@@ -212,37 +212,6 @@ export const Landing = () => {
             <p className="text-xl text-slate-600 dark:text-slate-300 mb-8">Start with our free trial, upgrade when you're ready</p>
           </div>
           
-          {/* Billing Toggle - Moved here per user request */}
-          <div className="flex items-center justify-center mb-12">
-            <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-lg border">
-              <button 
-                onClick={() => setBillingFrequency('monthly')}
-                className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
-                  billingFrequency === 'monthly' 
-                    ? 'bg-primary text-white' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                Monthly
-              </button>
-              <button 
-                onClick={() => setBillingFrequency('yearly')}
-                className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
-                  billingFrequency === 'yearly' 
-                    ? 'bg-primary text-white' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                Yearly
-              </button>
-            </div>
-            <div className="ml-4 text-sm">
-              <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200 px-3 py-1 rounded-full font-medium">
-                Save 10%
-              </span>
-            </div>
-          </div>
-          
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="border-2 border-primary/20">
               <CardContent className="p-8 text-center">
@@ -268,7 +237,41 @@ export const Landing = () => {
                 <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">Most Popular</span>
               </div>
               <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pro Plan</h3>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Pro Plan</h3>
+                
+                {/* Billing Toggle inside Pro Plan box */}
+                <div className="flex items-center justify-center mb-6">
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    <button 
+                      onClick={() => setBillingFrequency('monthly')}
+                      className={`px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                        billingFrequency === 'monthly' 
+                          ? 'bg-primary text-white' 
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button 
+                      onClick={() => setBillingFrequency('yearly')}
+                      className={`px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                        billingFrequency === 'yearly' 
+                          ? 'bg-primary text-white' 
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Yearly
+                    </button>
+                  </div>
+                  {billingFrequency === 'yearly' && (
+                    <div className="ml-2 text-xs">
+                      <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200 px-2 py-1 rounded-full font-medium">
+                        Save 10%
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
                   <span>
                     {billingFrequency === 'monthly' ? '£5.99' : '£64.69'}
