@@ -234,11 +234,15 @@ export const AdminPanel = () => {
   const activeTrials = users?.filter((user: any) => !user.isSubscriber && !user.isSuspended).length || 0;
   const subscribers = users?.filter((user: any) => user.isSubscriber).length || 0;
   const suspendedUsers = users?.filter((user: any) => user.isSuspended).length || 0;
-  // Calculate revenue estimates based on current pricing
+  
+  // Calculate paying subscribers (exclude admin-granted free subscriptions)
+  const payingSubscribers = users?.filter((user: any) => user.isSubscriber && !user.isAdminGrantedSubscription).length || 0;
+  
+  // Calculate revenue estimates based on current pricing for paying subscribers only
   // Monthly: £5.99/month, Annual: £64.69/year (£5.39/month equivalent)
   // Since we can't distinguish between monthly/yearly subscribers, show both scenarios
-  const monthlyOnlyRevenue = subscribers * 5.99; // All monthly subscribers
-  const averageRevenue = subscribers * 5.69; // Blended estimate (50% monthly £5.99 + 50% yearly £5.39)
+  const monthlyOnlyRevenue = payingSubscribers * 5.99; // All monthly subscribers
+  const averageRevenue = payingSubscribers * 5.69; // Blended estimate (50% monthly £5.99 + 50% yearly £5.39)
 
   const handleGrantSubscription = async (user: any) => {
     setSelectedUser(user);
@@ -650,9 +654,10 @@ export const AdminPanel = () => {
                       <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{stat.value}</p>
                       {stat.title === 'Monthly Revenue (Est.)' && (
                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 space-y-1">
+                          <div>Paying Subscribers: {payingSubscribers}</div>
                           <div>All Monthly (£5.99): £{monthlyOnlyRevenue.toFixed(2)}</div>
                           <div>50/50 Split: £{averageRevenue.toFixed(2)}</div>
-                          <div className="text-xs opacity-75">*Annual = £5.39/month</div>
+                          <div className="text-xs opacity-75">*Excludes admin-granted free subscriptions</div>
                         </div>
                       )}
                     </div>
