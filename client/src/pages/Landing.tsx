@@ -209,37 +209,37 @@ export const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-slate-600 dark:text-slate-300">Start with our free trial, upgrade when you're ready</p>
-            
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center mt-8 mb-8">
-              <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-sm">
-                <button 
-                  onClick={() => setBillingFrequency('monthly')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    billingFrequency === 'monthly' 
-                      ? 'bg-primary text-white' 
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button 
-                  onClick={() => setBillingFrequency('yearly')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    billingFrequency === 'yearly' 
-                      ? 'bg-primary text-white' 
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Yearly
-                </button>
-              </div>
-              <div className="ml-3 text-sm">
-                <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full font-medium">
-                  Save 10%
-                </span>
-              </div>
+            <p className="text-xl text-slate-600 dark:text-slate-300 mb-8">Start with our free trial, upgrade when you're ready</p>
+          </div>
+          
+          {/* Billing Toggle - Moved here per user request */}
+          <div className="flex items-center justify-center mb-12">
+            <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-lg border">
+              <button 
+                onClick={() => setBillingFrequency('monthly')}
+                className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
+                  billingFrequency === 'monthly' 
+                    ? 'bg-primary text-white' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Monthly
+              </button>
+              <button 
+                onClick={() => setBillingFrequency('yearly')}
+                className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
+                  billingFrequency === 'yearly' 
+                    ? 'bg-primary text-white' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Yearly
+              </button>
+            </div>
+            <div className="ml-4 text-sm">
+              <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200 px-3 py-1 rounded-full font-medium">
+                Save 10%
+              </span>
             </div>
           </div>
           
