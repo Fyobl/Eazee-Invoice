@@ -49,6 +49,7 @@ Preferred communication style: Simple, everyday language.
 - Fixed session persistence issue causing login redirection failures.
 - Corrected PDF payment details formatting to eliminate spacing gaps (August 2025).
 - Added comprehensive onboarding system with progress tracking and guided setup checklist (August 2025).
+- Fixed critical session bug where new user registration used parseInt(UUID) causing invalid sessions and trial expired screen for new users (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
