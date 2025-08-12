@@ -220,10 +220,10 @@ export const generateEmailHTML = (
     <div class="footer">
       <div class="signature">
         <p><strong>Best regards,</strong></p>
-        <p>${user.companyName || user.displayName || 'Your Company'}</p>
+        <p>${user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company'}</p>
       </div>
       <p>This email was sent from your professional invoicing system.</p>
-      <p>© ${new Date().getFullYear()} ${user.companyName || 'Your Company'}. All rights reserved.</p>
+      <p>© ${new Date().getFullYear()} ${user.companyName || user.displayName || 'Your Company'}. All rights reserved.</p>
     </div>
   </div>
 </body>
