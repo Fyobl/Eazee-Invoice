@@ -107,7 +107,7 @@ export const generateInvoiceEmail = (invoice: Invoice, customer: Customer, user:
     const variables = {
       invoiceNumber: invoice.number,
       customerName: customer.name,
-      companyName: user.companyName || 'Your Company',
+      companyName: user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company',
       issueDate: new Date(invoice.date).toLocaleDateString('en-GB'),
       dueDate: new Date(invoice.dueDate).toLocaleDateString('en-GB'),
       total: formatCurrency(invoice.total, user.currency || 'GBP'),
@@ -145,7 +145,7 @@ export const generateQuoteEmail = (quote: Quote, customer: Customer, user: User)
     const variables = {
       quoteNumber: quote.number,
       customerName: customer.name,
-      companyName: user.companyName || 'Your Company',
+      companyName: user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company',
       issueDate: new Date(quote.date).toLocaleDateString('en-GB'),
       validUntil: validUntil.toLocaleDateString('en-GB'),
       total: formatCurrency(quote.total, user.currency || 'GBP'),
@@ -169,7 +169,7 @@ export const generateStatementEmail = (statement: Statement, customer: Customer,
   
   const variables = {
     customerName: customer.name,
-    companyName: user.companyName || 'Your Company',
+    companyName: user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company',
     statementPeriod: `${new Date(statement.startDate).toLocaleDateString('en-GB')} - ${new Date(statement.endDate).toLocaleDateString('en-GB')}`,
   };
 
