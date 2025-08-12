@@ -395,10 +395,11 @@ export async function setupRoutes(app: Express) {
       ...freshUser,
       passwordHash: undefined,
       // Explicitly map critical fields to ensure they're available
-      companyName: freshUser.companyName || freshUser.company_name,
-      companyAddress: freshUser.companyAddress || freshUser.company_address,
-      isEmailVerified: freshUser.isEmailVerified || freshUser.is_email_verified,
-      senderEmail: freshUser.senderEmail || freshUser.sender_email
+      companyName: freshUser.companyName || (freshUser as any).company_name,
+      companyAddress: freshUser.companyAddress || (freshUser as any).company_address,
+      isEmailVerified: freshUser.isEmailVerified || (freshUser as any).is_email_verified,
+      senderEmail: freshUser.senderEmail || (freshUser as any).sender_email,
+      emailVerificationStatus: freshUser.emailVerificationStatus || (freshUser as any).email_verification_status
     };
     
     console.log('🔍 Raw user data from storage:', {
