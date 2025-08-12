@@ -47,7 +47,7 @@ export const Landing = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-slate-900 dark:bg-gray-900 shadow-sm border-b border-slate-700 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
@@ -60,10 +60,10 @@ export const Landing = () => {
             <div className="flex items-center space-x-4">
               <ThemeToggle />
               <Link href="/login">
-                <Button variant="ghost">Login</Button>
+                <Button variant="ghost" className="text-white hover:text-white hover:bg-slate-800">Login</Button>
               </Link>
               <Link href="/register">
-                <Button>Sign Up</Button>
+                <Button className="bg-primary hover:bg-primary/90 text-white">Sign Up</Button>
               </Link>
             </div>
           </div>
