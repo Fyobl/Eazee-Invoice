@@ -94,9 +94,23 @@ export const generateEmailHTML = (
   bodyContent: string,
   user: User
 ): string => {
-  const logoHtml = user.companyLogo 
-    ? `<img src="${user.companyLogo}" alt="${user.companyName}" style="max-height: 60px; margin-bottom: 15px;" />`
+  console.log('🖼️ Email template debug - Company Logo:', user.companyLogo);
+  console.log('🏢 Email template debug - Company Name:', user.companyName);
+  
+  // Convert relative logo paths to full URLs for email compatibility
+  let logoUrl = user.companyLogo;
+  if (logoUrl && logoUrl.startsWith('/')) {
+    // Convert relative path to full URL
+    const baseUrl = process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS}` : 'http://localhost:5000';
+    logoUrl = `${baseUrl}${logoUrl}`;
+  }
+  
+  const logoHtml = logoUrl 
+    ? `<img src="${logoUrl}" alt="" style="max-height: 60px; margin-bottom: 15px; display: block;" onerror="this.style.display='none'" />`
     : '';
+  
+  console.log('🔗 Logo URL (processed):', logoUrl);
+  console.log('🔗 Logo HTML:', logoHtml);
 
   return `
 <!DOCTYPE html>

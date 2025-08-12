@@ -405,7 +405,8 @@ export async function setupRoutes(app: Express) {
       companyName: userResponse.companyName,
       companyAddress: userResponse.companyAddress,
       isEmailVerified: userResponse.isEmailVerified,
-      senderEmail: userResponse.senderEmail
+      senderEmail: userResponse.senderEmail,
+      companyLogo: userResponse.companyLogo
     });
     
     // Disable caching to ensure fresh data
