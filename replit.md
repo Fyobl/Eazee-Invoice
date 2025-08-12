@@ -58,6 +58,7 @@ Preferred communication style: Simple, everyday language.
 - Updated landing page to clearly highlight PDF watermarking difference between trial and pro plans (August 2025).
 - Fixed PDF watermark positioning to ensure "TRIAL VERSION" text is fully visible and properly centered (August 2025).
 - CRITICAL SECURITY FIX: Resolved data leakage between user sessions caused by localStorage and TanStack Query cache persistence. Implemented comprehensive cache clearing on login/logout while preserving login convenience features (August 2025).
+- Fixed login navigation and remember me functionality: Resolved navigation failures after login, implemented proper email persistence across sessions while maintaining security by not storing passwords, and added professional loading screen with animated spinner to replace white screen during authentication transitions (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
