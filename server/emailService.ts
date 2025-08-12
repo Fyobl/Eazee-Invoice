@@ -258,6 +258,7 @@ export async function sendWelcomeEmail(email: string, firstName: string, company
           <ol style="font-size: 16px; line-height: 1.8;">
             <li><strong>Set up your company profile</strong> - Add your logo and business details</li>
             <li><strong>Add your first customer</strong> - Import from CSV or add manually</li>
+            <li><strong>Create your products/services</strong> - Essential for building invoices and quotes</li>
             <li><strong>Create your first invoice</strong> - Use our intuitive invoice builder</li>
             <li><strong>Get paid faster</strong> - Email professional invoices to customers</li>
           </ol>
@@ -316,8 +317,9 @@ SIMPLE PRICING:
 GETTING STARTED:
 1. Set up your company profile - Add your logo and business details
 2. Add your first customer - Import from CSV or add manually
-3. Create your first invoice - Use our intuitive invoice builder
-4. Get paid faster - Email professional invoices to customers
+3. Create your products/services - Essential for building invoices and quotes
+4. Create your first invoice - Use our intuitive invoice builder
+5. Get paid faster - Email professional invoices to customers
 
 Access your dashboard: ${loginUrl}
 
