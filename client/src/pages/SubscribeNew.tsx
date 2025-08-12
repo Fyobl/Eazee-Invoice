@@ -88,14 +88,11 @@ const PaymentForm = ({ clientSecret, paymentIntentId, billingFrequency }: { clie
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement 
         options={{
-          wallets: {
-            applePay: 'auto',
-            googlePay: 'auto'
-          }
+          layout: 'tabs'
         }}
       />
       <div className="text-sm text-gray-600 text-center">
-        <p>💳 Pay with card, Apple Pay, or Google Pay</p>
+        <p>💳 Secure payment powered by Stripe</p>
       </div>
       <Button type="submit" disabled={!stripe || isLoading} className="w-full" size="lg">
 {isLoading ? 'Processing...' : `Subscribe - ${billingFrequency === 'monthly' ? '£5.99/month' : '£64.69/year'}`}
