@@ -26,7 +26,7 @@ Preferred communication style: Simple, everyday language.
 - **Document Management**: Creation, tracking, and management of invoices, quotes, and statements. Features include HTML-to-PDF export, soft deletion with recovery, status management (e.g., Invoices: Unpaid, Paid, Overdue), quote-to-invoice conversion, and immutable statement snapshots.
 - **Customer & Product Management**: Comprehensive profiles and catalogs with pricing and tax rates. Supports CSV import/export for bulk data and searchable selection in forms.
 - **Reporting**: Business reports including VAT, Top Customers, Best Sellers, and Period Takings, all with PDF export and customizable date ranges.
-- **Email Integration**: Ability to email documents (PDFs generated and attached), pre-fill email clients, and customizable templates. Password reset functionality via Brevo using secure token-based verification.
+- **Email Integration**: Ability to email documents (PDFs generated and attached), pre-fill email clients, and customizable templates. Password reset functionality via Brevo using secure token-based verification. Automated welcome emails for new user registration with comprehensive platform information.
 - **Company Branding**: Per-user branding (logo, name, address) on all generated documents and emails.
 - **Dashboard**: Redesigned 2x3 grid with welcome message and local weather integration.
 - **Help Page**: Comprehensive help page with instructions, diagrams, demos, and feature highlights.
@@ -51,6 +51,8 @@ Preferred communication style: Simple, everyday language.
 - Added comprehensive onboarding system with progress tracking and guided setup checklist (August 2025).
 - Fixed critical session bug where new user registration used parseInt(UUID) causing invalid sessions and trial expired screen for new users (August 2025).
 - Resolved critical data connectivity issue where users couldn't access their invoices, quotes, products, or customers due to session handling problems (August 2025).
+- Implemented PDF watermarking system for trial users with "TRIAL VERSION" overlay, while subscribers get clean PDFs (August 2025).
+- Added comprehensive welcome email automation for new registrations with detailed platform information, feature explanations, and getting started guidance (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.

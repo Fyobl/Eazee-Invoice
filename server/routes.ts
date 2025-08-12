@@ -6,7 +6,7 @@ import multer from "multer";
 import Papa from "papaparse";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { sendPasswordResetEmail } from "./emailService";
+import { sendPasswordResetEmail, sendWelcomeEmail } from "./emailService";
 import { sendSubscriptionNotification } from "./pushNotifications";
 import * as geoip from 'geoip-lite';
 import bcrypt from "bcrypt";
@@ -276,6 +276,14 @@ export async function setupRoutes(app: Express) {
       const country = getUserCountryFromIP(req);
       
       const user = await storage.registerUser(email, password, firstName, lastName, companyName, country);
+      
+      // Send welcome email (don't block registration if email fails)
+      try {
+        await sendWelcomeEmail(email, firstName, companyName);
+        console.log(`Welcome email sent successfully to ${email}`);
+      } catch (emailError) {
+        console.error('Welcome email failed (registration continued):', emailError);
+      }
       
       // Create session
       req.session.userId = user.id;
