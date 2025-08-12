@@ -401,6 +401,15 @@ export async function setupRoutes(app: Express) {
       senderEmail: freshUser.senderEmail || freshUser.sender_email
     };
     
+    console.log('🔍 Raw user data from storage:', {
+      companyName: freshUser.companyName,
+      company_name: freshUser.company_name,
+      isEmailVerified: freshUser.isEmailVerified,
+      is_email_verified: freshUser.is_email_verified,
+      senderEmail: freshUser.senderEmail,
+      sender_email: freshUser.sender_email
+    });
+    
     console.log('🔍 Mapped user response:', {
       companyName: userResponse.companyName,
       companyAddress: userResponse.companyAddress,
