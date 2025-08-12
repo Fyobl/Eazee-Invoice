@@ -21,6 +21,17 @@ export const useEmailSetup = () => {
   const hasCompanyDetails = Boolean(user?.companyName && user?.companyAddress);
   const hasEmailSetup = Boolean(user?.isEmailVerified && user?.senderEmail);
   const isEmailSetupComplete = hasCompanyDetails && hasEmailSetup;
+  
+  // Debug logging to check values
+  console.log('🔍 Email setup validation:', {
+    companyName: user?.companyName,
+    companyAddress: user?.companyAddress,
+    isEmailVerified: user?.isEmailVerified,
+    senderEmail: user?.senderEmail,
+    hasCompanyDetails,
+    hasEmailSetup,
+    isEmailSetupComplete
+  });
 
   const showEmailSetupModal = () => {
     if (!isEmailSetupComplete) {
