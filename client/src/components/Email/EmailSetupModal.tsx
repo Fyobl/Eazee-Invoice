@@ -1,21 +1,13 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Mail, AlertTriangle, Info, Send } from 'lucide-react';
-
-const autoEmailSetupSchema = z.object({
-  senderEmail: z.string().email('Please enter a valid email address'),
-});
-
-type AutoEmailSetupForm = z.infer<typeof autoEmailSetupSchema>;
+import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface EmailSetupModalProps {
   isOpen: boolean;
@@ -24,150 +16,216 @@ interface EmailSetupModalProps {
 }
 
 export const EmailSetupModal = ({ isOpen, onClose, onComplete }: EmailSetupModalProps) => {
+  const [step, setStep] = useState<'setup' | 'verify' | 'complete'>('setup');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get user data
+  // Get current user data
   const { data: user } = useQuery({
     queryKey: ['/api/me'],
   });
 
-  const form = useForm<AutoEmailSetupForm>({
-    resolver: zodResolver(autoEmailSetupSchema),
-    defaultValues: {
-      senderEmail: user?.senderEmail || user?.email || '',
-    },
-  });
+  // Check if company details are missing
+  const hasCompanyDetails = Boolean(user?.companyName && user?.companyAddress);
 
-  // Auto email setup mutation
-  const setupAutoEmailMutation = useMutation({
-    mutationFn: async (data: AutoEmailSetupForm) => {
-      const response = await apiRequest('POST', '/api/setup-auto-email', data);
+  // Setup email mutation
+  const setupEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await apiRequest('POST', '/api/setup-auto-email', {
+        senderEmail: email
+      });
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Email Setup Initiated",
-        description: "Check your email for a verification message from Brevo to complete the setup.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      onComplete();
+    onSuccess: (data) => {
+      if (data.requiresOtp) {
+        setStep('verify');
+        toast({
+          title: "Verification Email Sent",
+          description: "Check your email for a 6-digit verification code.",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
-        title: "Setup Failed", 
-        description: error.message || "Failed to setup auto email. Please try again.",
+        title: "Setup Failed",
+        description: error.message || "Failed to setup email. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = async (data: AutoEmailSetupForm) => {
-    setupAutoEmailMutation.mutate(data);
+  // Verify OTP mutation
+  const verifyOtpMutation = useMutation({
+    mutationFn: async (otpCode: string) => {
+      const response = await apiRequest('POST', '/api/verify-sender-otp', {
+        otp: otpCode
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setStep('complete');
+      // Refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      
+      toast({
+        title: "Email Verified!",
+        description: "You can now send professional emails with PDF attachments.",
+      });
+      
+      setTimeout(() => {
+        onComplete();
+        handleClose();
+      }, 2000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Invalid verification code. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSetupEmail = () => {
+    if (!senderEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setupEmailMutation.mutate(senderEmail);
   };
 
-  const hasCompanyDetails = user?.companyName && user?.companyAddress;
+  const handleVerifyOtp = () => {
+    if (!otp || !/^\d{6}$/.test(otp)) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the 6-digit verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    verifyOtpMutation.mutate(otp);
+  };
+
+  const handleClose = () => {
+    setStep('setup');
+    setSenderEmail('');
+    setOtp('');
+    onClose();
+  };
+
+  const handleSkip = () => {
+    toast({
+      title: "Setup Skipped",
+      description: "You can setup email sending later in the Email Settings page.",
+    });
+    handleClose();
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
             Email Setup Required
           </DialogTitle>
           <DialogDescription>
-            To send emails with PDF attachments, you need to complete the setup process.
+            {step === 'setup' && "Set up email sending to send professional invoices directly to your customers."}
+            {step === 'verify' && "Enter the 6-digit verification code sent to your email."}
+            {step === 'complete' && "Email setup complete! You can now send emails."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {!hasCompanyDetails && (
+          {!hasCompanyDetails && step === 'setup' && (
             <Alert>
-              <AlertTriangle className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Company details missing:</strong> Please complete your company information in Settings before setting up email sending.
+                Please complete your company details in Settings before setting up email sending.
               </AlertDescription>
             </Alert>
           )}
 
-          {hasCompanyDetails && !user?.isEmailVerified && (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="senderEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Email Address</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="email"
-                          placeholder="your.email@company.com" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This email will be used to send invoices, quotes, and statements to customers.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          {step === 'setup' && hasCompanyDetails && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="sender-email">Your Business Email Address</Label>
+                <Input
+                  id="sender-email"
+                  type="email"
+                  placeholder="your@business.com"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  disabled={setupEmailMutation.isPending}
                 />
-                
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    You'll receive a verification email to confirm this address. Once verified, emails will appear to come from your business email with PDFs automatically attached.
-                  </AlertDescription>
-                </Alert>
+                <p className="text-sm text-muted-foreground">
+                  This email will appear as the sender when you email invoices to customers.
+                </p>
+              </div>
 
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    type="submit" 
-                    disabled={setupAutoEmailMutation.isPending}
-                    className="flex items-center gap-2 flex-1"
-                  >
-                    <Send className="h-4 w-4" />
-                    {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up email sending'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Form>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleSetupEmail}
+                  disabled={setupEmailMutation.isPending || !hasCompanyDetails}
+                  className="flex-1"
+                >
+                  {setupEmailMutation.isPending ? 'Setting up...' : 'Setup Email'}
+                </Button>
+                <Button variant="outline" onClick={handleSkip}>
+                  Skip
+                </Button>
+              </div>
+            </>
           )}
 
-          {hasCompanyDetails && user?.isEmailVerified && (
-            <div className="space-y-4">
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Email sending is already set up and ready to use!
-                </AlertDescription>
-              </Alert>
-              <Button onClick={onComplete} className="w-full">
-                Continue
-              </Button>
-            </div>
+          {step === 'verify' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="otp">6-Digit Verification Code</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="123456"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  disabled={verifyOtpMutation.isPending}
+                  maxLength={6}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Check your email ({senderEmail}) for the verification code.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleVerifyOtp}
+                  disabled={verifyOtpMutation.isPending || otp.length !== 6}
+                  className="flex-1"
+                >
+                  {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify Code'}
+                </Button>
+                <Button variant="outline" onClick={() => setStep('setup')}>
+                  Back
+                </Button>
+              </div>
+            </>
           )}
 
-          {!hasCompanyDetails && (
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={() => {
-                  onClose();
-                  // Navigate to settings - implement this based on your routing
-                  window.location.href = '/settings';
-                }}
-                className="flex-1"
-              >
-                Go to Settings
-              </Button>
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
+          {step === 'complete' && (
+            <div className="text-center py-4">
+              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <p className="text-lg font-medium">Email Setup Complete!</p>
+              <p className="text-sm text-muted-foreground">
+                You can now send professional emails with PDF attachments.
+              </p>
             </div>
           )}
         </div>

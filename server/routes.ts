@@ -2572,7 +2572,7 @@ export async function setupRoutes(app: Express) {
       }
 
       try {
-        // Add sender to Brevo
+        // Add sender to Brevo (verification will be done via OTP)
         const brevoResponse = await fetch('https://api.brevo.com/v3/senders', {
           method: 'POST',
           headers: {
@@ -2605,8 +2605,9 @@ export async function setupRoutes(app: Express) {
 
         res.json({ 
           success: true, 
-          message: 'Email setup initiated. Check your email for verification.',
-          verificationStatus 
+          message: 'Email setup initiated. Check your email for a 6-digit verification code, then return here to complete setup.',
+          verificationStatus,
+          requiresOtp: true
         });
 
       } catch (brevoError) {
@@ -2680,6 +2681,71 @@ export async function setupRoutes(app: Express) {
         error: 'Failed to send email',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Verify sender with OTP route
+  app.post('/api/verify-sender-otp', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { otp } = req.body;
+      const user = req.user!;
+
+      if (!otp || !/^\d{6}$/.test(otp)) {
+        return res.status(400).json({ error: 'Valid 6-digit OTP required' });
+      }
+
+      if (!user.senderEmail) {
+        return res.status(400).json({ error: 'No sender email setup found' });
+      }
+
+      // Get sender ID from Brevo
+      const sendersResponse = await fetch(`https://api.brevo.com/v3/senders?email=${user.senderEmail}`, {
+        headers: {
+          'api-key': process.env.BREVO_API_KEY || ''
+        }
+      });
+
+      if (!sendersResponse.ok) {
+        return res.status(400).json({ error: 'Sender not found in Brevo' });
+      }
+
+      const sendersData = await sendersResponse.json();
+      const sender = sendersData.senders?.find((s: any) => s.email === user.senderEmail);
+
+      if (!sender) {
+        return res.status(400).json({ error: 'Sender not found' });
+      }
+
+      // Verify the OTP
+      const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
+        method: 'PUT',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ otp })
+      });
+
+      if (verifyResponse.ok) {
+        // Update user verification status
+        await storage.updateEmailVerificationStatus(user.uid, true, 'verified');
+        
+        res.json({ 
+          success: true, 
+          message: 'Email verified successfully! You can now send emails.',
+          verified: true 
+        });
+      } else {
+        const errorData = await verifyResponse.json();
+        res.status(400).json({ 
+          error: 'Invalid verification code',
+          details: errorData.message 
+        });
+      }
+
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      res.status(500).json({ error: 'Failed to verify OTP' });
     }
   });
 
