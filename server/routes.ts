@@ -1460,12 +1460,63 @@ export async function setupRoutes(app: Express) {
       const [customersCount] = await db.select({ count: sql<number>`count(*)` }).from(customers).where(and(eq(customers.uid, uid), eq(customers.isDeleted, false)));
       const [productsCount] = await db.select({ count: sql<number>`count(*)` }).from(products).where(and(eq(products.uid, uid), eq(products.isDeleted, false)));
       
+      // Get user details including subscription and login information
+      const user = await storage.getUser(uid);
+      
+      let subscriptionInfo = null;
+      if (user && user.stripeSubscriptionId) {
+        try {
+          // Get subscription details from Stripe
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          subscriptionInfo = {
+            subscriptionDate: new Date(subscription.created * 1000).toISOString(),
+            nextBillingDate: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+            status: subscription.status,
+            billingCycle: subscription.items.data[0]?.price?.recurring?.interval || 'unknown',
+            amount: subscription.items.data[0]?.price?.unit_amount || 0,
+            currency: subscription.items.data[0]?.price?.currency || 'gbp'
+          };
+        } catch (stripeError) {
+          console.error('Error fetching Stripe subscription:', stripeError);
+          subscriptionInfo = {
+            error: 'Could not fetch subscription details from Stripe'
+          };
+        }
+      } else if (user && user.isAdminGrantedSubscription) {
+        subscriptionInfo = {
+          subscriptionDate: user.subscriptionCurrentPeriodStart || user.trialStartDate,
+          nextBillingDate: user.subscriptionCurrentPeriodEnd || null,
+          status: 'admin_granted',
+          billingCycle: 'admin_managed',
+          amount: 0,
+          currency: 'gbp'
+        };
+      }
+      
       res.json({
+        // Existing counts
         invoices: invoicesCount.count || 0,
         quotes: quotesCount.count || 0,
         statements: statementsCount.count || 0,
         customers: customersCount.count || 0,
-        products: productsCount.count || 0
+        products: productsCount.count || 0,
+        
+        // User account information
+        userDetails: {
+          email: user?.email || 'Unknown',
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
+          companyName: user?.companyName || '',
+          registrationDate: user?.trialStartDate || null,
+          lastLoginDate: user?.lastLoginDate || null,
+          isSubscriber: user?.isSubscriber || false,
+          isAdminGrantedSubscription: user?.isAdminGrantedSubscription || false,
+          isSuspended: user?.isSuspended || false,
+          country: user?.country || 'Unknown'
+        },
+        
+        // Subscription information
+        subscription: subscriptionInfo
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);

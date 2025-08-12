@@ -1269,31 +1269,157 @@ export const AdminPanel = () => {
                 </div>
               )}
               
-              {selectedUserForStats && (
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">User Details</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">Email:</span>
-                      <span className="ml-2 text-slate-900 dark:text-slate-100">{selectedUserForStats.email}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">Company:</span>
-                      <span className="ml-2 text-slate-900 dark:text-slate-100">{selectedUserForStats.companyName || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">Joined:</span>
-                      <span className="ml-2 text-slate-900 dark:text-slate-100">
-                        {new Date(selectedUserForStats.trialStartDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-600 dark:text-slate-400">Country:</span>
-                      <span className="ml-2 text-slate-900 dark:text-slate-100">
-                        {getCountryFlagForUser(selectedUserForStats)} {selectedUserForStats.country || 'N/A'}
-                      </span>
+              {userStats && selectedUserForStats && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-6">
+                  {/* Account Information */}
+                  <div>
+                    <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Account Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Registration Date</p>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {userStats.userDetails?.registrationDate 
+                              ? new Date(userStats.userDetails.registrationDate).toLocaleDateString('en-GB', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })
+                              : 'Unknown'
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Last Login</p>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {userStats.userDetails?.lastLoginDate 
+                              ? new Date(userStats.userDetails.lastLoginDate).toLocaleString('en-GB', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : 'Never logged in'
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Country</p>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {userStats.userDetails?.country || 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Email</p>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {userStats.userDetails?.email || 'Unknown'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Company</p>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {userStats.userDetails?.companyName || 'Not set'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-600 dark:text-slate-400">Account Type</p>
+                          <div className="mt-1">
+                            <Badge className={getUserStatus(selectedUserForStats).color}>
+                              {getUserStatus(selectedUserForStats).text}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Subscription Information */}
+                  {userStats.subscription && (
+                    <div>
+                      <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <Crown className="h-4 w-4" />
+                        Subscription Details
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-slate-600 dark:text-slate-400">Subscription Date</p>
+                            <p className="font-medium text-slate-900 dark:text-slate-100">
+                              {userStats.subscription.subscriptionDate 
+                                ? new Date(userStats.subscription.subscriptionDate).toLocaleDateString('en-GB', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })
+                                : 'Unknown'
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-600 dark:text-slate-400">Billing Cycle</p>
+                            <p className="font-medium text-slate-900 dark:text-slate-100 capitalize">
+                              {userStats.subscription.billingCycle === 'admin_managed' 
+                                ? 'Admin Managed' 
+                                : userStats.subscription.billingCycle
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-600 dark:text-slate-400">Status</p>
+                            <Badge variant={
+                              userStats.subscription.status === 'active' ? 'default' :
+                              userStats.subscription.status === 'admin_granted' ? 'secondary' :
+                              'destructive'
+                            }>
+                              {userStats.subscription.status === 'admin_granted' ? 'Admin Granted' : userStats.subscription.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-slate-600 dark:text-slate-400">Next Billing Date</p>
+                            <p className="font-medium text-slate-900 dark:text-slate-100">
+                              {userStats.subscription.nextBillingDate 
+                                ? new Date(userStats.subscription.nextBillingDate).toLocaleDateString('en-GB', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })
+                                : userStats.subscription.status === 'admin_granted' 
+                                  ? 'No billing (Admin managed)' 
+                                  : 'Unknown'
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-600 dark:text-slate-400">Amount</p>
+                            <p className="font-medium text-slate-900 dark:text-slate-100">
+                              {userStats.subscription.status === 'admin_granted' 
+                                ? 'Free (Admin granted)' 
+                                : userStats.subscription.amount 
+                                  ? `£${(userStats.subscription.amount / 100).toFixed(2)}/${userStats.subscription.billingCycle}`
+                                  : 'Unknown'
+                              }
+                            </p>
+                          </div>
+                          {userStats.subscription.error && (
+                            <div>
+                              <p className="text-slate-600 dark:text-slate-400">Note</p>
+                              <p className="text-sm text-amber-600 dark:text-amber-400">
+                                {userStats.subscription.error}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
