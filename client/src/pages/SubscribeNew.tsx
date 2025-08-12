@@ -86,7 +86,17 @@ const PaymentForm = ({ clientSecret, paymentIntentId, billingFrequency }: { clie
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement />
+      <PaymentElement 
+        options={{
+          wallets: {
+            applePay: 'auto',
+            googlePay: 'auto'
+          }
+        }}
+      />
+      <div className="text-sm text-gray-600 text-center">
+        <p>💳 Pay with card, Apple Pay, or Google Pay</p>
+      </div>
       <Button type="submit" disabled={!stripe || isLoading} className="w-full" size="lg">
 {isLoading ? 'Processing...' : `Subscribe - ${billingFrequency === 'monthly' ? '£5.99/month' : '£64.69/year'}`}
       </Button>
@@ -256,7 +266,18 @@ export default function SubscribeNew() {
             </CardHeader>
             <CardContent>
               {clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <Elements 
+                  stripe={stripePromise} 
+                  options={{ 
+                    clientSecret,
+                    appearance: {
+                      theme: 'stripe',
+                      variables: {
+                        colorPrimary: '#3b82f6'
+                      }
+                    }
+                  }}
+                >
                   <PaymentForm clientSecret={clientSecret} paymentIntentId={paymentIntentId} billingFrequency={billingFrequency} />
                 </Elements>
               ) : (

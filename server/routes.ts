@@ -2270,12 +2270,13 @@ export async function setupRoutes(app: Express) {
         console.log('✅ Stripe customer created:', stripeCustomerId);
       }
       
-      // Create PaymentIntent for subscription payment
+      // Create PaymentIntent for subscription payment with Apple Pay and Google Pay support
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: 'gbp',
         customer: stripeCustomerId,
         setup_future_usage: 'off_session',
+        payment_method_types: ['card', 'apple_pay', 'google_pay'],
         metadata: {
           userId: user.uid,
           type: 'subscription_payment',
