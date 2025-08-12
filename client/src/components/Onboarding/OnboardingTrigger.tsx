@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { SetupChecklist } from './SetupChecklist';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OnboardingProgress {
   id: number;
@@ -33,7 +34,14 @@ export function OnboardingTrigger() {
     }
   });
 
+  // Don't show onboarding for admin users or if dismissed/loading
   if (isLoading || !progress || progress.isOnboardingDismissed) {
+    return null;
+  }
+
+  // Don't show onboarding for admin users
+  const { isAdmin } = useAuth();
+  if (isAdmin) {
     return null;
   }
 
