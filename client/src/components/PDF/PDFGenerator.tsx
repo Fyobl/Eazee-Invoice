@@ -263,19 +263,22 @@ export const generatePDF = async (
           margin-top: 20px;
         }
         .trial-watermark {
-          position: fixed;
-          top: 50%;
+          position: absolute;
+          top: 35%;
           left: 50%;
           transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 72px;
+          font-size: 48px;
           font-weight: bold;
-          color: rgba(0, 0, 0, 0.08);
+          color: rgba(0, 0, 0, 0.15);
           z-index: 1000;
           pointer-events: none;
           white-space: nowrap;
           font-family: Arial, sans-serif;
           text-transform: uppercase;
-          letter-spacing: 4px;
+          letter-spacing: 1px;
+          width: auto;
+          text-align: center;
+          overflow: visible;
         }
         @media print {
           .trial-watermark {
