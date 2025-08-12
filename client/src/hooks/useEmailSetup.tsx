@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface User {
@@ -17,7 +17,7 @@ export const useEmailSetup = () => {
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: response, isLoading } = useQuery({
+  const { data: response, isLoading, refetch } = useQuery({
     queryKey: ['/api/me'],
     staleTime: 0,
     gcTime: 0,
@@ -27,6 +27,11 @@ export const useEmailSetup = () => {
     refetchIntervalInBackground: false,
     retry: false,
   });
+
+  // Force a fresh fetch every time this hook is used
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   // Extract user from response
   const user = (response as any)?.user as User;
@@ -39,11 +44,27 @@ export const useEmailSetup = () => {
     user?.companyName
   );
 
+  // Add localStorage-based backup for email setup status
+  useEffect(() => {
+    if (user?.emailVerificationStatus === 'verified' && user?.senderEmail && user?.companyName) {
+      localStorage.setItem('emailSetupComplete', 'true');
+    } else {
+      localStorage.removeItem('emailSetupComplete');
+    }
+  }, [user?.emailVerificationStatus, user?.senderEmail, user?.companyName]);
+
+  // Use localStorage as backup if query data seems stale
+  const localStorageBackup = localStorage.getItem('emailSetupComplete') === 'true';
+  const fallbackEmailSetupComplete = isEmailSetupComplete || localStorageBackup;
+
   console.log('🔍 useEmailSetup - Email Setup Status Check:', {
     step1_emailVerified: user?.emailVerificationStatus === 'verified',
     step2_senderEmail: Boolean(user?.senderEmail),
     step3_companyName: Boolean(user?.companyName),
-    finalResult: isEmailSetupComplete,
+    queryResult: isEmailSetupComplete,
+    localStorageBackup: localStorageBackup,
+    finalResult: fallbackEmailSetupComplete,
+    rawResponse: response,
     debugData: {
       emailVerificationStatus: user?.emailVerificationStatus,
       senderEmail: user?.senderEmail,
@@ -52,7 +73,7 @@ export const useEmailSetup = () => {
   });
 
   const showEmailSetupModal = () => {
-    if (!isEmailSetupComplete) {
+    if (!fallbackEmailSetupComplete) {
       setShowEmailSetup(true);
       return false; // Don't proceed with email sending
     }
@@ -65,6 +86,8 @@ export const useEmailSetup = () => {
 
   const onEmailSetupComplete = () => {
     setShowEmailSetup(false);
+    // Immediately set localStorage backup
+    localStorage.setItem('emailSetupComplete', 'true');
     // Invalidate user data to refresh the validation
     queryClient.clear();
     queryClient.invalidateQueries({ queryKey: ['/api/me'] });
@@ -77,11 +100,11 @@ export const useEmailSetup = () => {
   };
 
   return {
-    showEmailSetup,
+    isEmailSetupComplete: fallbackEmailSetupComplete,
     showEmailSetupModal,
     closeEmailSetupModal,
     onEmailSetupComplete,
-    isEmailSetupComplete,
-    user
+    showEmailSetup,
+    isLoading
   };
 };
