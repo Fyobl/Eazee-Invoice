@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEmailSetup } from '@/hooks/useEmailSetup';
 import { EmailSetupModal } from './EmailSetupModal';
 import { apiRequest } from '@/lib/queryClient';
-import { getEmailSettings } from '@/lib/emailUtils';
+import { getEmailSettings, replaceVariables } from '@/lib/emailUtils';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { Mail, Loader2 } from 'lucide-react';
 
@@ -106,16 +106,16 @@ export const EmailSendButton = ({
       
       switch (documentType) {
         case 'invoice':
-          subject = emailSettings.invoiceSubject;
-          body = emailSettings.invoiceBody;
+          subject = replaceVariables(emailSettings.invoiceSubject, variables);
+          body = replaceVariables(emailSettings.invoiceBody, variables);
           break;
         case 'quote':
-          subject = emailSettings.quoteSubject;
-          body = emailSettings.quoteBody;
+          subject = replaceVariables(emailSettings.quoteSubject, variables);
+          body = replaceVariables(emailSettings.quoteBody, variables);
           break;
         case 'statement':
-          subject = emailSettings.statementSubject;
-          body = emailSettings.statementBody;
+          subject = replaceVariables(emailSettings.statementSubject, variables);
+          body = replaceVariables(emailSettings.statementBody, variables);
           break;
       }
 

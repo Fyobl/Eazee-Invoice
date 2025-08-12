@@ -95,7 +95,7 @@ export const generateEmailHTML = (
   user: User
 ): string => {
   const logoHtml = user.companyLogo 
-    ? `<img src="${user.companyLogo}" alt="${user.companyName}" style="max-height: 80px; margin-bottom: 20px;" />`
+    ? `<img src="${user.companyLogo}" alt="${user.companyName}" style="max-height: 60px; margin-bottom: 15px;" />`
     : '';
 
   return `
@@ -104,51 +104,131 @@ export const generateEmailHTML = (
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email from ${user.companyName || 'Eazee Invoice'}</title>
+  <title>Email from ${user.companyName || 'Your Company'}</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+    body { 
+      font-family: Arial, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: #f8fafc; 
     }
-    .header {
-      border-bottom: 2px solid #e9ecef;
-      padding-bottom: 20px;
-      margin-bottom: 30px;
+    .email-container { 
+      background: white; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+      overflow: hidden; 
     }
-    .footer {
-      border-top: 1px solid #e9ecef;
-      padding-top: 20px;
-      margin-top: 30px;
-      font-size: 0.9em;
-      color: #666;
+    .header { 
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); 
+      color: white; 
+      padding: 30px; 
+      text-align: center; 
     }
-    .content {
+    .header h1 { 
+      margin: 0; 
+      font-size: 24px; 
+      font-weight: bold; 
+    }
+    .header p { 
+      margin: 10px 0 0 0; 
+      font-size: 14px; 
+      opacity: 0.9; 
+    }
+    .content { 
+      padding: 40px; 
+    }
+    .content-body {
+      background: #f8fafc; 
+      border: 1px solid #e2e8f0; 
+      padding: 25px; 
+      border-radius: 8px; 
+      margin: 20px 0;
       white-space: pre-line;
+      line-height: 1.7;
+    }
+    .company-details {
+      background: #f1f5f9; 
+      border-left: 4px solid #3b82f6; 
+      padding: 20px; 
+      margin: 25px 0; 
+      border-radius: 0 8px 8px 0;
+    }
+    .company-details h3 { 
+      margin: 0 0 10px 0; 
+      color: #1e293b; 
+      font-size: 16px; 
+    }
+    .company-details p { 
+      margin: 5px 0; 
+      color: #64748b; 
+      font-size: 14px; 
+    }
+    .attachment-note {
+      background: #ecfdf5; 
+      border: 1px solid #10b981; 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin: 20px 0;
+      text-align: center;
+    }
+    .attachment-note p {
+      margin: 0;
+      color: #065f46;
+      font-weight: 500;
+    }
+    .footer { 
+      background: #1e293b; 
+      color: #94a3b8; 
+      padding: 30px; 
+      text-align: center; 
+      font-size: 14px; 
+    }
+    .footer p { 
+      margin: 10px 0; 
+    }
+    .footer .signature {
+      color: #e2e8f0;
+      font-weight: 500;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    ${logoHtml}
-    ${user.companyName ? `<h2>${user.companyName}</h2>` : ''}
-    ${user.companyAddress ? `<p>${user.companyAddress.replace(/\n/g, '<br>')}</p>` : ''}
-  </div>
-  
-  <div class="content">
-    ${bodyContent}
-  </div>
-  
-  <div class="footer">
-    <p>
-      Best regards,<br>
-      ${user.companyName || user.displayName}
-    </p>
-    ${user.companyVatNumber ? `<p><strong>VAT Number:</strong> ${user.companyVatNumber}</p>` : ''}
-    ${user.companyRegistrationNumber ? `<p><strong>Company Registration:</strong> ${user.companyRegistrationNumber}</p>` : ''}
+  <div class="email-container">
+    <div class="header">
+      ${logoHtml}
+      <h1>${user.companyName || 'Your Company'}</h1>
+      <p>Professional Business Communication</p>
+    </div>
+    
+    <div class="content">
+      <div class="content-body">
+        ${bodyContent}
+      </div>
+      
+      <div class="attachment-note">
+        <p>📎 Your document has been attached to this email as a PDF</p>
+      </div>
+      
+      <div class="company-details">
+        <h3>${user.companyName || 'Your Company'}</h3>
+        ${user.companyAddress ? `<p>${user.companyAddress.replace(/\n/g, '<br>')}</p>` : ''}
+        ${user.companyVatNumber ? `<p><strong>VAT Number:</strong> ${user.companyVatNumber}</p>` : ''}
+        ${user.companyRegistrationNumber ? `<p><strong>Company Registration:</strong> ${user.companyRegistrationNumber}</p>` : ''}
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="signature">
+        <p><strong>Best regards,</strong></p>
+        <p>${user.companyName || user.displayName || 'Your Company'}</p>
+      </div>
+      <p>This email was sent from your professional invoicing system.</p>
+      <p>© ${new Date().getFullYear()} ${user.companyName || 'Your Company'}. All rights reserved.</p>
+    </div>
   </div>
 </body>
 </html>`;
