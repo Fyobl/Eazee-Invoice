@@ -68,17 +68,7 @@ app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..
 import { analyticsMiddleware } from './analytics';
 app.use(analyticsMiddleware);
 
-// Generate sample analytics data on startup (development only)
-if (process.env.NODE_ENV === 'development') {
-  setTimeout(async () => {
-    try {
-      const { generateSampleAnalyticsData } = await import('./sampleAnalyticsData');
-      generateSampleAnalyticsData();
-    } catch (error) {
-      console.log('Note: Sample analytics data generation failed:', error);
-    }
-  }, 5000); // Wait 5 seconds after startup
-}
+// Analytics is now tracking live data only - no sample data generation
 
 // Session middleware
 const PgSession = ConnectPgSimple(session);

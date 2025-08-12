@@ -151,9 +151,9 @@ export default function Analytics() {
         <div className="max-w-7xl mx-auto p-6">
           <Card>
             <CardHeader>
-              <CardTitle>Analytics Not Available</CardTitle>
+              <CardTitle>No Analytics Data</CardTitle>
               <CardDescription>
-                Analytics data could not be loaded. Please check your Google Analytics configuration.
+                No visitor data available yet. Analytics will appear as visitors browse your website.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -170,7 +170,7 @@ export default function Analytics() {
           <div>
             <h1 className="text-3xl font-bold mb-2">Web Analytics</h1>
             <p className="text-muted-foreground">
-              Track your website's performance and visitor insights
+              Live visitor tracking and website performance metrics
             </p>
           </div>
           <div className="flex gap-3 mt-4 sm:mt-0">

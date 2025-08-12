@@ -72,10 +72,15 @@ interface AnalyticsData {
   }[];
 }
 
-// In-memory storage for analytics data (in production, use a database)
+// Live analytics storage - tracks real visitor data only
 const sessions = new Map<string, VisitorSession>();
 const pageViews: PageView[] = [];
 const visitors = new Set<string>();
+
+// Clear any existing sample data and start fresh
+sessions.clear();
+pageViews.length = 0;
+visitors.clear();
 
 // Helper functions
 function getDeviceType(userAgent: string): string {
@@ -384,21 +389,31 @@ export function getAnalyticsData(rangeDays: number = 30): AnalyticsData {
 
 // Middleware to track page views automatically
 export function analyticsMiddleware(req: any, res: any, next: any) {
-  // Skip tracking for API requests, static files, and admin pages
+  // Skip tracking for API requests, static files, admin pages, and asset files
   if (req.path.startsWith('/api') || 
       req.path.startsWith('/static') || 
+      req.path.startsWith('/attached_assets') ||
       req.path.includes('.') ||
-      req.path.startsWith('/admin')) {
+      req.path.startsWith('/admin') ||
+      req.path === '/health' ||
+      req.path === '/ready') {
     return next();
   }
   
-  const ip = req.ip || req.connection.remoteAddress || '127.0.0.1';
+  // Get real visitor information
+  const ip = req.headers['x-forwarded-for'] as string || 
+             req.headers['x-real-ip'] as string ||
+             req.connection.remoteAddress ||
+             req.ip || '127.0.0.1';
+  
   const userAgent = req.get('User-Agent') || '';
   const page = req.path;
   const referrer = req.get('Referer');
   
-  // Track the page view
-  trackPageView(ip, userAgent, page, referrer);
+  // Only track if we have meaningful visitor data
+  if (userAgent && !userAgent.includes('bot') && !userAgent.includes('crawler')) {
+    trackPageView(ip, userAgent, page, referrer);
+  }
   
   next();
 }
