@@ -37,7 +37,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       // Always fetch fresh data from server, no caching for security
       const user = await getCurrentUser();
-      console.log('AuthContext: refreshUser got user:', user?.email);
       setCurrentUser(user);
       
       if (!user) {

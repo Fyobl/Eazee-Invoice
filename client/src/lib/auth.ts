@@ -82,17 +82,23 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
     localStorage.setItem(key, value);
   });
   
-  const response = await apiRequest('POST', '/api/login', {
-    email,
-    password
-  });
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Login failed');
+  try {
+    const response = await apiRequest('POST', '/api/login', {
+      email,
+      password
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+    
+    console.log('loginUser: successful login for', data.user?.email);
+    return data.user;
+  } catch (error) {
+    console.error('loginUser: failed', error);
+    throw error;
   }
-  
-  return data.user;
 };
 
 export const logoutUser = async (): Promise<void> => {

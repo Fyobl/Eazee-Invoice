@@ -53,18 +53,19 @@ export const LoginPage = () => {
       }
       
       const user = await loginUser(data.email, data.password);
+      console.log('Login successful, user:', user?.email);
       
       // Wait for user context to update
       await refreshUser();
+      
+      // Use window.location instead of navigate to force a clean navigation
+      console.log('Login successful, redirecting to dashboard...');
+      window.location.href = '/dashboard';
       
       toast({
         title: 'Login successful',
         description: 'Welcome back to Eazee Invoice!',
       });
-      
-      // Navigate immediately - the ProtectedRoute will handle auth checks
-      console.log('Login successful, navigating to dashboard...');
-      navigate('/dashboard');
       
     } catch (error) {
       toast({
