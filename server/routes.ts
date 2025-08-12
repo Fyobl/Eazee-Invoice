@@ -393,30 +393,14 @@ export async function setupRoutes(app: Express) {
     // Ensure proper field mapping for frontend compatibility
     const userResponse = {
       ...freshUser,
-      passwordHash: undefined,
-      // Explicitly map critical fields to ensure they're available
-      companyName: freshUser.companyName || (freshUser as any).company_name,
-      companyAddress: freshUser.companyAddress || (freshUser as any).company_address,
-      isEmailVerified: freshUser.isEmailVerified || (freshUser as any).is_email_verified,
-      senderEmail: freshUser.senderEmail || (freshUser as any).sender_email,
-      emailVerificationStatus: freshUser.emailVerificationStatus || (freshUser as any).email_verification_status
+      passwordHash: undefined, // Never expose password hash
     };
     
-    console.log('🔍 Raw user data from storage:', {
+    console.log('🔍 User data from storage:', {
       companyName: freshUser.companyName,
-      company_name: freshUser.company_name,
       isEmailVerified: freshUser.isEmailVerified,
-      is_email_verified: freshUser.is_email_verified,
       senderEmail: freshUser.senderEmail,
-      sender_email: freshUser.sender_email
-    });
-    
-    console.log('🔍 Mapped user response:', {
-      companyName: userResponse.companyName,
-      companyAddress: userResponse.companyAddress,
-      isEmailVerified: userResponse.isEmailVerified,
-      senderEmail: userResponse.senderEmail,
-      companyLogo: userResponse.companyLogo
+      emailVerificationStatus: freshUser.emailVerificationStatus
     });
     
     // Disable caching to ensure fresh data
