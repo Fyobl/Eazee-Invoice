@@ -44,18 +44,22 @@ export const EmailSettings = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get user data for email verification status
+  // Get user data for email verification status  
   const { data: user, refetch: refetchUser, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/me', Date.now()], // Cache-busting key to force fresh data
     refetchOnWindowFocus: true,
     refetchInterval: showOtpVerification ? 2000 : false, // Poll every 2s during verification
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the result
   });
 
-  // Debug logging to see current user state
-  console.log('👤 Current user state:', {
-    isEmailVerified: user?.isEmailVerified,
-    senderEmail: user?.senderEmail,
-    emailVerificationStatus: user?.emailVerificationStatus,
+  // Check if email is verified
+  const isEmailSetupComplete = Boolean(user?.isEmailVerified && user?.senderEmail);
+  console.log('📧 Email setup status:', { 
+    isEmailVerified: user?.isEmailVerified, 
+    senderEmail: user?.senderEmail, 
+    isComplete: isEmailSetupComplete,
+    userKeys: user ? Object.keys(user) : 'no user',
     fullUser: user
   });
 
@@ -254,13 +258,12 @@ export const EmailSettings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {console.log('🔍 Rendering check:', { isEmailVerified: user?.isEmailVerified, senderEmail: user?.senderEmail, fullCondition: user?.isEmailVerified && user?.senderEmail })}
             {userLoading ? (
               <div className="flex items-center justify-center p-4">
                 <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
                 <span className="ml-2">Loading...</span>
               </div>
-            ) : user?.isEmailVerified && user?.senderEmail ? (
+            ) : isEmailSetupComplete ? (
               <div className="space-y-4">
                 <Alert>
                   <CheckCircle className="h-4 w-4 text-green-600" />
@@ -341,14 +344,14 @@ export const EmailSettings = () => {
 
                   <Button 
                     type="submit" 
-                    disabled={setupAutoEmailMutation.isPending || (user?.isEmailVerified && user?.senderEmail)}
+                    disabled={setupAutoEmailMutation.isPending || isEmailSetupComplete}
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
                     {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up auto email'}
                   </Button>
                   
-                  {user?.isEmailVerified && user?.senderEmail && (
+                  {isEmailSetupComplete && (
                     <p className="text-sm text-gray-500 mt-2">
                       Email already verified. Use "Change Email" button above to set up a different email address.
                     </p>
