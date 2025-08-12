@@ -133,9 +133,9 @@ const preventErrorDialogs = () => {
   };
 
   // Intercept and prevent error dialogs from the Replit environment
-  const originalShowModalDialog = window.showModalDialog;
+  const originalShowModalDialog = (window as any).showModalDialog;
   if (originalShowModalDialog) {
-    window.showModalDialog = function(url, argument, options) {
+    (window as any).showModalDialog = function(url: string, argument?: any, options?: any) {
       if (url && url.includes('error')) {
         console.warn('Modal error dialog suppressed');
         return null;
@@ -147,14 +147,14 @@ const preventErrorDialogs = () => {
   // Override any potential error notification systems
   if (window.Notification) {
     const originalNotification = window.Notification;
-    window.Notification = function(title, options) {
+    (window as any).Notification = function(title: string, options?: NotificationOptions) {
       if (title && (title.includes('WebFrameMain') || title.includes('JavaScript error'))) {
         console.warn('Error notification suppressed:', title);
         return {
           close: () => {},
           addEventListener: () => {},
           removeEventListener: () => {}
-        };
+        } as any;
       }
       return new originalNotification(title, options);
     };

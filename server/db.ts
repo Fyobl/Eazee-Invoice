@@ -20,7 +20,7 @@ export const pool = new Pool({
 });
 
 // Add pool error handling
-pool.on('error', (err, client) => {
+pool.on('error', (err: Error, client: any) => {
   console.error('Unexpected error on idle client:', err);
   // The pool will handle reconnection automatically
 });
@@ -42,7 +42,7 @@ export async function executeWithRetry<T>(
       }
       
       // Check if it's a connection error worth retrying
-      const errorString = error.toString().toLowerCase();
+      const errorString = (error as Error).toString().toLowerCase();
       const retryableErrors = [
         'connection terminated',
         'connection closed',
@@ -61,4 +61,6 @@ export async function executeWithRetry<T>(
       }
     }
   }
+  // This should never be reached due to the throw in the loop, but TypeScript requires it
+  throw new Error('executeWithRetry: All attempts failed');
 }

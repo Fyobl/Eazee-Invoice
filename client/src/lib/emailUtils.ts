@@ -227,13 +227,13 @@ export const openMailApp = async (
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('PDF generation timeout')), 15000)
         )
-      ]);
+      ]) as Blob;
       console.log('PDF generated successfully, size:', pdfBlob.size);
     } catch (pdfError) {
       console.error('PDF generation failed:', pdfError);
       
       // Check if it's a browser-specific error that we can handle gracefully
-      if (handlePDFError(pdfError)) {
+      if (handlePDFError(pdfError as Error)) {
         console.warn('Browser-specific PDF error detected - continuing with email preparation');
         // Create a minimal blob for email preparation to continue
         pdfBlob = new Blob(['PDF generation failed due to browser limitations'], { type: 'application/pdf' });
@@ -303,20 +303,20 @@ export const openMailApp = async (
         }
         
         // Create download link with better error handling
-        const link = window.document.createElement('a');
+        const link = document.createElement('a');
         link.href = url;
         link.download = filename;
         link.style.display = 'none';
         
         // Add to DOM, click, then remove with timeout for cleanup
-        window.document.body.appendChild(link);
+        document.body.appendChild(link);
         link.click();
         
         // Clean up after a short delay to prevent frame disposal issues
         setTimeout(() => {
           try {
-            if (window.document.body.contains(link)) {
-              window.document.body.removeChild(link);
+            if (document.body.contains(link)) {
+              document.body.removeChild(link);
             }
             URL.revokeObjectURL(url);
           } catch (cleanupError) {

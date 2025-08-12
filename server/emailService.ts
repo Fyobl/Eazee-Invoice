@@ -5,7 +5,7 @@ if (!process.env.BREVO_API_KEY) {
 }
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-const apiKey = apiInstance.authentications['apiKey'];
+const apiKey = (apiInstance as any).authentications['apiKey'];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 
 interface EmailParams {
@@ -34,7 +34,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     }
 
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log('Email sent successfully:', response.messageId);
+    console.log('Email sent successfully:', (response as any).messageId);
     return true;
   } catch (error) {
     console.error('Brevo email error:', error);

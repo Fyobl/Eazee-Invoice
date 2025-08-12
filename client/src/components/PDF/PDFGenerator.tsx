@@ -57,7 +57,7 @@ export const generatePDF = async (
       event.preventDefault();
       return true;
     }
-    return originalUnhandledRejection ? originalUnhandledRejection(event) : false;
+    return originalUnhandledRejection ? originalUnhandledRejection.call(window, event) : false;
   };
   
   console.error = function(...args) {
@@ -393,7 +393,7 @@ export const generatePDF = async (
           <strong>Date:</strong> ${new Date(document.date).toLocaleDateString()}<br>
           ${type === 'quote' && 'validUntil' in document ? `<strong>Valid Until:</strong> ${new Date(document.validUntil).toLocaleDateString()}<br>` : ''}
           ${type === 'invoice' && 'dueDate' in document ? `<strong>Due Date:</strong> ${new Date(document.dueDate).toLocaleDateString()}<br>` : ''}
-          ${type === 'statement' && 'startDate' in document && 'endDate' in document ? `<strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}<br>` : ''}
+          ${type === 'statement' && 'startDate' in document && 'endDate' in document ? `<strong>Period:</strong> ${new Date((document as any).startDate).toLocaleDateString()} - ${new Date((document as any).endDate).toLocaleDateString()}<br>` : ''}
         </div>
         
         <div class="customer-info">
@@ -406,8 +406,8 @@ export const generatePDF = async (
         <div class="statement-content">
           <h3>Customer Statement</h3>
           <p>This statement shows unpaid invoices for the selected period.</p>
-          <p><strong>Period:</strong> ${new Date(document.startDate).toLocaleDateString()} - ${new Date(document.endDate).toLocaleDateString()}</p>
-          <p><strong>Statement Type:</strong> ${document.period === '7' ? 'Weekly' : document.period === '30' ? 'Monthly' : 'Custom Period'}</p>
+          <p><strong>Period:</strong> ${new Date((document as any).startDate).toLocaleDateString()} - ${new Date((document as any).endDate).toLocaleDateString()}</p>
+          <p><strong>Statement Type:</strong> ${(document as any).period === '7' ? 'Weekly' : (document as any).period === '30' ? 'Monthly' : 'Custom Period'}</p>
           
           ${statementInvoices.length > 0 ? `
             <table class="table">
@@ -461,7 +461,7 @@ export const generatePDF = async (
             </tr>
           </thead>
           <tbody>
-            ${document.items.map(item => `
+            ${(document as any).items?.map((item: any) => `
               <tr>
                 <td>${item.description}</td>
                 <td>${item.quantity}</td>
@@ -480,15 +480,15 @@ export const generatePDF = async (
           <table class="totals-table">
             <tr>
               <td class="label">Subtotal:</td>
-              <td class="amount">${formatPrice(document.subtotal)}</td>
+              <td class="amount">${formatPrice((document as any).subtotal)}</td>
             </tr>
             <tr>
               <td class="label">Tax:</td>
-              <td class="amount">${formatPrice(document.taxAmount)}</td>
+              <td class="amount">${formatPrice((document as any).taxAmount)}</td>
             </tr>
             <tr class="total-row">
               <td class="label">Total:</td>
-              <td class="amount">${formatPrice(document.total)}</td>
+              <td class="amount">${formatPrice((document as any).total)}</td>
             </tr>
           </table>
         </div>

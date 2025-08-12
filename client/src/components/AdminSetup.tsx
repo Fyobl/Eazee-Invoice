@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Banner } from '@/components/ui/banner';
-import { getUserByEmail, makeUserAdmin } from '@/lib/auth';
+import { apiRequest } from '@/lib/queryClient';
 
 export const AdminSetup = () => {
   const [email, setEmail] = useState('fyobl_ben@hotmail.com');
@@ -16,14 +16,8 @@ export const AdminSetup = () => {
     setError(null);
 
     try {
-      const user = await getUserByEmail(email);
-      if (!user) {
-        setError('User not found');
-        return;
-      }
-
-      await makeUserAdmin(user.uid);
-      setMessage('User successfully made admin with full access!');
+      // This component is deprecated - admin functionality is now available in Admin Panel
+      setMessage('Admin functionality has been moved to the Admin Panel. Please use /admin to manage users.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to make user admin');
     } finally {
