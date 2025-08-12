@@ -61,19 +61,14 @@ interface AuthenticatedRequest extends Request {
 const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const sessionId = req.session?.userId;
   
-  console.log(`[AUTH DEBUG] Session ID: ${sessionId}, Path: ${req.path}, Method: ${req.method}`);
-  
   if (!sessionId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const user = await storage.getUserById(sessionId);
   if (!user) {
-    console.log(`[AUTH DEBUG] User not found for session ID: ${sessionId}`);
     return res.status(401).json({ error: 'User not found' });
   }
-  
-  console.log(`[AUTH DEBUG] Authenticated user: ${user.email} (UID: ${user.uid}, ID: ${user.id})`);
   
   if (user.isSuspended) {
     return res.status(403).json({ error: 'Account suspended' });
@@ -765,12 +760,10 @@ export async function setupRoutes(app: Express) {
   // Customers routes
   app.get('/api/customers', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      console.log(`[DATA DEBUG] Fetching customers for user: ${req.user!.email} (UID: ${req.user!.uid})`);
       const result = await db.select().from(customers)
         .where(and(eq(customers.uid, req.user!.uid), eq(customers.isDeleted, false)))
         .orderBy(desc(customers.createdAt));
       
-      console.log(`[DATA DEBUG] Found ${result.length} customers for UID: ${req.user!.uid}`);
       res.json(result);
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -893,12 +886,10 @@ export async function setupRoutes(app: Express) {
   // Invoices routes
   app.get('/api/invoices', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      console.log(`[DATA DEBUG] Fetching invoices for user: ${req.user!.email} (UID: ${req.user!.uid})`);
       const result = await db.select().from(invoices)
         .where(and(eq(invoices.uid, req.user!.uid), eq(invoices.isDeleted, false)))
         .orderBy(desc(invoices.createdAt));
       
-      console.log(`[DATA DEBUG] Found ${result.length} invoices for UID: ${req.user!.uid}`);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch invoices' });
@@ -1009,12 +1000,10 @@ export async function setupRoutes(app: Express) {
   // Quotes routes
   app.get('/api/quotes', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      console.log(`[DATA DEBUG] Fetching quotes for user: ${req.user!.email} (UID: ${req.user!.uid})`);
       const result = await db.select().from(quotes)
         .where(and(eq(quotes.uid, req.user!.uid), eq(quotes.isDeleted, false)))
         .orderBy(desc(quotes.createdAt));
       
-      console.log(`[DATA DEBUG] Found ${result.length} quotes for UID: ${req.user!.uid}`);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch quotes' });

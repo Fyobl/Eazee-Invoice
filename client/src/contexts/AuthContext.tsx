@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AuthUser, getCurrentUser, hasAccess, hasActiveSubscription, checkTrialStatus, getTrialDaysLeft, isAdminGrantedSubscriptionExpired } from '@/lib/auth';
+import { queryClient } from '@/lib/queryClient';
 
 interface AuthContextType {
   currentUser: AuthUser | null;
@@ -34,41 +35,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     try {
-      // Always fetch fresh data from server, don't rely on localStorage
+      // Always fetch fresh data from server, no caching for security
       const user = await getCurrentUser();
       setCurrentUser(user);
       
-      if (user) {
-        // Update localStorage with fresh data
-        localStorage.setItem('userData', JSON.stringify(user));
-      } else {
-        // Clear all cached data if no user
-        localStorage.removeItem('userData');
-        localStorage.removeItem('authUser');
+      if (!user) {
+        // Clear all data if no user - SECURITY CRITICAL
+        localStorage.clear();
+        queryClient.clear();
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
       setCurrentUser(null);
-      // Clear cached data on error
-      localStorage.removeItem('userData');
-      localStorage.removeItem('authUser');
+      // Clear all cached data on error - SECURITY CRITICAL
+      localStorage.clear();
+      queryClient.clear();
     }
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // Try to restore from localStorage first
-      const storedUser = localStorage.getItem('userData');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setCurrentUser(user);
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-        }
-      }
+      // SECURITY FIX: Always clear ALL caches first to prevent data leakage
+      localStorage.clear();
+      queryClient.clear();
       
-      // Then verify with server (this will check session cookie)
+      // Always fetch fresh data from server - no caching
       await refreshUser();
       setLoading(false);
     };

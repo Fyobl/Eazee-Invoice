@@ -1,5 +1,5 @@
 import { User } from '@shared/schema';
-import { apiRequest } from './queryClient';
+import { apiRequest, queryClient } from './queryClient';
 
 export interface AuthUser {
   uid: string;
@@ -61,9 +61,9 @@ export const registerUser = async (
 };
 
 export const loginUser = async (email: string, password: string): Promise<AuthUser> => {
-  // Clear any existing cached data first
-  localStorage.removeItem('userData');
-  localStorage.removeItem('authUser');
+  // SECURITY CRITICAL: Clear ALL cached data before login
+  localStorage.clear();
+  queryClient.clear(); // Clear all TanStack Query cache
   
   const response = await apiRequest('POST', '/api/login', {
     email,
@@ -75,9 +75,6 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
     throw new Error(data.error || 'Login failed');
   }
   
-  // Store fresh user data
-  localStorage.setItem('userData', JSON.stringify(data.user));
-  
   return data.user;
 };
 
@@ -88,9 +85,9 @@ export const logoutUser = async (): Promise<void> => {
     throw new Error('Logout failed');
   }
   
-  // Clear localStorage
-  localStorage.removeItem('userData');
-  localStorage.removeItem('authUser');
+  // SECURITY CRITICAL: Clear ALL cached data to prevent data leakage
+  localStorage.clear();
+  queryClient.clear(); // Clear all TanStack Query cache
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
