@@ -2572,29 +2572,48 @@ export async function setupRoutes(app: Express) {
       }
 
       try {
-        // Add sender to Brevo (verification will be done via OTP)
-        const brevoResponse = await fetch('https://api.brevo.com/v3/senders', {
-          method: 'POST',
-          headers: {
-            'api-key': process.env.BREVO_API_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: req.user!.companyName || req.user!.displayName,
-            email: senderEmail,
-            ips: [] // Uses shared IPs
-          })
+        // First check if sender already exists to avoid duplicate emails
+        const existingSenderResponse = await fetch('https://api.brevo.com/v3/senders', {
+          headers: { 'api-key': process.env.BREVO_API_KEY }
         });
+        
+        let existingSender = null;
+        if (existingSenderResponse.ok) {
+          const sendersData = await existingSenderResponse.json();
+          existingSender = sendersData.senders?.find((s: any) => s.email === senderEmail);
+        }
 
         let verificationStatus = 'pending';
-        if (brevoResponse.ok) {
-          verificationStatus = 'pending';
-        } else {
-          const errorData = await brevoResponse.json();
-          // Handle case where sender already exists
-          if (errorData.code === 'duplicate_parameter') {
-            verificationStatus = 'pending'; // Assume it needs verification
+        
+        if (existingSender) {
+          console.log('📧 Sender already exists:', { id: existingSender.id, active: existingSender.active });
+          if (existingSender.active) {
+            verificationStatus = 'verified';
           } else {
+            verificationStatus = 'pending';
+            console.log('📧 Sender exists but not verified, OTP was already sent during creation');
+          }
+        } else {
+          // Create new sender only if it doesn't exist
+          console.log('🔄 Creating new sender for:', senderEmail);
+          const brevoResponse = await fetch('https://api.brevo.com/v3/senders', {
+            method: 'POST',
+            headers: {
+              'api-key': process.env.BREVO_API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: req.user!.companyName || req.user!.displayName,
+              email: senderEmail,
+              ips: []
+            })
+          });
+
+          if (brevoResponse.ok) {
+            console.log('✅ New sender created, OTP sent');
+            verificationStatus = 'pending';
+          } else {
+            const errorData = await brevoResponse.json();
             console.error('Brevo sender creation failed:', errorData);
             return res.status(400).json({ error: 'Failed to register email with service' });
           }
@@ -2603,57 +2622,25 @@ export async function setupRoutes(app: Express) {
         // Update user with sender email and verification status
         await storage.updateUserEmailSettings(uid, senderEmail, verificationStatus);
 
-        // Delete existing sender and recreate to get fresh OTP
-        if (verificationStatus === 'pending') {
-          // First try to delete existing sender
-          try {
-            const sendersResponse = await fetch(`https://api.brevo.com/v3/senders?email=${senderEmail}`, {
-              headers: { 'api-key': process.env.BREVO_API_KEY }
-            });
-            
-            if (sendersResponse.ok) {
-              const sendersData = await sendersResponse.json();
-              const existingSender = sendersData.senders?.find((s: any) => s.email === senderEmail);
-              
-              if (existingSender && !existingSender.active) {
-                console.log('🗑️ Deleting existing unverified sender:', existingSender.id);
-                await fetch(`https://api.brevo.com/v3/senders/${existingSender.id}`, {
-                  method: 'DELETE',
-                  headers: { 'api-key': process.env.BREVO_API_KEY }
-                });
-                
-                // Recreate sender to get fresh OTP
-                console.log('🔄 Recreating sender for fresh OTP');
-                const newSenderResponse = await fetch('https://api.brevo.com/v3/senders', {
-                  method: 'POST',
-                  headers: {
-                    'api-key': process.env.BREVO_API_KEY,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    name: req.user!.companyName || req.user!.displayName,
-                    email: senderEmail,
-                    ips: []
-                  })
-                });
-                
-                if (newSenderResponse.ok) {
-                  console.log('✅ Fresh sender created, new OTP sent');
-                }
-              }
-            }
-          } catch (error) {
-            console.error('⚠️ Error refreshing sender:', error);
-          }
+        if (verificationStatus === 'verified') {
+          res.json({ 
+            success: true, 
+            message: 'Email is already verified! You can now send emails.',
+            verificationStatus,
+            requiresOtp: false,
+            senderEmail: senderEmail
+          });
+        } else {
+          res.json({ 
+            success: true, 
+            message: existingSender ? 
+              'Enter the 6-digit verification code that was sent to your email during initial setup.' : 
+              'Email setup initiated. Check your email for a 6-digit verification code.',
+            verificationStatus,
+            requiresOtp: true,
+            senderEmail: senderEmail
+          });
         }
-
-        res.json({ 
-          success: true, 
-          message: 'Email setup initiated. Check your email for a fresh 6-digit verification code, then return here to complete setup.',
-          verificationStatus,
-          requiresOtp: true,
-          senderEmail: senderEmail
-        });
 
       } catch (brevoError) {
         console.error('Brevo API error:', brevoError);
@@ -2773,26 +2760,42 @@ export async function setupRoutes(app: Express) {
 
       console.log('📧 Found sender:', { id: sender.id, email: sender.email, active: sender.active });
 
-      // Try multiple formats: object, string, and integer
-      const formats = [
-        { format: 'object', body: JSON.stringify({ otp: otp }) },
-        { format: 'string', body: JSON.stringify(otp) },
-        { format: 'integer', body: otp },
-        { format: 'alt-field', body: JSON.stringify({ code: otp }) }
+      // Try multiple content types and formats
+      const attempts = [
+        { 
+          format: 'JSON object', 
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ otp: otp })
+        },
+        { 
+          format: 'form data', 
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: `otp=${otp}`
+        },
+        { 
+          format: 'JSON alt field', 
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: otp })
+        },
+        { 
+          format: 'plain text', 
+          headers: { 'content-type': 'text/plain' },
+          body: otp
+        }
       ];
       
       let verifyResponse;
       let successful = false;
       
-      for (const attempt of formats) {
-        console.log(`🔄 Trying ${attempt.format} format:`, attempt.body);
+      for (const attempt of attempts) {
+        console.log(`🔄 Trying ${attempt.format}:`, attempt.body);
         
         verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
           method: 'PUT',
           headers: {
             'accept': 'application/json',
             'api-key': process.env.BREVO_API_KEY || '',
-            'content-type': 'application/json'
+            ...attempt.headers
           },
           body: attempt.body
         });
@@ -2800,7 +2803,7 @@ export async function setupRoutes(app: Express) {
         console.log(`📊 ${attempt.format} response status:`, verifyResponse.status);
         
         if (verifyResponse.status === 204 || verifyResponse.status === 200) {
-          console.log(`✅ SUCCESS with ${attempt.format} format!`);
+          console.log(`✅ SUCCESS with ${attempt.format}!`);
           successful = true;
           break;
         } else {
