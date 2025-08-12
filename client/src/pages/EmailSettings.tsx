@@ -29,11 +29,17 @@ const autoEmailSetupSchema = z.object({
   senderEmail: z.string().email('Please enter a valid email address'),
 });
 
+const otpVerificationSchema = z.object({
+  otp: z.string().length(6, 'Verification code must be 6 digits'),
+});
+
 type EmailSettingsForm = z.infer<typeof emailSettingsSchema>;
 type AutoEmailSetupForm = z.infer<typeof autoEmailSetupSchema>;
+type OtpVerificationForm = z.infer<typeof otpVerificationSchema>;
 
 export const EmailSettings = () => {
   const [isResetting, setIsResetting] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -54,23 +60,57 @@ export const EmailSettings = () => {
     },
   });
 
+  const otpForm = useForm<OtpVerificationForm>({
+    resolver: zodResolver(otpVerificationSchema),
+    defaultValues: {
+      otp: '',
+    },
+  });
+
   // Auto email setup mutation
   const setupAutoEmailMutation = useMutation({
     mutationFn: async (data: AutoEmailSetupForm) => {
       const response = await apiRequest('POST', '/api/setup-auto-email', data);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Email Setup Initiated",
-        description: "Check your email for a verification message from Brevo to complete the setup.",
-      });
+    onSuccess: (data) => {
+      if (data.requiresOtp) {
+        setShowOtpVerification(true);
+        toast({
+          title: "Verification Email Sent",
+          description: "Check your email for a 6-digit verification code and enter it below.",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
     },
     onError: (error: any) => {
       toast({
         title: "Setup Failed",
         description: error.message || "Failed to setup auto email. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // OTP verification mutation
+  const verifyOtpMutation = useMutation({
+    mutationFn: async (data: OtpVerificationForm) => {
+      const response = await apiRequest('POST', '/api/verify-sender-otp', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      setShowOtpVerification(false);
+      toast({
+        title: "Email Verified!",
+        description: "Your email is now verified and ready for sending invoices.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      otpForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Invalid verification code. Please try again.",
         variant: "destructive",
       });
     },
@@ -106,6 +146,10 @@ export const EmailSettings = () => {
 
   const onAutoEmailSubmit = async (data: AutoEmailSetupForm) => {
     setupAutoEmailMutation.mutate(data);
+  };
+
+  const onOtpSubmit = async (data: OtpVerificationForm) => {
+    verifyOtpMutation.mutate(data);
   };
 
   const getEmailVerificationStatus = () => {
@@ -206,8 +250,8 @@ export const EmailSettings = () => {
                       <ol className="list-decimal list-inside mt-2 space-y-1">
                         <li>Enter your business email address above</li>
                         <li>Click "Set up auto email" to begin verification</li>
-                        <li>Check your email for a verification message from Brevo</li>
-                        <li>Click the verification link to complete setup</li>
+                        <li>Check your email for a 6-digit verification code from Brevo</li>
+                        <li>Enter the verification code when prompted</li>
                         <li>Once verified, you can send professional emails with PDFs attached</li>
                       </ol>
                     </AlertDescription>
@@ -223,6 +267,71 @@ export const EmailSettings = () => {
                   </Button>
                 </form>
               </Form>
+            )}
+            
+            {/* OTP Verification Form */}
+            {(showOtpVerification || (user?.senderEmail && !user?.isEmailVerified)) && (
+              <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Email Verification Required
+                </h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Enter the 6-digit verification code sent to <strong>{user?.senderEmail}</strong>:
+                </p>
+                
+                <Form {...otpForm}>
+                  <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+                    <FormField
+                      control={otpForm.control}
+                      name="otp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>6-Digit Verification Code</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="text"
+                              placeholder="123456"
+                              maxLength={6}
+                              {...field}
+                              onChange={(e) => {
+                                // Only allow numbers and limit to 6 digits
+                                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                field.onChange(value);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Check your email for the verification code from Brevo.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        type="submit" 
+                        disabled={verifyOtpMutation.isPending || otpForm.watch('otp').length !== 6}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify Code'}
+                      </Button>
+                      
+                      {showOtpVerification && (
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setShowOtpVerification(false)}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </Form>
+              </div>
             )}
           </CardContent>
         </Card>
