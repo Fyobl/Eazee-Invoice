@@ -45,8 +45,18 @@ export const EmailSettings = () => {
   const queryClient = useQueryClient();
 
   // Get user data for email verification status
-  const { data: user } = useQuery({
+  const { data: user, refetch: refetchUser, isLoading: userLoading } = useQuery({
     queryKey: ['/api/me'],
+    refetchOnWindowFocus: true,
+    refetchInterval: showOtpVerification ? 2000 : false, // Poll every 2s during verification
+  });
+
+  // Debug logging to see current user state
+  console.log('👤 Current user state:', {
+    isEmailVerified: user?.isEmailVerified,
+    senderEmail: user?.senderEmail,
+    emailVerificationStatus: user?.emailVerificationStatus,
+    fullUser: user
   });
 
   const form = useForm<EmailSettingsForm>({
@@ -99,13 +109,30 @@ export const EmailSettings = () => {
       const response = await apiRequest('POST', '/api/verify-sender-otp', data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      console.log('🎉 Verification success response:', data);
       setShowOtpVerification(false);
       toast({
         title: "Email Verified!",
         description: "Your email is now verified and ready for sending invoices.",
       });
+      
+      // Multiple approaches to force UI refresh
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      
+      // Force immediate refetch after small delay
+      setTimeout(async () => {
+        console.log('🔄 Force refreshing user data...');
+        await refetchUser();
+        queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      }, 100);
+      
+      // Additional delayed refresh to ensure state updates
+      setTimeout(async () => {
+        console.log('🔄 Secondary refresh...');
+        await refetchUser();
+      }, 1000);
+      
       otpForm.reset();
     },
     onError: (error: any) => {
@@ -242,7 +269,13 @@ export const EmailSettings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {user?.isEmailVerified && user?.senderEmail ? (
+            {console.log('🔍 Rendering check:', { isEmailVerified: user?.isEmailVerified, senderEmail: user?.senderEmail, fullCondition: user?.isEmailVerified && user?.senderEmail })}
+            {userLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                <span className="ml-2">Loading...</span>
+              </div>
+            ) : user?.isEmailVerified && user?.senderEmail ? (
               <div className="space-y-4">
                 <Alert>
                   <CheckCircle className="h-4 w-4 text-green-600" />
@@ -268,9 +301,19 @@ export const EmailSettings = () => {
                 </Alert>
                 
                 <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your automatic email sending is fully configured and ready to use. You can now send invoices, quotes, and statements with PDFs automatically attached.
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Your automatic email sending is fully configured and ready to use. You can now send invoices, quotes, and statements with PDFs automatically attached.
+                    </p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => refetchUser()}
+                      className="text-xs"
+                    >
+                      Refresh Status
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
