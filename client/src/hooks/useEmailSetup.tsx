@@ -23,6 +23,9 @@ export const useEmailSetup = () => {
     gcTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchIntervalInBackground: false,
+    retry: false,
   });
 
   // Extract user from response
@@ -36,12 +39,15 @@ export const useEmailSetup = () => {
     user?.companyAddress
   );
 
-  console.log('🔍 useEmailSetup - Simplified validation:', {
+  console.log('🔍 useEmailSetup - Raw user data:', user);
+  console.log('🔍 useEmailSetup - Detailed validation:', {
     emailVerificationStatus: user?.emailVerificationStatus,
     senderEmail: user?.senderEmail,
     companyName: user?.companyName,
+    companyAddress: user?.companyAddress,
     hasAddress: Boolean(user?.companyAddress),
-    isEmailSetupComplete
+    isEmailSetupComplete,
+    response
   });
 
   const showEmailSetupModal = () => {
@@ -59,7 +65,14 @@ export const useEmailSetup = () => {
   const onEmailSetupComplete = () => {
     setShowEmailSetup(false);
     // Invalidate user data to refresh the validation
+    queryClient.clear();
     queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+    queryClient.refetchQueries({ queryKey: ['/api/me'] });
+    
+    // Add a short delay to ensure fresh data is loaded
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['/api/me'] });
+    }, 500);
   };
 
   return {

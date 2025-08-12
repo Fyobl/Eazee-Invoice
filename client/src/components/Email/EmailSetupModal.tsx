@@ -66,8 +66,10 @@ export const EmailSetupModal = ({ isOpen, onClose, onComplete }: EmailSetupModal
     },
     onSuccess: () => {
       setStep('complete');
-      // Refresh user data
+      // Force complete cache refresh
+      queryClient.clear();
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      queryClient.refetchQueries({ queryKey: ['/api/me'] });
       
       toast({
         title: "Email Verified!",
