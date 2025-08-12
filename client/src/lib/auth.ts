@@ -107,15 +107,25 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
 };
 
 export const logoutUser = async (): Promise<void> => {
+  // SECURITY CRITICAL: Preserve remember me data before logout
+  const rememberMe = localStorage.getItem('rememberMe');
+  const rememberedEmail = localStorage.getItem('rememberedEmail');
+  
   const response = await apiRequest('POST', '/api/logout');
   
   if (!response.ok) {
     throw new Error('Logout failed');
   }
   
-  // SECURITY CRITICAL: Clear ALL cached data to prevent data leakage
+  // SECURITY CRITICAL: Clear ALL cached data to prevent data leakage but preserve remember me
   localStorage.clear();
   queryClient.clear(); // Clear all TanStack Query cache
+  
+  // Restore remember me data if it existed
+  if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
+  if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
+  
+  console.log('logoutUser: preserved remember data');
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {

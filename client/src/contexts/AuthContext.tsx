@@ -40,16 +40,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setCurrentUser(user);
       
       if (!user) {
-        // Clear all data if no user - SECURITY CRITICAL
+        // SECURITY CRITICAL: Clear all data if no user but preserve remember me data
+        const rememberMe = localStorage.getItem('rememberMe');
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        
         localStorage.clear();
         queryClient.clear();
+        
+        // Restore remember me data
+        if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
+        if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
       setCurrentUser(null);
-      // Clear all cached data on error - SECURITY CRITICAL
+      // SECURITY CRITICAL: Clear all cached data on error but preserve remember me data
+      const rememberMe = localStorage.getItem('rememberMe');
+      const rememberedEmail = localStorage.getItem('rememberedEmail');
+      
       localStorage.clear();
       queryClient.clear();
+      
+      // Restore remember me data
+      if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
+      if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
     }
   };
 
@@ -59,12 +73,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const rememberMe = localStorage.getItem('rememberMe');
       const rememberedEmail = localStorage.getItem('rememberedEmail');
       
+      console.log('AuthContext: preserving remember data:', { rememberMe, rememberedEmail });
+      
       localStorage.clear();
       queryClient.clear();
       
       // Restore login convenience data
-      if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
-      if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', rememberMe);
+        console.log('AuthContext: restored rememberMe');
+      }
+      if (rememberedEmail) {
+        localStorage.setItem('rememberedEmail', rememberedEmail);
+        console.log('AuthContext: restored rememberedEmail:', rememberedEmail);
+      }
       
       // Always fetch fresh data from server - no caching
       await refreshUser();
