@@ -2760,59 +2760,35 @@ export async function setupRoutes(app: Express) {
 
       console.log('📧 Found sender:', { id: sender.id, email: sender.email, active: sender.active });
 
-      // Try multiple content types and formats
-      const attempts = [
-        { 
-          format: 'JSON object', 
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ otp: otp })
-        },
-        { 
-          format: 'form data', 
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-          body: `otp=${otp}`
-        },
-        { 
-          format: 'JSON alt field', 
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ code: otp })
-        },
-        { 
-          format: 'plain text', 
-          headers: { 'content-type': 'text/plain' },
-          body: otp
-        }
-      ];
+      // Based on OPTIONS response: PUT method is allowed for /v3/senders/{id}/validate
+      console.log(`🔄 Using PUT method with sender ID: ${sender.id}`);
       
-      let verifyResponse;
+      // The documentation shows the OTP should be sent as integer, not string
+      const otpAsInteger = parseInt(otp, 10);
+      console.log(`📦 Converting OTP to integer:`, otpAsInteger);
+      
+      const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
+        method: 'PUT',
+        headers: {
+          'accept': 'application/json',
+          'api-key': process.env.BREVO_API_KEY || '',
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({ otp: otpAsInteger })
+      });
+      
+      console.log(`📊 PUT method response status:`, verifyResponse.status);
+      
       let successful = false;
-      
-      for (const attempt of attempts) {
-        console.log(`🔄 Trying ${attempt.format}:`, attempt.body);
-        
-        verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
-          method: 'PUT',
-          headers: {
-            'accept': 'application/json',
-            'api-key': process.env.BREVO_API_KEY || '',
-            ...attempt.headers
-          },
-          body: attempt.body
-        });
-        
-        console.log(`📊 ${attempt.format} response status:`, verifyResponse.status);
-        
-        if (verifyResponse.status === 204 || verifyResponse.status === 200) {
-          console.log(`✅ SUCCESS with ${attempt.format}!`);
-          successful = true;
-          break;
-        } else {
-          const errorText = await verifyResponse.text();
-          console.log(`❌ ${attempt.format} failed:`, errorText);
-        }
+      if (verifyResponse.status === 204 || verifyResponse.status === 200) {
+        console.log(`✅ SUCCESS with PUT method and integer OTP!`);
+        successful = true;
+      } else {
+        const errorText = await verifyResponse.text();
+        console.log(`❌ PUT method failed:`, errorText);
       }
 
-      console.log('🔐 Brevo verify response status:', verifyResponse?.status);
+      console.log('🔐 Brevo verify response status:', verifyResponse.status);
       
       if (successful) {
         // Success response from Brevo (204 No Content)
