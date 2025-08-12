@@ -111,7 +111,7 @@ if (!USE_TEST_MODE) {
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2025-06-30.basil",
+  apiVersion: "2025-07-30.basil",
 });
 
 // Function to check Stripe account status
@@ -2298,6 +2298,67 @@ export async function setupRoutes(app: Express) {
     } catch (error) {
       console.error('❌ Error creating payment intent:', error);
       res.status(500).json({ error: 'Failed to create payment intent' });
+    }
+  });
+
+  // Confirm subscription after successful payment
+  app.post('/api/confirm-subscription', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      const user = req.user!;
+
+      if (!paymentIntentId) {
+        return res.status(400).json({ error: 'Payment intent ID is required' });
+      }
+
+      console.log('🔄 Confirming subscription for user:', user.uid, 'paymentIntent:', paymentIntentId);
+
+      // Retrieve the payment intent from Stripe to verify payment
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ error: 'Payment not completed' });
+      }
+
+      // Get billing frequency from metadata
+      const billingFrequency = paymentIntent.metadata?.billingFrequency || 'monthly';
+      
+      // Calculate subscription end date
+      const endDate = new Date();
+      if (billingFrequency === 'yearly') {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      } else {
+        endDate.setMonth(endDate.getMonth() + 1);
+      }
+
+      // Update user subscription status in database
+      await storage.updateUserSubscriptionStatus(user.uid, 'active', endDate);
+      
+      // Also update the isSubscriber flag
+      await db.update(users)
+        .set({ 
+          isSubscriber: true,
+          subscriptionStatus: 'active',
+          subscriptionCurrentPeriodEnd: endDate,
+          isAdminGrantedSubscription: false,
+          updatedAt: new Date()
+        })
+        .where(eq(users.uid, user.uid));
+
+      console.log('✅ Subscription confirmed for user:', user.uid, 'until:', endDate);
+
+      res.json({ 
+        success: true,
+        message: 'Subscription activated successfully',
+        subscriptionEndDate: endDate
+      });
+
+    } catch (error) {
+      console.error('❌ Error confirming subscription:', error);
+      res.status(500).json({ 
+        error: 'Failed to confirm subscription',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
