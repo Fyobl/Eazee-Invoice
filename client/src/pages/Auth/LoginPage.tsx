@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { loginUser } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft } from 'lucide-react';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,6 +24,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
@@ -31,8 +33,7 @@ export const LoginPage = () => {
   const rememberedEmail = localStorage.getItem('rememberedEmail') || '';
   const isRemembered = localStorage.getItem('rememberMe') === 'true';
   
-  console.log('LoginPage: remembered email:', rememberedEmail);
-  console.log('LoginPage: is remembered:', isRemembered);
+
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -56,19 +57,23 @@ export const LoginPage = () => {
       }
       
       const user = await loginUser(data.email, data.password);
-      console.log('Login successful, user:', user?.email);
+
       
       // Wait for user context to update
       await refreshUser();
       
-      // Use window.location instead of navigate to force a clean navigation
-      console.log('Login successful, redirecting to dashboard...');
-      window.location.href = '/dashboard';
+      // Show redirecting state
+      setRedirecting(true);
       
       toast({
         title: 'Login successful',
         description: 'Welcome back to Eazee Invoice!',
       });
+      
+      // Use window.location instead of navigate to force a clean navigation
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 500); // Small delay to show the redirecting message
       
     } catch (error) {
       toast({
@@ -77,9 +82,16 @@ export const LoginPage = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
+
+  // Show loading screen while redirecting
+  if (redirecting) {
+    return <LoadingScreen message="Redirecting to dashboard..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">

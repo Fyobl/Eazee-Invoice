@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 import { PasswordChangeDialog } from '../PasswordChangeDialog';
 import { SubscriptionRenewalDialog } from '../SubscriptionRenewalDialog';
 
@@ -18,14 +18,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isSubscriptionExpired = userData && !isSubscriber && trialDaysLeft === 0 && !userData.isAdmin;
   
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Loading your dashboard..." />;
   }
 
   if (!currentUser) {

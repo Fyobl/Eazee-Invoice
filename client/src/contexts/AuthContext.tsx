@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const rememberMe = localStorage.getItem('rememberMe');
       const rememberedEmail = localStorage.getItem('rememberedEmail');
       
-      console.log('AuthContext: preserving remember data:', { rememberMe, rememberedEmail });
+
       
       localStorage.clear();
       queryClient.clear();
@@ -81,11 +81,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Restore login convenience data
       if (rememberMe) {
         localStorage.setItem('rememberMe', rememberMe);
-        console.log('AuthContext: restored rememberMe');
+
       }
       if (rememberedEmail) {
         localStorage.setItem('rememberedEmail', rememberedEmail);
-        console.log('AuthContext: restored rememberedEmail:', rememberedEmail);
+
       }
       
       // Always fetch fresh data from server - no caching

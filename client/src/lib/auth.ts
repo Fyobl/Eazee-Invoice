@@ -62,7 +62,7 @@ export const registerUser = async (
 
 export const loginUser = async (email: string, password: string): Promise<AuthUser> => {
   // SECURITY CRITICAL: Clear sensitive cached data before login but preserve login convenience data
-  console.log('loginUser: preserving remember data before clear...');
+
   const rememberMe = localStorage.getItem('rememberMe');
   const rememberedEmail = localStorage.getItem('rememberedEmail');
   
@@ -74,7 +74,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
     const value = localStorage.getItem(key);
     if (value) {
       preservedData[key] = value;
-      console.log(`loginUser: preserving ${key}:`, value);
+
     }
   });
   
@@ -84,7 +84,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
   // Restore only the convenience data
   Object.entries(preservedData).forEach(([key, value]) => {
     localStorage.setItem(key, value);
-    console.log(`loginUser: restored ${key}:`, value);
+
   });
   
   try {
@@ -98,7 +98,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
       throw new Error(data.error || 'Login failed');
     }
     
-    console.log('loginUser: successful login for', data.user?.email);
+
     return data.user;
   } catch (error) {
     console.error('loginUser: failed', error);
@@ -125,7 +125,7 @@ export const logoutUser = async (): Promise<void> => {
   if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
   if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
   
-  console.log('logoutUser: preserved remember data');
+
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
