@@ -2773,27 +2773,45 @@ export async function setupRoutes(app: Express) {
 
       console.log('📧 Found sender:', { id: sender.id, email: sender.email, active: sender.active });
 
-      // Debug the request payload
-      const requestBody = { otp: otp };
-      const jsonBody = JSON.stringify(requestBody);
-      console.log('📦 Request payload:', { otp: otp, jsonBody });
-      console.log('📦 Request body length:', jsonBody.length);
-      console.log('📦 Request body type:', typeof jsonBody);
-
-      // Verify the OTP
-      const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
-        method: 'PUT',
-        headers: {
-          'accept': 'application/json',
-          'api-key': process.env.BREVO_API_KEY || '',
-          'content-type': 'application/json'
-        },
-        body: jsonBody
-      });
-
-      console.log('🔐 Brevo verify response status:', verifyResponse.status);
+      // Try multiple formats: object, string, and integer
+      const formats = [
+        { format: 'object', body: JSON.stringify({ otp: otp }) },
+        { format: 'string', body: JSON.stringify(otp) },
+        { format: 'integer', body: otp },
+        { format: 'alt-field', body: JSON.stringify({ code: otp }) }
+      ];
       
-      if (verifyResponse.status === 204) {
+      let verifyResponse;
+      let successful = false;
+      
+      for (const attempt of formats) {
+        console.log(`🔄 Trying ${attempt.format} format:`, attempt.body);
+        
+        verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
+          method: 'PUT',
+          headers: {
+            'accept': 'application/json',
+            'api-key': process.env.BREVO_API_KEY || '',
+            'content-type': 'application/json'
+          },
+          body: attempt.body
+        });
+        
+        console.log(`📊 ${attempt.format} response status:`, verifyResponse.status);
+        
+        if (verifyResponse.status === 204 || verifyResponse.status === 200) {
+          console.log(`✅ SUCCESS with ${attempt.format} format!`);
+          successful = true;
+          break;
+        } else {
+          const errorText = await verifyResponse.text();
+          console.log(`❌ ${attempt.format} failed:`, errorText);
+        }
+      }
+
+      console.log('🔐 Brevo verify response status:', verifyResponse?.status);
+      
+      if (successful) {
         // Success response from Brevo (204 No Content)
         console.log('✅ OTP verification successful');
         await storage.updateEmailVerificationStatus(user.uid, true, 'verified');
@@ -2804,29 +2822,14 @@ export async function setupRoutes(app: Express) {
           verified: true 
         });
       } else {
-        const errorText = await verifyResponse.text();
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText };
-        }
+        // All formats failed
+        console.error('❌ All verification formats failed');
         
-        console.error('❌ Brevo verification failed:', errorData);
-        
-        // Check if it's an expired/invalid OTP
-        if (verifyResponse.status === 400 && errorData.code === 'bad_request') {
-          res.status(400).json({ 
-            error: 'invalid_code',
-            message: 'The verification code is incorrect or has expired.',
-            details: 'Brevo verification codes expire quickly (within 2-3 minutes). If your code is more than a few minutes old, please click "Get New Code" to receive a fresh verification email.'
-          });
-        } else {
-          res.status(400).json({ 
-            error: 'Verification failed',
-            details: errorData.message || 'Please try again'
-          });
-        }
+        res.status(400).json({ 
+          error: 'invalid_code',
+          message: 'The verification code is incorrect or has expired.',
+          details: 'Brevo verification codes expire quickly (within 2-3 minutes). If your code is more than a few minutes old, please click "Get New Code" to receive a fresh verification email.'
+        });
       }
 
     } catch (error) {
