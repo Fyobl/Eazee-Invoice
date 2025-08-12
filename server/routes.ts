@@ -1,4 +1,5 @@
 import { Express, Request, Response, NextFunction } from "express";
+import { createServer, type Server } from "http";
 import { db, executeWithRetry } from "./db";
 import { customers, products, invoices, quotes, statements, statementInvoices, recycleBin, users, systemSettings, onboardingProgress, type User } from "@shared/schema";
 import { eq, and, desc, sql, ne } from "drizzle-orm";
@@ -2431,4 +2432,41 @@ export async function setupRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to set stripe mode' });
     }
   });
+
+  // Web Analytics endpoints (admin only)
+  app.get('/api/admin/analytics', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { range = '30d' } = req.query;
+      const rangeDays = range === '7d' ? 7 : range === '90d' ? 90 : range === '1y' ? 365 : 30;
+      
+      const { getAnalyticsData } = await import('./analytics');
+      const analyticsData = getAnalyticsData(rangeDays);
+      
+      res.json(analyticsData);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics data' });
+    }
+  });
+
+  // Test notifications endpoint (admin only)
+  app.post('/api/test-notifications', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { service } = req.body;
+      
+      if (service === 'pushover') {
+        const { sendTestNotification } = await import('./pushNotifications');
+        await sendTestNotification();
+        res.json({ success: true, message: 'Test notification sent via Pushover' });
+      } else {
+        res.status(400).json({ error: 'Invalid notification service' });
+      }
+    } catch (error) {
+      console.error('Test notification error:', error);
+      res.status(500).json({ error: 'Failed to send test notification' });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
 }

@@ -42,6 +42,7 @@ import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
 import { MetaDataManager } from "@/pages/Admin/MetaDataManager";
+import Analytics from "@/pages/Admin/Analytics";
 import SubscribeNew from "@/pages/SubscribeNew";
 import ManageSubscription from "@/pages/ManageSubscription";
 import { Help } from "@/pages/Help";
@@ -209,6 +210,12 @@ function Router() {
       <Route path="/admin">
         <ProtectedRoute>
           <AdminPanel />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/analytics">
+        <ProtectedRoute>
+          <Analytics />
         </ProtectedRoute>
       </Route>
 

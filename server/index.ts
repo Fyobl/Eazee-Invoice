@@ -64,6 +64,22 @@ app.use((req, res, next) => {
 // Serve attached assets (videos, images, etc.)
 app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
+// Add analytics tracking middleware
+import { analyticsMiddleware } from './analytics';
+app.use(analyticsMiddleware);
+
+// Generate sample analytics data on startup (development only)
+if (process.env.NODE_ENV === 'development') {
+  setTimeout(async () => {
+    try {
+      const { generateSampleAnalyticsData } = await import('./sampleAnalyticsData');
+      generateSampleAnalyticsData();
+    } catch (error) {
+      console.log('Note: Sample analytics data generation failed:', error);
+    }
+  }, 5000); // Wait 5 seconds after startup
+}
+
 // Session middleware
 const PgSession = ConnectPgSimple(session);
 // Determine if we should use secure cookies

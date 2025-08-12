@@ -527,9 +527,17 @@ export const AdminPanel = () => {
     <Layout title="Admin Panel">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center space-x-2">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Admin Panel</h2>
-          <Badge variant="destructive">Admin Only</Badge>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Admin Panel</h2>
+            <Badge variant="destructive">Admin Only</Badge>
+          </div>
+          <Link to="/admin/analytics">
+            <Button variant="outline">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Web Analytics
+            </Button>
+          </Link>
         </div>
 
         {/* Stripe Mode Toggle */}
