@@ -2347,6 +2347,17 @@ export async function setupRoutes(app: Express) {
 
       console.log('✅ Subscription confirmed for user:', user.uid, 'until:', endDate);
 
+      // Send push notification for manual subscription confirmation
+      const customerName = user.displayName || 'Unknown Customer';
+      const customerEmail = user.email || 'No email';
+      const amount = billingFrequency === 'yearly' ? 64.69 : 5.99;
+      
+      // Send notification in background (don't block response)
+      import('./pushNotifications').then(({ sendSubscriptionNotification }) => {
+        sendSubscriptionNotification(customerEmail, customerName, amount, 'GBP', billingFrequency)
+          .catch(error => console.error('Notification failed:', error));
+      });
+
       res.json({ 
         success: true,
         message: 'Subscription activated successfully',
