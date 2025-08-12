@@ -325,23 +325,21 @@ export const InvoiceList = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>
-                          <div className="px-2 py-1.5">
-                            <EmailSendButton
-                              documentType="invoice"
-                              customerEmail={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)?.email || ''}
-                              customerName={invoice.customerName}
-                              documentNumber={invoice.number}
-                              documentData={{
-                                companyName: currentUser?.companyName,
-                                date: invoice.date,
-                                dueDate: invoice.dueDate,
-                                total: invoice.total
-                              }}
-                              variant="ghost"
-                              size="sm"
-                              className="w-full justify-start h-8 px-2 text-sm font-normal"
-                            />
-                          </div>
+                          <EmailSendButton
+                            documentType="invoice"
+                            customerEmail={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)?.email || ''}
+                            customerName={invoice.customerName}
+                            documentNumber={invoice.number}
+                            documentData={{
+                              companyName: currentUser?.companyName,
+                              date: invoice.date,
+                              dueDate: invoice.dueDate,
+                              total: invoice.total
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start h-8 px-2 text-sm font-normal"
+                          />
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(invoice)}
                             className="text-red-600 dark:text-red-400"
