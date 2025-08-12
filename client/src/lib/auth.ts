@@ -65,12 +65,22 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
   const rememberMe = localStorage.getItem('rememberMe');
   const rememberedEmail = localStorage.getItem('rememberedEmail');
   
+  // Clear all cached data except login convenience
+  const keysToKeep = ['rememberMe', 'rememberedEmail'];
+  const preservedData: Record<string, string> = {};
+  
+  keysToKeep.forEach(key => {
+    const value = localStorage.getItem(key);
+    if (value) preservedData[key] = value;
+  });
+  
   localStorage.clear();
   queryClient.clear(); // Clear all TanStack Query cache
   
-  // Restore login convenience data
-  if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
-  if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
+  // Restore only the convenience data
+  Object.entries(preservedData).forEach(([key, value]) => {
+    localStorage.setItem(key, value);
+  });
   
   const response = await apiRequest('POST', '/api/login', {
     email,

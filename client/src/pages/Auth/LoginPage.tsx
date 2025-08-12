@@ -43,9 +43,7 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      const user = await loginUser(data.email, data.password);
-      
-      // Store credentials if "Remember Me" is checked
+      // Store credentials BEFORE login if "Remember Me" is checked
       if (data.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
         localStorage.setItem('rememberedEmail', data.email);
@@ -54,6 +52,7 @@ export const LoginPage = () => {
         localStorage.removeItem('rememberedEmail');
       }
       
+      const user = await loginUser(data.email, data.password);
       await refreshUser();
       
       toast({
