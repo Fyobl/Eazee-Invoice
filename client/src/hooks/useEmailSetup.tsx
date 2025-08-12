@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface User {
   uid: string;
@@ -15,9 +15,12 @@ interface User {
 
 export const useEmailSetup = () => {
   const [showEmailSetup, setShowEmailSetup] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery<User>({
     queryKey: ['/api/me'],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Check company details - require both companyName and companyAddress
@@ -51,7 +54,8 @@ export const useEmailSetup = () => {
 
   const onEmailSetupComplete = () => {
     setShowEmailSetup(false);
-    // Could trigger a callback here if needed
+    // Invalidate user data to refresh the validation
+    queryClient.invalidateQueries({ queryKey: ['/api/me'] });
   };
 
   return {

@@ -408,6 +408,10 @@ export async function setupRoutes(app: Express) {
       senderEmail: userResponse.senderEmail
     });
     
+    // Disable caching to ensure fresh data
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     res.json({ user: userResponse });
   });
 
