@@ -6,6 +6,7 @@ import { useEmailSetup } from '@/hooks/useEmailSetup';
 import { EmailSetupModal } from './EmailSetupModal';
 import { apiRequest } from '@/lib/queryClient';
 import { getEmailSettings } from '@/lib/emailUtils';
+import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { Mail, Loader2 } from 'lucide-react';
 
 interface EmailSendButtonProps {
@@ -13,8 +14,10 @@ interface EmailSendButtonProps {
   customerEmail: string;
   customerName: string;
   documentNumber: string;
-  documentData: any; // The document data for variable replacement
-  pdfBase64?: string; // Optional PDF attachment
+  documentData: any; // The complete document data (invoice/quote/statement)
+  customer: any; // Customer data for PDF generation
+  currentUser: any; // Current user data for PDF generation
+  pdfBase64?: string; // Optional PDF attachment (will generate if not provided)
   className?: string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
@@ -26,6 +29,8 @@ export const EmailSendButton = ({
   customerName,
   documentNumber,
   documentData,
+  customer,
+  currentUser,
   pdfBase64,
   className,
   variant = 'outline',
@@ -114,8 +119,29 @@ export const EmailSendButton = ({
           break;
       }
 
+      // Generate PDF if not provided
+      let pdfBase64ForEmail = pdfBase64;
+      if (!pdfBase64ForEmail && customer && currentUser) {
+        try {
+          const pdfBlob = await generatePDF(documentData, customer, currentUser, documentType);
+          
+          // Convert blob to base64
+          const arrayBuffer = await pdfBlob.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          const binaryString = String.fromCharCode.apply(null, Array.from(uint8Array));
+          pdfBase64ForEmail = btoa(binaryString);
+        } catch (pdfError) {
+          console.error('Error generating PDF for email:', pdfError);
+          toast({
+            title: "PDF Generation Failed",
+            description: "Could not generate PDF attachment. Email will be sent without PDF.",
+            variant: "destructive",
+          });
+        }
+      }
+
       // Prepare PDF filename
-      const pdfFilename = pdfBase64 ? `${documentType}-${documentNumber}.pdf` : undefined;
+      const pdfFilename = pdfBase64ForEmail ? `${documentType}-${documentNumber}.pdf` : undefined;
 
       // Send email
       sendEmailMutation.mutate({
@@ -123,7 +149,7 @@ export const EmailSendButton = ({
         toName: customerName,
         subject,
         body,
-        pdfBase64,
+        pdfBase64: pdfBase64ForEmail,
         pdfFilename
       });
 

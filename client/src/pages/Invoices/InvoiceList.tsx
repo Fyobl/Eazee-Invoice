@@ -330,12 +330,9 @@ export const InvoiceList = () => {
                             customerEmail={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)?.email || ''}
                             customerName={invoice.customerName}
                             documentNumber={invoice.number}
-                            documentData={{
-                              companyName: currentUser?.companyName,
-                              date: invoice.date,
-                              dueDate: invoice.dueDate,
-                              total: invoice.total
-                            }}
+                            documentData={invoice}
+                            customer={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)}
+                            currentUser={currentUser}
                             variant="ghost"
                             size="sm"
                             className="w-full justify-start h-8 px-2 text-sm font-normal"
