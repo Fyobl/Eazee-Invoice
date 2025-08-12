@@ -36,6 +36,10 @@ export const users = pgTable('users', {
   bankAccountName: text('bank_account_name'),
   bankAccountNumber: text('bank_account_number'),
   bankSortCode: text('bank_sort_code'),
+  // Email sending fields
+  senderEmail: text('sender_email'),
+  isEmailVerified: boolean('is_email_verified').default(false),
+  emailVerificationStatus: text('email_verification_status'), // pending, verified, failed
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

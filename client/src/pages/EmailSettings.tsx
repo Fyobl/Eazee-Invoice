@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { getEmailSettings, saveEmailSettings, defaultEmailSettings } from '@/lib/emailUtils';
-import { Mail, RotateCcw, Info } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { Mail, RotateCcw, Info, Send, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 const emailSettingsSchema = z.object({
   invoiceSubject: z.string().min(1, 'Invoice subject is required'),
@@ -22,15 +25,55 @@ const emailSettingsSchema = z.object({
   statementBody: z.string().min(1, 'Statement body is required'),
 });
 
+const autoEmailSetupSchema = z.object({
+  senderEmail: z.string().email('Please enter a valid email address'),
+});
+
 type EmailSettingsForm = z.infer<typeof emailSettingsSchema>;
+type AutoEmailSetupForm = z.infer<typeof autoEmailSetupSchema>;
 
 export const EmailSettings = () => {
   const [isResetting, setIsResetting] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Get user data for email verification status
+  const { data: user } = useQuery({
+    queryKey: ['/api/me'],
+  });
 
   const form = useForm<EmailSettingsForm>({
     resolver: zodResolver(emailSettingsSchema),
     defaultValues: getEmailSettings(),
+  });
+
+  const autoEmailForm = useForm<AutoEmailSetupForm>({
+    resolver: zodResolver(autoEmailSetupSchema),
+    defaultValues: {
+      senderEmail: user?.senderEmail || user?.email || '',
+    },
+  });
+
+  // Auto email setup mutation
+  const setupAutoEmailMutation = useMutation({
+    mutationFn: async (data: AutoEmailSetupForm) => {
+      const response = await apiRequest('POST', '/api/setup-auto-email', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email Setup Initiated",
+        description: "Check your email for a verification message from Brevo to complete the setup.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Setup Failed",
+        description: error.message || "Failed to setup auto email. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const onSubmit = async (data: EmailSettingsForm) => {
@@ -61,6 +104,25 @@ export const EmailSettings = () => {
     setIsResetting(false);
   };
 
+  const onAutoEmailSubmit = async (data: AutoEmailSetupForm) => {
+    setupAutoEmailMutation.mutate(data);
+  };
+
+  const getEmailVerificationStatus = () => {
+    if (!user?.senderEmail) return null;
+    
+    switch (user.emailVerificationStatus) {
+      case 'verified':
+        return { icon: CheckCircle, color: 'text-green-600', text: 'Email verified and ready for sending' };
+      case 'pending':
+        return { icon: Clock, color: 'text-yellow-600', text: 'Verification pending - check your email' };
+      case 'failed':
+        return { icon: AlertCircle, color: 'text-red-600', text: 'Verification failed - please try again' };
+      default:
+        return { icon: AlertCircle, color: 'text-gray-600', text: 'Email verification status unknown' };
+    }
+  };
+
   return (
     <Layout title="Email Settings">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -68,7 +130,7 @@ export const EmailSettings = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Email Settings</h2>
-            <p className="text-slate-600 dark:text-slate-400">Configure email templates for invoices, quotes, and statements</p>
+            <p className="text-slate-600 dark:text-slate-400">Configure email templates and automatic email sending</p>
           </div>
           <Button
             variant="outline"
@@ -80,6 +142,90 @@ export const EmailSettings = () => {
             Reset to Default
           </Button>
         </div>
+
+        {/* Auto Email Setup Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Automatic Email Sending
+            </CardTitle>
+            <CardDescription>
+              Set up automatic email sending through our secure email service. Once verified, you can send invoices, quotes, and statements directly to customers with PDFs automatically attached.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {user?.isEmailVerified && user?.senderEmail ? (
+              <div className="space-y-4">
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Auto email is set up and ready! Emails will be sent from <strong>{user.senderEmail}</strong> with replies going directly to your email address.
+                  </AlertDescription>
+                </Alert>
+                {(() => {
+                  const status = getEmailVerificationStatus();
+                  if (!status) return null;
+                  const Icon = status.icon;
+                  return (
+                    <div className={`flex items-center gap-2 text-sm ${status.color}`}>
+                      <Icon className="h-4 w-4" />
+                      {status.text}
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <Form {...autoEmailForm}>
+                <form onSubmit={autoEmailForm.handleSubmit(onAutoEmailSubmit)} className="space-y-4">
+                  <FormField
+                    control={autoEmailForm.control}
+                    name="senderEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sender Email Address</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="email"
+                            placeholder="your.email@company.com" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          This email address will be used to send invoices, quotes, and statements. You will receive a verification email to confirm this address.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>How it works:</strong>
+                      <ol className="list-decimal list-inside mt-2 space-y-1">
+                        <li>Enter your business email address above</li>
+                        <li>Click "Set up auto email" to begin verification</li>
+                        <li>Check your email for a verification message from Brevo</li>
+                        <li>Click the verification link to complete setup</li>
+                        <li>Once verified, you can send professional emails with PDFs attached</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
+
+                  <Button 
+                    type="submit" 
+                    disabled={setupAutoEmailMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up auto email'}
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Information Card */}
         <Card>

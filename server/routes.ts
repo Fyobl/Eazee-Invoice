@@ -9,6 +9,7 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "./emailService";
 import { sendSubscriptionNotification } from "./pushNotifications";
+import { sendEmailWithBrevo, replaceEmailVariables, generateEmailHTML } from "./emailSender";
 import * as geoip from 'geoip-lite';
 import bcrypt from "bcrypt";
 
@@ -2552,6 +2553,178 @@ export async function setupRoutes(app: Express) {
     } catch (error) {
       console.error('Test notification error:', error);
       res.status(500).json({ error: 'Failed to send test notification' });
+    }
+  });
+
+  // Email setup route
+  app.post('/api/setup-auto-email', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { senderEmail } = req.body;
+      const uid = req.user!.uid;
+
+      if (!senderEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+        return res.status(400).json({ error: 'Valid email address required' });
+      }
+
+      // Check if Brevo API key is available
+      if (!process.env.BREVO_API_KEY) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
+      try {
+        // Add sender to Brevo
+        const brevoResponse = await fetch('https://api.brevo.com/v3/senders', {
+          method: 'POST',
+          headers: {
+            'api-key': process.env.BREVO_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: req.user!.companyName || req.user!.displayName,
+            email: senderEmail,
+            ips: [] // Uses shared IPs
+          })
+        });
+
+        let verificationStatus = 'pending';
+        if (brevoResponse.ok) {
+          verificationStatus = 'pending';
+        } else {
+          const errorData = await brevoResponse.json();
+          // Handle case where sender already exists
+          if (errorData.code === 'duplicate_parameter') {
+            verificationStatus = 'pending'; // Assume it needs verification
+          } else {
+            console.error('Brevo sender creation failed:', errorData);
+            return res.status(400).json({ error: 'Failed to register email with service' });
+          }
+        }
+
+        // Update user with sender email and verification status
+        await storage.updateUserEmailSettings(uid, senderEmail, verificationStatus);
+
+        res.json({ 
+          success: true, 
+          message: 'Email setup initiated. Check your email for verification.',
+          verificationStatus 
+        });
+
+      } catch (brevoError) {
+        console.error('Brevo API error:', brevoError);
+        res.status(500).json({ error: 'Failed to setup email service' });
+      }
+
+    } catch (error) {
+      console.error('Setup auto email error:', error);
+      res.status(500).json({ error: 'Failed to setup auto email' });
+    }
+  });
+
+  // Send email route with PDF attachment
+  app.post('/api/send-email', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const { to, toName, subject, body, pdfBase64, pdfFilename, templateType } = req.body;
+
+      // Validate required fields
+      if (!to || !subject || !body) {
+        return res.status(400).json({ error: 'Missing required fields: to, subject, body' });
+      }
+
+      // Check if user has email setup complete
+      if (!user.isEmailVerified || !user.senderEmail) {
+        return res.status(400).json({ error: 'Email sending not setup. Please complete email verification first.' });
+      }
+
+      // Replace template variables in subject and body
+      const variables = {
+        customerName: toName || to,
+        companyName: user.companyName || 'Your Company',
+        senderName: user.displayName || user.companyName || 'Eazee Invoice'
+      };
+
+      const processedSubject = replaceEmailVariables(subject, variables);
+      const processedBody = replaceEmailVariables(body, variables);
+
+      // Generate HTML email content
+      const htmlContent = generateEmailHTML(processedBody, user);
+
+      // Prepare attachment if provided
+      let attachment;
+      if (pdfBase64 && pdfFilename) {
+        attachment = {
+          content: pdfBase64,
+          name: pdfFilename,
+          type: 'application/pdf'
+        };
+      }
+
+      // Send email via Brevo
+      await sendEmailWithBrevo(user, {
+        to,
+        toName,
+        subject: processedSubject,
+        htmlContent,
+        attachment
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Email sent successfully',
+        sentFrom: user.senderEmail 
+      });
+
+    } catch (error) {
+      console.error('Send email error:', error);
+      res.status(500).json({ 
+        error: 'Failed to send email',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Check email verification status route
+  app.get('/api/check-email-status', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      if (!user.senderEmail) {
+        return res.json({ verified: false, status: 'not_setup' });
+      }
+
+      // Check verification status with Brevo if needed
+      if (process.env.BREVO_API_KEY && user.emailVerificationStatus === 'pending') {
+        try {
+          const brevoResponse = await fetch(`https://api.brevo.com/v3/senders?email=${user.senderEmail}`, {
+            headers: {
+              'api-key': process.env.BREVO_API_KEY
+            }
+          });
+
+          if (brevoResponse.ok) {
+            const senders = await brevoResponse.json();
+            const sender = senders.senders?.find((s: any) => s.email === user.senderEmail);
+            
+            if (sender && sender.status === 'verified') {
+              // Update verification status in database
+              await storage.updateEmailVerificationStatus(user.uid, true, 'verified');
+              return res.json({ verified: true, status: 'verified' });
+            }
+          }
+        } catch (brevoError) {
+          console.error('Brevo status check error:', brevoError);
+        }
+      }
+
+      res.json({ 
+        verified: user.isEmailVerified || false, 
+        status: user.emailVerificationStatus || 'unknown',
+        senderEmail: user.senderEmail 
+      });
+
+    } catch (error) {
+      console.error('Check email status error:', error);
+      res.status(500).json({ error: 'Failed to check email status' });
     }
   });
 

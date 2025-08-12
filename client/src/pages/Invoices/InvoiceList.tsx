@@ -12,8 +12,8 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { openMailApp } from '@/lib/emailUtils';
-import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, Mail } from 'lucide-react';
+import { EmailSendButton } from '@/components/Email/EmailSendButton';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
 import { Link } from 'wouter';
 import { Invoice } from '@shared/schema';
 
@@ -24,7 +24,6 @@ export const InvoiceList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [lastEmailTime, setLastEmailTime] = useState(0);
   
   const { data: invoices, isLoading: loading, remove: deleteDocument, update: updateInvoice } = useDatabase('invoices');
   const { data: customers } = useDatabase('customers');
@@ -186,141 +185,6 @@ export const InvoiceList = () => {
     }
   };
 
-  const handleSendEmail = async (invoice: Invoice) => {
-    const now = Date.now();
-    
-    if (isGeneratingPDF) {
-      toast({
-        title: "Please Wait",
-        description: "PDF is still being generated. Please wait for it to complete.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Debounce: prevent rapid clicks within 3 seconds
-    if (now - lastEmailTime < 3000) {
-      toast({
-        title: "Please Wait",
-        description: "Please wait a moment before sending another email.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLastEmailTime(now);
-
-    if (!currentUser) {
-      toast({
-        title: "Error",
-        description: "User information not found. Please log in again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!customers || customers.length === 0) {
-      toast({
-        title: "Error",
-        description: "Customer information not found.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
-
-    if (!customer) {
-      console.error('Customer lookup failed:', {
-        invoiceCustomerId: invoice.customerId,
-        availableCustomers: customers.map(c => ({ id: c.id, name: c.name }))
-      });
-      toast({
-        title: "Error",
-        description: "Customer not found for this invoice.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsGeneratingPDF(true);
-      console.log('Creating PDF and email for invoice:', invoice.number);
-      
-      // First, generate and download the PDF
-      try {
-        // Add small delay to prevent rapid-fire issues
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Temporarily suppress all alerts during PDF generation
-        const originalAlert = window.alert;
-        window.alert = () => {};
-        
-        const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
-        
-        // Restore alert after PDF generation
-        window.alert = originalAlert;
-        
-        // Download the PDF
-        const url = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `invoice-${invoice.number}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        console.log('PDF generated and downloaded successfully');
-      } catch (pdfError) {
-        console.warn('PDF generation failed, continuing with email:', pdfError);
-        // Continue with email even if PDF fails
-      }
-      
-      // Then open the email
-      const emailSubject = `Invoice ${invoice.number} from ${currentUser.companyName || 'Your Company'}`;
-      const emailBody = `Dear ${customer.name},
-
-Please find attached invoice ${invoice.number} for your recent purchase.
-
-Invoice Details:
-- Invoice Number: ${invoice.number}
-- Issue Date: ${new Date(invoice.date).toLocaleDateString('en-GB')}
-- Due Date: ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}
-- Amount: £${invoice.total}
-- Status: ${invoice.status.toUpperCase()}
-
-Payment is due by ${new Date(invoice.dueDate).toLocaleDateString('en-GB')}. If you have any questions regarding this invoice, please contact us.
-
-Thank you for your business.
-
-Best regards,
-${currentUser.companyName || 'Your Company'}
-
----
-Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
-
-      const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-      
-      console.log('Opening email with URL:', simpleMailtoUrl);
-      window.location.href = simpleMailtoUrl;
-      
-      toast({
-        title: "Email Prepared",
-        description: `PDF downloaded and email opened for invoice ${invoice.number}. Please attach the PDF to the email.`,
-      });
-    } catch (error) {
-      console.error('Error preparing email:', error);
-      toast({
-        title: "Error",
-        description: `Failed to prepare email: ${error.message}. Please try again.`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   if (loading) {
     return (
       <Layout title="Invoices">
@@ -461,10 +325,23 @@ Note: The PDF has been downloaded to your Downloads folder. Please attach it to 
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSendEmail(invoice)}>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Send via Email
-                          </DropdownMenuItem>
+                          <div className="px-2 py-1.5">
+                            <EmailSendButton
+                              documentType="invoice"
+                              customerEmail={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)?.email || ''}
+                              customerName={invoice.customerName}
+                              documentNumber={invoice.number}
+                              documentData={{
+                                companyName: currentUser?.companyName,
+                                date: invoice.date,
+                                dueDate: invoice.dueDate,
+                                total: invoice.total
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start h-8 px-2 text-sm font-normal"
+                            />
+                          </div>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(invoice)}
                             className="text-red-600 dark:text-red-400"

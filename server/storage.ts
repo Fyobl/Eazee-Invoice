@@ -34,6 +34,9 @@ export interface IStorage {
   updateOnboardingProgress(uid: string, updates: Partial<OnboardingProgress>): Promise<OnboardingProgress>;
   createOnboardingProgress(uid: string): Promise<OnboardingProgress>;
   dismissOnboarding(uid: string): Promise<OnboardingProgress>;
+  // Email setup methods
+  updateUserEmailSettings(uid: string, senderEmail: string, verificationStatus: string): Promise<User>;
+  updateEmailVerificationStatus(uid: string, isVerified: boolean, status: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -391,6 +394,32 @@ export class DatabaseStorage implements IStorage {
     return this.updateOnboardingProgress(uid, { isOnboardingDismissed: true });
   }
 
+  async updateUserEmailSettings(uid: string, senderEmail: string, verificationStatus: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        senderEmail,
+        emailVerificationStatus: verificationStatus,
+        isEmailVerified: false, // Will be updated when verification is complete
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, uid))
+      .returning();
+    return user;
+  }
+
+  async updateEmailVerificationStatus(uid: string, isVerified: boolean, status: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        isEmailVerified: isVerified,
+        emailVerificationStatus: status,
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, uid))
+      .returning();
+    return user;
+  }
 }
 
 export const storage = new DatabaseStorage();
