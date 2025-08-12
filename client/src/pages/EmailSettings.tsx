@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { getEmailSettings, saveEmailSettings, defaultEmailSettings } from '@/lib/emailUtils';
 import { apiRequest } from '@/lib/queryClient';
@@ -213,14 +214,7 @@ export const EmailSettings = () => {
     verifyOtpMutation.mutate(data);
   };
 
-  const handleDeleteSender = () => {
-    if (confirm('Are you sure you want to delete this email setup? You will need to verify a new email address to send emails again.')) {
-      deleteSenderMutation.mutate();
-      // Reset local verified state
-      setIsEmailVerifiedLocal(false);
-      setVerifiedEmailLocal('');
-    }
-  };
+  // Delete sender function is now handled directly in the AlertDialog onClick
 
   const getEmailVerificationStatus = () => {
     if (!user?.senderEmail) return null;
@@ -285,16 +279,40 @@ export const EmailSettings = () => {
                         <br />
                         Emails will be sent from <strong>{verifiedEmailLocal || user.senderEmail || 'fyobl_ben@hotmail.com'}</strong> with replies going directly to your email address.
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDeleteSender}
-                        disabled={deleteSenderMutation.isPending}
-                        className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {deleteSenderMutation.isPending ? 'Deleting...' : 'Change Email'}
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={deleteSenderMutation.isPending}
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            {deleteSenderMutation.isPending ? 'Deleting...' : 'Change Email'}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="max-w-md">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Change Email Address</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this email setup? You will need to verify a new email address to send emails again.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                deleteSenderMutation.mutate();
+                                setIsEmailVerifiedLocal(false);
+                                setVerifiedEmailLocal('');
+                              }}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete & Change Email
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </AlertDescription>
                 </Alert>
