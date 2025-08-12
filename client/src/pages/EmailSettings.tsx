@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getEmailSettings, saveEmailSettings, defaultEmailSettings } from '@/lib/emailUtils';
 import { apiRequest } from '@/lib/queryClient';
 import { Mail, RotateCcw, Info, Send, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { RequestNewCodeButton } from '@/components/Email/RequestNewCodeButton';
 
 const emailSettingsSchema = z.object({
   invoiceSubject: z.string().min(1, 'Invoice subject is required'),
@@ -309,7 +310,7 @@ export const EmailSettings = () => {
                       )}
                     />
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button 
                         type="submit" 
                         disabled={verifyOtpMutation.isPending || otpForm.watch('otp').length !== 6}
@@ -318,6 +319,17 @@ export const EmailSettings = () => {
                         <CheckCircle className="h-4 w-4" />
                         {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify Code'}
                       </Button>
+                      
+                      <RequestNewCodeButton
+                        senderEmail={user?.senderEmail || ''}
+                        onCodeRequested={() => {
+                          otpForm.reset();
+                          toast({
+                            title: "Fresh Code Sent",
+                            description: "Enter the new 6-digit code from your email.",
+                          });
+                        }}
+                      />
                       
                       {showOtpVerification && (
                         <Button 

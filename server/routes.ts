@@ -2607,7 +2607,8 @@ export async function setupRoutes(app: Express) {
           success: true, 
           message: 'Email setup initiated. Check your email for a 6-digit verification code, then return here to complete setup.',
           verificationStatus,
-          requiresOtp: true
+          requiresOtp: true,
+          senderEmail: senderEmail
         });
 
       } catch (brevoError) {
@@ -2730,7 +2731,7 @@ export async function setupRoutes(app: Express) {
 
       // Verify the OTP
       const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'accept': 'application/json',
           'api-key': process.env.BREVO_API_KEY || '',
@@ -2740,10 +2741,10 @@ export async function setupRoutes(app: Express) {
       });
 
       console.log('🔐 Brevo verify response status:', verifyResponse.status);
-
-      if (verifyResponse.ok) {
+      
+      if (verifyResponse.status === 204) {
+        // Success response from Brevo (204 No Content)
         console.log('✅ OTP verification successful');
-        // Update user verification status
         await storage.updateEmailVerificationStatus(user.uid, true, 'verified');
         
         res.json({ 
@@ -2752,12 +2753,28 @@ export async function setupRoutes(app: Express) {
           verified: true 
         });
       } else {
-        const errorData = await verifyResponse.json();
+        const errorText = await verifyResponse.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+        
         console.error('❌ Brevo verification failed:', errorData);
-        res.status(400).json({ 
-          error: 'Invalid verification code',
-          details: errorData.message || 'Please check your verification code and try again'
-        });
+        
+        // Check if it's an expired/invalid OTP
+        if (verifyResponse.status === 400) {
+          res.status(400).json({ 
+            error: 'The verification code is invalid or has expired. Please request a new verification email.',
+            details: errorData.message || 'Please get a fresh verification code'
+          });
+        } else {
+          res.status(400).json({ 
+            error: 'Verification failed',
+            details: errorData.message || 'Please try again'
+          });
+        }
       }
 
     } catch (error) {
