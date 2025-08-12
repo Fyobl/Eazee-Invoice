@@ -71,6 +71,9 @@ export const generatePDF = async (
   
   const documentTitle = type.charAt(0).toUpperCase() + type.slice(1);
   
+  // Check if user is on trial (add watermark for trial users)
+  const isTrialUser = !user.isSubscriber;
+  
   // Format currency values properly
   const formatPrice = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -259,6 +262,26 @@ export const generatePDF = async (
           font-size: 11px;
           margin-top: 20px;
         }
+        .trial-watermark {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(-45deg);
+          font-size: 72px;
+          font-weight: bold;
+          color: rgba(0, 0, 0, 0.08);
+          z-index: 1000;
+          pointer-events: none;
+          white-space: nowrap;
+          font-family: Arial, sans-serif;
+          text-transform: uppercase;
+          letter-spacing: 4px;
+        }
+        @media print {
+          .trial-watermark {
+            display: block !important;
+          }
+        }
         .statement-content {
           margin: 15px 0;
           padding: 15px;
@@ -348,6 +371,7 @@ export const generatePDF = async (
       </style>
     </head>
     <body>
+      ${isTrialUser ? '<div class="trial-watermark">TRIAL VERSION</div>' : ''}
       <div class="header">
         <div class="logo-section">
           ${user.companyLogo ? `<img src="${user.companyLogo}" alt="${user.companyName}" class="logo-img">` : `<div class="logo-text">Eazee Invoice</div>`}

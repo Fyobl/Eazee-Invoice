@@ -223,7 +223,7 @@ export const openMailApp = async (
     // Wrap PDF generation in a try-catch to handle browser-specific errors
     try {
       pdfBlob = await Promise.race([
-        generatePDF({ document, user, type }),
+        generatePDF(document, customer, user, type),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('PDF generation timeout')), 15000)
         )
