@@ -46,11 +46,10 @@ export const EmailSettings = () => {
 
   // Get user data for email verification status  
   const { data: user, refetch: refetchUser, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/me', Date.now()], // Cache-busting key to force fresh data
+    queryKey: ['/api/me'],
     refetchOnWindowFocus: true,
-    refetchInterval: showOtpVerification ? 2000 : false, // Poll every 2s during verification
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the result
+    gcTime: 0, // Don't cache the result (formerly cacheTime)
   });
 
   // Check if email is verified
@@ -121,8 +120,13 @@ export const EmailSettings = () => {
         description: "Your email is now verified and ready for sending invoices.",
       });
       
-      // Force immediate page reload to ensure fresh data
-      window.location.reload();
+      // Clear cache and refetch immediately
+      queryClient.removeQueries({ queryKey: ['/api/me'] });
+      setTimeout(() => {
+        refetchUser();
+      }, 500);
+      
+      otpForm.reset();
     },
     onError: (error: any) => {
       if (error.message?.includes('invalid_code') || error.message?.includes('expired')) {
