@@ -109,11 +109,19 @@ export const EmailSettings = () => {
       otpForm.reset();
     },
     onError: (error: any) => {
-      toast({
-        title: "Verification Failed",
-        description: error.message || "Invalid verification code. Please try again.",
-        variant: "destructive",
-      });
+      if (error.message?.includes('expired_code') || error.message?.includes('expired')) {
+        toast({
+          title: "Code Expired - New Code Sent",
+          description: "A fresh verification code has been sent to your email. Please enter the new code.",
+        });
+        otpForm.reset(); // Clear the expired code
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: error.message || "Invalid verification code. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 

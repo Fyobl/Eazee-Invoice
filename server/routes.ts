@@ -2603,9 +2603,53 @@ export async function setupRoutes(app: Express) {
         // Update user with sender email and verification status
         await storage.updateUserEmailSettings(uid, senderEmail, verificationStatus);
 
+        // Delete existing sender and recreate to get fresh OTP
+        if (verificationStatus === 'pending') {
+          // First try to delete existing sender
+          try {
+            const sendersResponse = await fetch(`https://api.brevo.com/v3/senders?email=${senderEmail}`, {
+              headers: { 'api-key': process.env.BREVO_API_KEY }
+            });
+            
+            if (sendersResponse.ok) {
+              const sendersData = await sendersResponse.json();
+              const existingSender = sendersData.senders?.find((s: any) => s.email === senderEmail);
+              
+              if (existingSender && !existingSender.active) {
+                console.log('🗑️ Deleting existing unverified sender:', existingSender.id);
+                await fetch(`https://api.brevo.com/v3/senders/${existingSender.id}`, {
+                  method: 'DELETE',
+                  headers: { 'api-key': process.env.BREVO_API_KEY }
+                });
+                
+                // Recreate sender to get fresh OTP
+                console.log('🔄 Recreating sender for fresh OTP');
+                const newSenderResponse = await fetch('https://api.brevo.com/v3/senders', {
+                  method: 'POST',
+                  headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    name: req.user!.companyName || req.user!.displayName,
+                    email: senderEmail,
+                    ips: []
+                  })
+                });
+                
+                if (newSenderResponse.ok) {
+                  console.log('✅ Fresh sender created, new OTP sent');
+                }
+              }
+            }
+          } catch (error) {
+            console.error('⚠️ Error refreshing sender:', error);
+          }
+        }
+
         res.json({ 
           success: true, 
-          message: 'Email setup initiated. Check your email for a 6-digit verification code, then return here to complete setup.',
+          message: 'Email setup initiated. Check your email for a fresh 6-digit verification code, then return here to complete setup.',
           verificationStatus,
           requiresOtp: true,
           senderEmail: senderEmail
@@ -2729,6 +2773,13 @@ export async function setupRoutes(app: Express) {
 
       console.log('📧 Found sender:', { id: sender.id, email: sender.email, active: sender.active });
 
+      // Debug the request payload
+      const requestBody = { otp: otp };
+      const jsonBody = JSON.stringify(requestBody);
+      console.log('📦 Request payload:', { otp: otp, jsonBody });
+      console.log('📦 Request body length:', jsonBody.length);
+      console.log('📦 Request body type:', typeof jsonBody);
+
       // Verify the OTP
       const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
         method: 'PUT',
@@ -2737,7 +2788,7 @@ export async function setupRoutes(app: Express) {
           'api-key': process.env.BREVO_API_KEY || '',
           'content-type': 'application/json'
         },
-        body: JSON.stringify({ otp })
+        body: jsonBody
       });
 
       console.log('🔐 Brevo verify response status:', verifyResponse.status);
@@ -2764,11 +2815,52 @@ export async function setupRoutes(app: Express) {
         console.error('❌ Brevo verification failed:', errorData);
         
         // Check if it's an expired/invalid OTP
-        if (verifyResponse.status === 400) {
-          res.status(400).json({ 
-            error: 'The verification code is invalid or has expired. Please request a new verification email.',
-            details: errorData.message || 'Please get a fresh verification code'
-          });
+        if (verifyResponse.status === 400 && (
+          errorData.message?.includes('Input must be a valid JSON object') ||
+          errorData.message?.includes('Invalid OTP') ||
+          errorData.code === 'bad_request'
+        )) {
+          // OTP is expired/invalid, automatically refresh sender
+          try {
+            console.log('🔄 OTP expired, attempting to refresh sender...');
+            
+            // Delete existing sender
+            await fetch(`https://api.brevo.com/v3/senders/${sender.id}`, {
+              method: 'DELETE',
+              headers: { 'api-key': process.env.BREVO_API_KEY || '' }
+            });
+            
+            // Recreate sender for fresh OTP
+            const newSenderResponse = await fetch('https://api.brevo.com/v3/senders', {
+              method: 'POST',
+              headers: {
+                'api-key': process.env.BREVO_API_KEY || '',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                name: user.companyName || user.displayName,
+                email: user.senderEmail,
+                ips: []
+              })
+            });
+            
+            if (newSenderResponse.ok) {
+              console.log('✅ Fresh sender created, new OTP sent');
+              res.status(400).json({ 
+                error: 'expired_code',
+                message: 'Your verification code has expired. A fresh code has been sent to your email.',
+                details: 'Please check your email for the new 6-digit code and try again.'
+              });
+            } else {
+              throw new Error('Failed to create fresh sender');
+            }
+          } catch (refreshError) {
+            console.error('❌ Failed to refresh sender:', refreshError);
+            res.status(400).json({ 
+              error: 'The verification code has expired. Please use the "Get New Code" button to receive a fresh verification email.',
+              details: 'Click "Get New Code" to request a new verification email.'
+            });
+          }
         } else {
           res.status(400).json({ 
             error: 'Verification failed',
