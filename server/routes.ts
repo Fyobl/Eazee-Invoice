@@ -1452,6 +1452,17 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // One-time migration endpoint to backfill subscription start dates
+  app.post('/api/admin/backfill-subscription-dates', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      await storage.backfillSubscriptionStartDates();
+      res.json({ success: true, message: 'Subscription start dates updated for existing users' });
+    } catch (error) {
+      console.error('Backfill subscription dates error:', error);
+      res.status(500).json({ error: 'Failed to backfill subscription dates' });
+    }
+  });
+
   // Get user statistics endpoint for admin
   app.get('/api/users/:uid/stats', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {

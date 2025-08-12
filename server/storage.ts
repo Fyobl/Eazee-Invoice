@@ -108,6 +108,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.uid, uid));
   }
 
+  async backfillSubscriptionStartDates(): Promise<void> {
+    // Get all users with subscriptions but no subscription start date
+    const usersWithSubscriptions = await db.select()
+      .from(users)
+      .where(eq(users.isSubscriber, true));
+
+    for (const user of usersWithSubscriptions) {
+      let subscriptionStartDate = user.trialStartDate; // Default fallback
+
+      // For existing users without Stripe subscription ID, use trial start date as subscription start
+      // This represents when they became subscribers (even if manually granted by admin)
+
+      // Update user with subscription start date
+      await this.updateSubscriptionStartDate(user.uid, subscriptionStartDate);
+      console.log(`Updated subscription start date for ${user.email}`);
+    }
+  }
+
   // Authentication methods
   async registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string, country?: string): Promise<User> {
     const saltRounds = 10;

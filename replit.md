@@ -62,6 +62,7 @@ Preferred communication style: Simple, everyday language.
 - Resolved critical subscription payment bug where Stripe payments succeeded but users didn't receive Pro access due to missing `/api/confirm-subscription` endpoint. Implemented proper payment confirmation flow and manually activated affected users (August 2025).
 - Fixed push notification system for subscription payments: Added notification support to PaymentIntent confirmation flow and configured Pushover notifications for real-time customer subscription alerts (August 2025).
 - Implemented comprehensive web analytics dashboard with live visitor tracking, geographic data, device analytics, traffic sources, and interactive charts. Admin-accessible at /admin/analytics with real-time data collection and no placeholder content (August 2025).
+- Enhanced user statistics tracking system with subscription start date and last login timestamp differentiation. Fixed admin panel to properly distinguish between user registration dates and actual subscription start dates, providing accurate billing cycle and subscription information for all existing and new users (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
