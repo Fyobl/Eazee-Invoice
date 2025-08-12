@@ -55,9 +55,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // SECURITY FIX: Always clear ALL caches first to prevent data leakage
+      // SECURITY FIX: Clear sensitive data but preserve login convenience data
+      const rememberMe = localStorage.getItem('rememberMe');
+      const rememberedEmail = localStorage.getItem('rememberedEmail');
+      
       localStorage.clear();
       queryClient.clear();
+      
+      // Restore login convenience data
+      if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
+      if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
       
       // Always fetch fresh data from server - no caching
       await refreshUser();

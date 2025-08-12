@@ -17,10 +17,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if subscription is expired and user is not on trial
   const isSubscriptionExpired = userData && !isSubscriber && trialDaysLeft === 0 && !userData.isAdmin;
   
-  // Check if we have stored auth data while Firebase Auth is initializing
-  const storedAuthUser = localStorage.getItem('authUser');
-  const storedUserData = localStorage.getItem('userData');
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
@@ -32,22 +28,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // If no current user but we have stored auth data, show loading instead of redirecting
-  if (!currentUser && storedUserData) {
-    console.log('Protected route: No current user but stored data found, showing restore session');
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Restoring session...</p>
-          <p className="text-sm text-muted-foreground mt-2">Please wait while we restore your login</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!currentUser) {
-    console.log('Protected route: No current user and no stored data, redirecting to login page');
     return <Redirect to="/login" />;
   }
 

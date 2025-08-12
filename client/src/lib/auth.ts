@@ -61,9 +61,16 @@ export const registerUser = async (
 };
 
 export const loginUser = async (email: string, password: string): Promise<AuthUser> => {
-  // SECURITY CRITICAL: Clear ALL cached data before login
+  // SECURITY CRITICAL: Clear sensitive cached data before login but preserve login convenience data
+  const rememberMe = localStorage.getItem('rememberMe');
+  const rememberedEmail = localStorage.getItem('rememberedEmail');
+  
   localStorage.clear();
   queryClient.clear(); // Clear all TanStack Query cache
+  
+  // Restore login convenience data
+  if (rememberMe) localStorage.setItem('rememberMe', rememberMe);
+  if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
   
   const response = await apiRequest('POST', '/api/login', {
     email,

@@ -27,7 +27,7 @@ export const LoginPage = () => {
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
 
-  // Check for remembered credentials
+  // Check for remembered credentials (these are OK to keep for convenience)
   const rememberedEmail = localStorage.getItem('rememberedEmail') || '';
   const isRemembered = localStorage.getItem('rememberMe') === 'true';
 
