@@ -384,7 +384,12 @@ export async function setupRoutes(app: Express) {
   });
   
   app.get('/api/me', requireAuth, async (req: AuthenticatedRequest, res) => {
-    res.json({ user: { ...req.user!, passwordHash: undefined } });
+    // Always fetch fresh user data to ensure email verification status is current
+    const freshUser = await storage.getUserById(req.user!.id);
+    if (!freshUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ user: { ...freshUser, passwordHash: undefined } });
   });
 
   // Onboarding routes
