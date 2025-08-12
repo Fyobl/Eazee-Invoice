@@ -35,10 +35,7 @@ Invoice Details:
 
 Payment is due within the terms specified on the invoice. If you have any questions or require clarification, please don't hesitate to contact us.
 
-Thank you for your business.
-
-Best regards,
-{companyName}`,
+Thank you for your business.`,
   quoteSubject: 'Quote {quoteNumber} from {companyName}',
   quoteBody: `Dear {customerName},
 
@@ -52,10 +49,7 @@ Quote Details:
 
 This quote is valid for 30 days from the issue date. If you have any questions or would like to proceed with this quote, please contact us.
 
-We look forward to working with you.
-
-Best regards,
-{companyName}`,
+We look forward to working with you.`,
   statementSubject: 'Statement from {companyName}',
   statementBody: `Dear {customerName},
 
@@ -63,10 +57,7 @@ Please find attached your account statement for the period specified.
 
 This statement shows all outstanding invoices and their current status. Please review and contact us if you have any questions about any of the items listed.
 
-Thank you for your continued business.
-
-Best regards,
-{companyName}`,
+Thank you for your continued business.`,
 };
 
 // Get email settings from localStorage
