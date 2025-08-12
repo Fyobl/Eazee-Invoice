@@ -1479,33 +1479,36 @@ export async function setupRoutes(app: Express) {
       const user = await storage.getUser(uid);
       
       let subscriptionInfo = null;
-      if (user && user.stripeSubscriptionId) {
-        try {
-          // Get subscription details from Stripe
-          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      if (user && user.isSubscriber) {
+        if (user.stripeSubscriptionId) {
+          try {
+            // Get subscription details from Stripe
+            const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+            subscriptionInfo = {
+              subscriptionDate: user.subscriptionStartDate ? user.subscriptionStartDate.toISOString() : new Date(subscription.created * 1000).toISOString(),
+              nextBillingDate: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000).toISOString() : null,
+              status: subscription.status,
+              billingCycle: subscription.items.data[0]?.price?.recurring?.interval || 'unknown',
+              amount: subscription.items.data[0]?.price?.unit_amount || 0,
+              currency: subscription.items.data[0]?.price?.currency || 'gbp'
+            };
+          } catch (stripeError) {
+            console.error('Error fetching Stripe subscription:', stripeError);
+            subscriptionInfo = {
+              error: 'Could not fetch subscription details from Stripe'
+            };
+          }
+        } else {
+          // Handle subscribers without Stripe subscription (manually granted or legacy)
           subscriptionInfo = {
-            subscriptionDate: user.subscriptionStartDate ? user.subscriptionStartDate.toISOString() : new Date(subscription.created * 1000).toISOString(),
-            nextBillingDate: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000).toISOString() : null,
-            status: subscription.status,
-            billingCycle: subscription.items.data[0]?.price?.recurring?.interval || 'unknown',
-            amount: subscription.items.data[0]?.price?.unit_amount || 0,
-            currency: subscription.items.data[0]?.price?.currency || 'gbp'
-          };
-        } catch (stripeError) {
-          console.error('Error fetching Stripe subscription:', stripeError);
-          subscriptionInfo = {
-            error: 'Could not fetch subscription details from Stripe'
+            subscriptionDate: user.subscriptionStartDate ? user.subscriptionStartDate.toISOString() : (user.trialStartDate ? user.trialStartDate.toISOString() : null),
+            nextBillingDate: user.subscriptionCurrentPeriodEnd ? user.subscriptionCurrentPeriodEnd.toISOString() : null,
+            status: user.isAdminGrantedSubscription ? 'admin_granted' : 'active',
+            billingCycle: user.isAdminGrantedSubscription ? 'admin_managed' : 'unknown',
+            amount: 0,
+            currency: 'gbp'
           };
         }
-      } else if (user && user.isAdminGrantedSubscription) {
-        subscriptionInfo = {
-          subscriptionDate: user.subscriptionStartDate || user.trialStartDate,
-          nextBillingDate: user.subscriptionCurrentPeriodEnd || null,
-          status: 'admin_granted',
-          billingCycle: 'admin_managed',
-          amount: 0,
-          currency: 'gbp'
-        };
       }
       
       res.json({
