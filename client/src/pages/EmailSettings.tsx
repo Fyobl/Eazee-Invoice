@@ -109,12 +109,12 @@ export const EmailSettings = () => {
       otpForm.reset();
     },
     onError: (error: any) => {
-      if (error.message?.includes('expired_code') || error.message?.includes('expired')) {
+      if (error.message?.includes('invalid_code') || error.message?.includes('expired')) {
         toast({
-          title: "Code Expired - New Code Sent",
-          description: "A fresh verification code has been sent to your email. Please enter the new code.",
+          title: "Verification Code Invalid",
+          description: "The code is incorrect or expired. Brevo codes expire in 2-3 minutes. Click 'Get New Code' if needed.",
+          variant: "destructive",
         });
-        otpForm.reset(); // Clear the expired code
       } else {
         toast({
           title: "Verification Failed",
@@ -311,7 +311,7 @@ export const EmailSettings = () => {
                             />
                           </FormControl>
                           <FormDescription>
-                            Check your email for the verification code from Brevo.
+                            Check your email for the verification code from Brevo. <strong>Important:</strong> Codes expire in 2-3 minutes. If your code doesn't work, click "Get New Code" below.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

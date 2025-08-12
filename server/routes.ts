@@ -2815,52 +2815,12 @@ export async function setupRoutes(app: Express) {
         console.error('❌ Brevo verification failed:', errorData);
         
         // Check if it's an expired/invalid OTP
-        if (verifyResponse.status === 400 && (
-          errorData.message?.includes('Input must be a valid JSON object') ||
-          errorData.message?.includes('Invalid OTP') ||
-          errorData.code === 'bad_request'
-        )) {
-          // OTP is expired/invalid, automatically refresh sender
-          try {
-            console.log('🔄 OTP expired, attempting to refresh sender...');
-            
-            // Delete existing sender
-            await fetch(`https://api.brevo.com/v3/senders/${sender.id}`, {
-              method: 'DELETE',
-              headers: { 'api-key': process.env.BREVO_API_KEY || '' }
-            });
-            
-            // Recreate sender for fresh OTP
-            const newSenderResponse = await fetch('https://api.brevo.com/v3/senders', {
-              method: 'POST',
-              headers: {
-                'api-key': process.env.BREVO_API_KEY || '',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                name: user.companyName || user.displayName,
-                email: user.senderEmail,
-                ips: []
-              })
-            });
-            
-            if (newSenderResponse.ok) {
-              console.log('✅ Fresh sender created, new OTP sent');
-              res.status(400).json({ 
-                error: 'expired_code',
-                message: 'Your verification code has expired. A fresh code has been sent to your email.',
-                details: 'Please check your email for the new 6-digit code and try again.'
-              });
-            } else {
-              throw new Error('Failed to create fresh sender');
-            }
-          } catch (refreshError) {
-            console.error('❌ Failed to refresh sender:', refreshError);
-            res.status(400).json({ 
-              error: 'The verification code has expired. Please use the "Get New Code" button to receive a fresh verification email.',
-              details: 'Click "Get New Code" to request a new verification email.'
-            });
-          }
+        if (verifyResponse.status === 400 && errorData.code === 'bad_request') {
+          res.status(400).json({ 
+            error: 'invalid_code',
+            message: 'The verification code is incorrect or has expired.',
+            details: 'Brevo verification codes expire quickly (within 2-3 minutes). If your code is more than a few minutes old, please click "Get New Code" to receive a fresh verification email.'
+          });
         } else {
           res.status(400).json({ 
             error: 'Verification failed',
