@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Quote, Users, DollarSign, CheckCircle, RotateCcw, Mail, BarChart3 } from 'lucide-react';
+import { FileText, Quote, Users, DollarSign, CheckCircle, RotateCcw, Mail, BarChart3, AlertCircle, Star } from 'lucide-react';
 import { Link } from 'wouter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -217,12 +217,12 @@ export const Landing = () => {
               <CardContent className="p-8 text-center">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Free Trial</h3>
                 <div className="text-4xl font-bold text-primary mb-4">7 Days</div>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">Full access to all features</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">Try all features with limitations</p>
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices & quotes</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />PDF generation & email</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer management</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Create invoices & quotes</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer & product management</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics & reports</li>
+                  <li className="flex items-center text-orange-600 dark:text-orange-400"><AlertCircle className="h-4 w-4 mr-2" />PDFs include "TRIAL VERSION" watermark</li>
                 </ul>
                 <Link href="/register">
                   <Button className="w-full">
@@ -290,12 +290,15 @@ export const Landing = () => {
                     or £64.69/year (save 10%)
                   </div>
                 )}
-                <p className="text-slate-600 dark:text-slate-300 mb-6">Everything in trial, plus unlimited usage</p>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">Unlock the full power of professional invoicing</p>
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Everything in trial</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited usage</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority support</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Cancel anytime</li>
+                  <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Clean, professional PDFs</strong> - No watermarks</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices, quotes & customers</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced business analytics & VAT reports</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Email integration with PDF attachments</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />CSV import/export for bulk operations</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority customer support</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Cancel anytime - No contracts</li>
                 </ul>
                 <Link href="/register">
                   <Button className="w-full">Start with Trial</Button>
