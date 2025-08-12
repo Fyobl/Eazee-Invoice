@@ -53,6 +53,8 @@ export const LoginPage = () => {
       }
       
       const user = await loginUser(data.email, data.password);
+      
+      // Wait for user context to update
       await refreshUser();
       
       toast({
@@ -60,7 +62,10 @@ export const LoginPage = () => {
         description: 'Welcome back to Eazee Invoice!',
       });
       
+      // Navigate immediately - the ProtectedRoute will handle auth checks
+      console.log('Login successful, navigating to dashboard...');
       navigate('/dashboard');
+      
     } catch (error) {
       toast({
         title: 'Login failed',
