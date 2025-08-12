@@ -20,6 +20,8 @@ export const users = pgTable('users', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   subscriptionStatus: text('subscription_status'),
   subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
+  subscriptionStartDate: timestamp('subscription_start_date'),
+  lastLoginDate: timestamp('last_login_date'),
   isAdminGrantedSubscription: boolean('is_admin_granted_subscription').default(false),
   // Company branding fields
   companyLogo: text('company_logo'),

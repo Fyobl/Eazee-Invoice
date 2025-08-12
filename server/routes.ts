@@ -309,6 +309,9 @@ export async function setupRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
+      // Update last login date
+      await storage.updateLastLoginDate(user.uid);
+      
       // Set session
       req.session.userId = user.id;
       
@@ -1368,6 +1371,7 @@ export async function setupRoutes(app: Express) {
       if (isSubscriber) {
         updateData.isSubscriber = isSubscriber;
         updateData.isAdminGrantedSubscription = true;  // Mark as admin-granted subscription
+        updateData.subscriptionStartDate = new Date(); // Set subscription start date for admin-granted subscriptions
       }
       if (subscriptionEndDate) updateData.subscriptionCurrentPeriodEnd = new Date(subscriptionEndDate);
       
@@ -1469,8 +1473,8 @@ export async function setupRoutes(app: Express) {
           // Get subscription details from Stripe
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           subscriptionInfo = {
-            subscriptionDate: new Date(subscription.created * 1000).toISOString(),
-            nextBillingDate: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+            subscriptionDate: user.subscriptionStartDate ? user.subscriptionStartDate.toISOString() : new Date(subscription.created * 1000).toISOString(),
+            nextBillingDate: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000).toISOString() : null,
             status: subscription.status,
             billingCycle: subscription.items.data[0]?.price?.recurring?.interval || 'unknown',
             amount: subscription.items.data[0]?.price?.unit_amount || 0,
@@ -1484,7 +1488,7 @@ export async function setupRoutes(app: Express) {
         }
       } else if (user && user.isAdminGrantedSubscription) {
         subscriptionInfo = {
-          subscriptionDate: user.subscriptionCurrentPeriodStart || user.trialStartDate,
+          subscriptionDate: user.subscriptionStartDate || user.trialStartDate,
           nextBillingDate: user.subscriptionCurrentPeriodEnd || null,
           status: 'admin_granted',
           billingCycle: 'admin_managed',
@@ -1945,8 +1949,9 @@ export async function setupRoutes(app: Express) {
       
       console.log('Subscription completed with ID:', subscription.id);
       
-      // Update user with subscription info
+      // Update user with subscription info and set subscription start date
       await storage.updateUserStripeInfo(uid, customerId, subscription.id);
+      await storage.updateSubscriptionStartDate(uid, new Date());
       
       res.json({
         subscriptionId: subscription.id,

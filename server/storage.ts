@@ -13,6 +13,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserStripeInfo(uid: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   updateUserSubscriptionStatus(uid: string, status: string, currentPeriodEnd?: Date): Promise<User>;
+  updateLastLoginDate(uid: string): Promise<void>;
+  updateSubscriptionStartDate(uid: string, subscriptionStartDate: Date): Promise<void>;
   deleteUser(uid: string): Promise<boolean>;
   // Authentication methods
   registerUser(email: string, password: string, firstName: string, lastName: string, companyName: string): Promise<User>;
@@ -84,6 +86,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.uid, uid))
       .returning();
     return user;
+  }
+
+  async updateLastLoginDate(uid: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        lastLoginDate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, uid));
+  }
+
+  async updateSubscriptionStartDate(uid: string, subscriptionStartDate: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        subscriptionStartDate: subscriptionStartDate,
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, uid));
   }
 
   // Authentication methods
