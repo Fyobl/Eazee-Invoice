@@ -1500,12 +1500,30 @@ export async function setupRoutes(app: Express) {
           }
         } else {
           // Handle subscribers without Stripe subscription (manually granted or legacy)
+          // Calculate billing cycle from subscription period if available
+          let billingCycle = 'unknown';
+          if (user.subscriptionStartDate && user.subscriptionCurrentPeriodEnd) {
+            const startDate = new Date(user.subscriptionStartDate);
+            const endDate = new Date(user.subscriptionCurrentPeriodEnd);
+            const diffInDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+            
+            console.log(`User ${user.email}: ${diffInDays} days between ${startDate.toISOString().split('T')[0]} and ${endDate.toISOString().split('T')[0]}`);
+            
+            if (diffInDays >= 350 && diffInDays <= 380) {
+              billingCycle = 'year';
+            } else if (diffInDays >= 28 && diffInDays <= 35) {
+              billingCycle = 'month';
+            } else if (diffInDays > 1000) {
+              billingCycle = 'permanent';
+            }
+          }
+          
           subscriptionInfo = {
             subscriptionDate: user.subscriptionStartDate ? user.subscriptionStartDate.toISOString() : (user.trialStartDate ? user.trialStartDate.toISOString() : null),
             nextBillingDate: user.subscriptionCurrentPeriodEnd ? user.subscriptionCurrentPeriodEnd.toISOString() : null,
             status: user.isAdminGrantedSubscription ? 'admin_granted' : 'active',
-            billingCycle: user.isAdminGrantedSubscription ? 'admin_managed' : 'unknown',
-            amount: 0,
+            billingCycle: user.isAdminGrantedSubscription ? 'admin_managed' : billingCycle,
+            amount: billingCycle === 'year' ? 6469 : (billingCycle === 'month' ? 599 : 0), // £64.69 yearly, £5.99 monthly in pence
             currency: 'gbp'
           };
         }
