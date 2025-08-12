@@ -37,6 +37,7 @@ export interface IStorage {
   // Email setup methods
   updateUserEmailSettings(uid: string, senderEmail: string, verificationStatus: string): Promise<User>;
   updateEmailVerificationStatus(uid: string, isVerified: boolean, status: string): Promise<User>;
+  clearSenderData(uid: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -414,6 +415,20 @@ export class DatabaseStorage implements IStorage {
       .set({
         isEmailVerified: isVerified,
         emailVerificationStatus: status,
+        updatedAt: new Date()
+      })
+      .where(eq(users.uid, uid))
+      .returning();
+    return user;
+  }
+
+  async clearSenderData(uid: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        senderEmail: null,
+        isEmailVerified: false,
+        emailVerificationStatus: 'not_setup',
         updatedAt: new Date()
       })
       .where(eq(users.uid, uid))

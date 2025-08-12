@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { getEmailSettings, saveEmailSettings, defaultEmailSettings } from '@/lib/emailUtils';
 import { apiRequest } from '@/lib/queryClient';
-import { Mail, RotateCcw, Info, Send, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Mail, RotateCcw, Info, Send, CheckCircle, AlertCircle, Clock, Trash2 } from 'lucide-react';
 import { RequestNewCodeButton } from '@/components/Email/RequestNewCodeButton';
 
 const emailSettingsSchema = z.object({
@@ -125,6 +125,34 @@ export const EmailSettings = () => {
     },
   });
 
+  // Delete sender mutation
+  const deleteSenderMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', '/api/delete-sender');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Email Deleted",
+          description: data.message,
+        });
+        setShowOtpVerification(false);
+        queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+        autoEmailForm.reset();
+        otpForm.reset();
+      }
+    },
+    onError: (error: any) => {
+      console.error('Delete sender error:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete sender email. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = async (data: EmailSettingsForm) => {
     try {
       saveEmailSettings(data);
@@ -159,6 +187,12 @@ export const EmailSettings = () => {
 
   const onOtpSubmit = async (data: OtpVerificationForm) => {
     verifyOtpMutation.mutate(data);
+  };
+
+  const handleDeleteSender = () => {
+    if (confirm('Are you sure you want to delete this email setup? You will need to verify a new email address to send emails again.')) {
+      deleteSenderMutation.mutate();
+    }
   };
 
   const getEmailVerificationStatus = () => {
@@ -211,22 +245,33 @@ export const EmailSettings = () => {
             {user?.isEmailVerified && user?.senderEmail ? (
               <div className="space-y-4">
                 <Alert>
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription>
-                    Auto email is set up and ready! Emails will be sent from <strong>{user.senderEmail}</strong> with replies going directly to your email address.
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <strong className="text-green-700 dark:text-green-400">✓ Email Verified & Ready!</strong>
+                        <br />
+                        Emails will be sent from <strong>{user.senderEmail}</strong> with replies going directly to your email address.
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeleteSender}
+                        disabled={deleteSenderMutation.isPending}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {deleteSenderMutation.isPending ? 'Deleting...' : 'Change Email'}
+                      </Button>
+                    </div>
                   </AlertDescription>
                 </Alert>
-                {(() => {
-                  const status = getEmailVerificationStatus();
-                  if (!status) return null;
-                  const Icon = status.icon;
-                  return (
-                    <div className={`flex items-center gap-2 text-sm ${status.color}`}>
-                      <Icon className="h-4 w-4" />
-                      {status.text}
-                    </div>
-                  );
-                })()}
+                
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Your automatic email sending is fully configured and ready to use. You can now send invoices, quotes, and statements with PDFs automatically attached.
+                  </p>
+                </div>
               </div>
             ) : (
               <Form {...autoEmailForm}>
@@ -268,12 +313,18 @@ export const EmailSettings = () => {
 
                   <Button 
                     type="submit" 
-                    disabled={setupAutoEmailMutation.isPending}
+                    disabled={setupAutoEmailMutation.isPending || (user?.isEmailVerified && user?.senderEmail)}
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
                     {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up auto email'}
                   </Button>
+                  
+                  {user?.isEmailVerified && user?.senderEmail && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Email already verified. Use "Change Email" button above to set up a different email address.
+                    </p>
+                  )}
                 </form>
               </Form>
             )}

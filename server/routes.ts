@@ -2817,6 +2817,57 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // Delete sender route
+  app.delete('/api/delete-sender', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      if (!user.senderEmail) {
+        return res.status(400).json({ error: 'No sender email to delete' });
+      }
+
+      // Get sender ID from Brevo
+      const sendersResponse = await fetch(`https://api.brevo.com/v3/senders?email=${user.senderEmail}`, {
+        headers: {
+          'api-key': process.env.BREVO_API_KEY || ''
+        }
+      });
+
+      if (sendersResponse.ok) {
+        const sendersData = await sendersResponse.json();
+        const sender = sendersData.senders?.find((s: any) => s.email === user.senderEmail);
+        
+        if (sender) {
+          // Delete sender from Brevo
+          const deleteResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}`, {
+            method: 'DELETE',
+            headers: {
+              'api-key': process.env.BREVO_API_KEY || ''
+            }
+          });
+
+          if (deleteResponse.ok) {
+            console.log(`✅ Sender ${sender.id} deleted from Brevo`);
+          } else {
+            console.log(`⚠️ Failed to delete sender from Brevo: ${deleteResponse.status}`);
+          }
+        }
+      }
+
+      // Clear sender data from database
+      await storage.clearSenderData(user.uid);
+      
+      res.json({ 
+        success: true, 
+        message: 'Sender email deleted successfully. You can now set up a new email address.' 
+      });
+
+    } catch (error) {
+      console.error('❌ Delete sender error:', error);
+      res.status(500).json({ error: 'Failed to delete sender' });
+    }
+  });
+
   // Check email verification status route
   app.get('/api/check-email-status', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
