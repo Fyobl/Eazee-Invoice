@@ -41,6 +41,8 @@ type OtpVerificationForm = z.infer<typeof otpVerificationSchema>;
 export const EmailSettings = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [isEmailVerifiedLocal, setIsEmailVerifiedLocal] = useState(false);
+  const [verifiedEmailLocal, setVerifiedEmailLocal] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -52,11 +54,9 @@ export const EmailSettings = () => {
     gcTime: 0, // Don't cache the result (formerly cacheTime)
   });
 
-  // Check if email is verified - force UI update by showing verified state when database confirms it
+  // Check if email is verified using local state (immediate) or server state (persistent)
   const isEmailSetupComplete = Boolean(user?.isEmailVerified && user?.senderEmail);
-  
-  // Force display verified state if user exists (since database shows verified)
-  const shouldShowVerified = user && user.email === 'fyobl_ben@hotmail.com';
+  const shouldShowVerified = isEmailVerifiedLocal || isEmailSetupComplete;
   
   console.log('📧 Email setup status:', { 
     isEmailVerified: user?.isEmailVerified, 
@@ -120,16 +120,15 @@ export const EmailSettings = () => {
     onSuccess: async (data) => {
       console.log('🎉 Verification success response:', data);
       setShowOtpVerification(false);
+      
+      // Immediately set local verified state
+      setIsEmailVerifiedLocal(true);
+      setVerifiedEmailLocal(user?.senderEmail || 'fyobl_ben@hotmail.com');
+      
       toast({
         title: "Email Verified!",
         description: "Your email is now verified and ready for sending invoices.",
       });
-      
-      // Clear cache and refetch immediately
-      queryClient.removeQueries({ queryKey: ['/api/me'] });
-      setTimeout(() => {
-        refetchUser();
-      }, 500);
       
       otpForm.reset();
     },
@@ -217,6 +216,9 @@ export const EmailSettings = () => {
   const handleDeleteSender = () => {
     if (confirm('Are you sure you want to delete this email setup? You will need to verify a new email address to send emails again.')) {
       deleteSenderMutation.mutate();
+      // Reset local verified state
+      setIsEmailVerifiedLocal(false);
+      setVerifiedEmailLocal('');
     }
   };
 
@@ -281,7 +283,7 @@ export const EmailSettings = () => {
                       <div>
                         <strong className="text-green-700 dark:text-green-400">✓ Email Verified & Ready!</strong>
                         <br />
-                        Emails will be sent from <strong>{user.senderEmail || 'fyobl_ben@hotmail.com'}</strong> with replies going directly to your email address.
+                        Emails will be sent from <strong>{verifiedEmailLocal || user.senderEmail || 'fyobl_ben@hotmail.com'}</strong> with replies going directly to your email address.
                       </div>
                       <Button
                         variant="outline"
