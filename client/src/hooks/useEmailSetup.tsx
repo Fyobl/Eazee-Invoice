@@ -20,6 +20,7 @@ export const useEmailSetup = () => {
     queryKey: ['/api/me'],
   });
 
+  // Check company details - require both companyName and companyAddress
   const hasCompanyDetails = Boolean(user?.companyName && user?.companyAddress);
   const hasEmailSetup = Boolean(user?.isEmailVerified && user?.senderEmail);
   const isEmailSetupComplete = hasCompanyDetails && hasEmailSetup;
