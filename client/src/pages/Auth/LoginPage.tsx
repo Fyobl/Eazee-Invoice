@@ -30,6 +30,9 @@ export const LoginPage = () => {
   // Check for remembered credentials (these are OK to keep for convenience)
   const rememberedEmail = localStorage.getItem('rememberedEmail') || '';
   const isRemembered = localStorage.getItem('rememberMe') === 'true';
+  
+  console.log('LoginPage: remembered email:', rememberedEmail);
+  console.log('LoginPage: is remembered:', isRemembered);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -150,8 +153,11 @@ export const LoginPage = () => {
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel className="text-slate-900 dark:text-white">
-                        Remember me
+                        Remember my email
                       </FormLabel>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        (Email only - passwords are not stored for security)
+                      </p>
                     </div>
                   </FormItem>
                 )}
