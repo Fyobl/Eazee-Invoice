@@ -55,6 +55,8 @@ Preferred communication style: Simple, everyday language.
 - Added comprehensive welcome email automation for new registrations with detailed platform information, feature explanations, and getting started guidance (August 2025).
 - Enhanced welcome email to emphasize products/services as mandatory step for invoice creation (August 2025).
 - Fixed Stripe payment initialization by implementing automatic payment methods instead of specific Apple Pay/Google Pay types (August 2025).
+- Updated landing page to clearly highlight PDF watermarking difference between trial and pro plans (August 2025).
+- Fixed PDF watermark positioning to ensure "TRIAL VERSION" text is fully visible and properly centered (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
