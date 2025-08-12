@@ -59,6 +59,8 @@ Preferred communication style: Simple, everyday language.
 - Fixed PDF watermark positioning to ensure "TRIAL VERSION" text is fully visible and properly centered (August 2025).
 - CRITICAL SECURITY FIX: Resolved data leakage between user sessions caused by localStorage and TanStack Query cache persistence. Implemented comprehensive cache clearing on login/logout while preserving login convenience features (August 2025).
 - Fixed login navigation and remember me functionality: Resolved navigation failures after login, implemented proper email persistence across sessions while maintaining security by not storing passwords, and added professional loading screen with animated spinner to replace white screen during authentication transitions (August 2025).
+- Resolved critical subscription payment bug where Stripe payments succeeded but users didn't receive Pro access due to missing `/api/confirm-subscription` endpoint. Implemented proper payment confirmation flow and manually activated affected users (August 2025).
+- Fixed push notification system for subscription payments: Added notification support to PaymentIntent confirmation flow and configured Pushover notifications for real-time customer subscription alerts (August 2025).
 
 ## External Dependencies
 - **Stripe**: Subscription management and payment processing.
