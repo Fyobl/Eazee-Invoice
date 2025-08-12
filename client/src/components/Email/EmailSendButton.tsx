@@ -123,20 +123,32 @@ export const EmailSendButton = ({
       let pdfBase64ForEmail = pdfBase64;
       if (!pdfBase64ForEmail && customer && currentUser) {
         try {
+          console.log('Starting PDF generation for email attachment...');
           const pdfBlob = await generatePDF(documentData, customer, currentUser, documentType);
           
-          // Convert blob to base64
-          const arrayBuffer = await pdfBlob.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          const binaryString = String.fromCharCode.apply(null, Array.from(uint8Array));
-          pdfBase64ForEmail = btoa(binaryString);
+          // Convert blob to base64 using FileReader for better memory handling
+          pdfBase64ForEmail = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              // Extract base64 part after the comma
+              const base64 = result.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(pdfBlob);
+          });
+          
+          console.log('PDF successfully converted to base64 for email');
         } catch (pdfError) {
           console.error('Error generating PDF for email:', pdfError);
           toast({
-            title: "PDF Generation Failed",
+            title: "PDF Generation Failed", 
             description: "Could not generate PDF attachment. Email will be sent without PDF.",
             variant: "destructive",
           });
+          // Continue without PDF
+          pdfBase64ForEmail = undefined;
         }
       }
 
