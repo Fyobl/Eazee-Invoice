@@ -389,6 +389,16 @@ export async function setupRoutes(app: Express) {
     if (!freshUser) {
       return res.status(404).json({ error: 'User not found' });
     }
+    
+    // Debug log to see actual field names
+    console.log('🔍 Raw user data from database:', Object.keys(freshUser));
+    console.log('🔍 Company fields:', {
+      company_name: freshUser.company_name,
+      companyName: (freshUser as any).companyName,
+      company_address: freshUser.company_address,
+      companyAddress: (freshUser as any).companyAddress
+    });
+    
     res.json({ user: { ...freshUser, passwordHash: undefined } });
   });
 
