@@ -117,23 +117,8 @@ export const EmailSettings = () => {
         description: "Your email is now verified and ready for sending invoices.",
       });
       
-      // Multiple approaches to force UI refresh
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      
-      // Force immediate refetch after small delay
-      setTimeout(async () => {
-        console.log('🔄 Force refreshing user data...');
-        await refetchUser();
-        queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      }, 100);
-      
-      // Additional delayed refresh to ensure state updates
-      setTimeout(async () => {
-        console.log('🔄 Secondary refresh...');
-        await refetchUser();
-      }, 1000);
-      
-      otpForm.reset();
+      // Force immediate page reload to ensure fresh data
+      window.location.reload();
     },
     onError: (error: any) => {
       if (error.message?.includes('invalid_code') || error.message?.includes('expired')) {
