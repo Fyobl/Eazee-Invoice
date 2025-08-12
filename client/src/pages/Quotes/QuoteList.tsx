@@ -12,7 +12,7 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { openMailApp } from '@/lib/emailUtils';
+import { EmailSendButton } from '@/components/Email/EmailSendButton';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote } from '@shared/schema';
@@ -227,148 +227,7 @@ export const QuoteList = () => {
     }
   };
 
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [lastEmailTime, setLastEmailTime] = useState(0);
 
-  const handleSendEmail = async (quote: Quote) => {
-    const now = Date.now();
-    
-    if (isGeneratingPDF) {
-      toast({
-        title: "Please Wait",
-        description: "PDF is still being generated. Please wait for it to complete.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Debounce: prevent rapid clicks within 3 seconds
-    if (now - lastEmailTime < 3000) {
-      toast({
-        title: "Please Wait",
-        description: "Please wait a moment before sending another email.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLastEmailTime(now);
-
-    if (!currentUser) {
-      toast({
-        title: "Error",
-        description: "User information not found. Please log in again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!customers || customers.length === 0) {
-      toast({
-        title: "Error",
-        description: "Customer information not found.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
-
-    if (!customer) {
-      console.error('Customer lookup failed:', {
-        quoteCustomerId: quote.customerId,
-        availableCustomers: customers.map(c => ({ id: c.id, name: c.name }))
-      });
-      toast({
-        title: "Error",
-        description: "Customer not found for this quote.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsGeneratingPDF(true);
-      
-      console.log('Quote email process starting for quote:', quote.number);
-      
-      // Only update status if it's not already "sent"
-      if (quote.status !== 'sent') {
-        await updateQuote({ id: quote.id.toString(), data: { status: 'sent' } });
-      }
-      
-      // Simple approach: generate PDF first, then open email
-      try {
-        // Add small delay to prevent rapid-fire issues
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Temporarily suppress all alerts during PDF generation
-        const originalAlert = window.alert;
-        window.alert = () => {};
-        
-        const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
-        
-        // Restore alert after PDF generation
-        window.alert = originalAlert;
-        
-        // Download the PDF
-        const url = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `quote-${quote.number}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        console.log('PDF generated and downloaded successfully');
-      } catch (pdfError) {
-        console.warn('PDF generation failed, continuing with email:', pdfError);
-        // Continue with email even if PDF fails
-      }
-      
-      // Then open the email
-      const emailSubject = `Quote ${quote.number} from ${currentUser.companyName || 'Your Company'}`;
-      const emailBody = `Dear ${customer.name},
-
-Thank you for your interest in our services. Please find quote ${quote.number} for your consideration.
-
-Quote Details:
-- Quote Number: ${quote.number}
-- Issue Date: ${new Date(quote.date).toLocaleDateString('en-GB')}
-- Valid Until: ${new Date(quote.validUntil).toLocaleDateString('en-GB')}
-- Amount: £${quote.total}
-
-This quote is valid for 30 days from the issue date. If you have any questions or would like to proceed with this quote, please contact us.
-
-We look forward to working with you.
-
-Best regards,
-${currentUser.companyName || 'Your Company'}
-
----
-Note: The PDF has been downloaded to your Downloads folder. Please attach it to this email.`;
-
-      const simpleMailtoUrl = `mailto:${customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-      
-      console.log('Opening email with URL:', simpleMailtoUrl);
-      window.location.href = simpleMailtoUrl;
-      
-      toast({
-        title: "Email Prepared",
-        description: `PDF downloaded and email opened for quote ${quote.number}. Quote status updated to "Sent". Please attach the PDF to the email.`,
-      });
-    } catch (error) {
-      console.error('Error in quote email process:', error);
-      toast({
-        title: "Error",
-        description: `Failed to update quote status: ${error.message}. Please try again.`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -492,10 +351,20 @@ Note: The PDF has been downloaded to your Downloads folder. Please attach it to 
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSendEmail(quote)}>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Send via Email
-                          </DropdownMenuItem>
+                          <div className="px-2 py-1.5">
+                            <EmailSendButton
+                              documentType="quote"
+                              customerEmail={customers?.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId)?.email || ''}
+                              customerName={quote.customerName}
+                              documentNumber={quote.number}
+                              documentData={quote}
+                              customer={customers?.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId)}
+                              currentUser={currentUser}
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start h-auto px-2 py-1 font-normal"
+                            />
+                          </div>
                           {quote.status !== 'converted' && (
                             <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>
                               <FileText className="h-4 w-4 mr-2" />
