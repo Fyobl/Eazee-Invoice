@@ -2690,6 +2690,12 @@ export async function setupRoutes(app: Express) {
       const { otp } = req.body;
       const user = req.user!;
 
+      console.log('🔍 OTP Verification attempt:', { 
+        userEmail: user.senderEmail, 
+        otpLength: otp?.length,
+        otp: otp?.replace(/\d/g, '*') // Hide actual digits for security
+      });
+
       if (!otp || !/^\d{6}$/.test(otp)) {
         return res.status(400).json({ error: 'Valid 6-digit OTP required' });
       }
@@ -2706,27 +2712,37 @@ export async function setupRoutes(app: Express) {
       });
 
       if (!sendersResponse.ok) {
+        console.error('❌ Failed to get senders from Brevo:', sendersResponse.status);
         return res.status(400).json({ error: 'Sender not found in Brevo' });
       }
 
       const sendersData = await sendersResponse.json();
+      console.log('📨 Brevo senders response:', JSON.stringify(sendersData, null, 2));
+      
       const sender = sendersData.senders?.find((s: any) => s.email === user.senderEmail);
 
       if (!sender) {
+        console.error('❌ Sender not found in response for email:', user.senderEmail);
         return res.status(400).json({ error: 'Sender not found' });
       }
 
+      console.log('📧 Found sender:', { id: sender.id, email: sender.email, active: sender.active });
+
       // Verify the OTP
       const verifyResponse = await fetch(`https://api.brevo.com/v3/senders/${sender.id}/validate`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
+          'accept': 'application/json',
           'api-key': process.env.BREVO_API_KEY || '',
-          'Content-Type': 'application/json'
+          'content-type': 'application/json'
         },
         body: JSON.stringify({ otp })
       });
 
+      console.log('🔐 Brevo verify response status:', verifyResponse.status);
+
       if (verifyResponse.ok) {
+        console.log('✅ OTP verification successful');
         // Update user verification status
         await storage.updateEmailVerificationStatus(user.uid, true, 'verified');
         
@@ -2737,14 +2753,15 @@ export async function setupRoutes(app: Express) {
         });
       } else {
         const errorData = await verifyResponse.json();
+        console.error('❌ Brevo verification failed:', errorData);
         res.status(400).json({ 
           error: 'Invalid verification code',
-          details: errorData.message 
+          details: errorData.message || 'Please check your verification code and try again'
         });
       }
 
     } catch (error) {
-      console.error('OTP verification error:', error);
+      console.error('❌ OTP verification error:', error);
       res.status(500).json({ error: 'Failed to verify OTP' });
     }
   });
