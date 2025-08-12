@@ -31,23 +31,24 @@ export const useEmailSetup = () => {
   // Extract user from response
   const user = (response as any)?.user as User;
 
-  // Simplified validation - if email verification status is 'verified', assume everything is set up
+  // More robust validation - prioritize email verification status
+  // If email is verified and we have basic company info, consider it complete
   const isEmailSetupComplete = Boolean(
     user?.emailVerificationStatus === 'verified' && 
     user?.senderEmail && 
-    user?.companyName &&
-    user?.companyAddress
+    user?.companyName
   );
 
-  console.log('🔍 useEmailSetup - Raw user data:', user);
-  console.log('🔍 useEmailSetup - Detailed validation:', {
-    emailVerificationStatus: user?.emailVerificationStatus,
-    senderEmail: user?.senderEmail,
-    companyName: user?.companyName,
-    companyAddress: user?.companyAddress,
-    hasAddress: Boolean(user?.companyAddress),
-    isEmailSetupComplete,
-    response
+  console.log('🔍 useEmailSetup - Email Setup Status Check:', {
+    step1_emailVerified: user?.emailVerificationStatus === 'verified',
+    step2_senderEmail: Boolean(user?.senderEmail),
+    step3_companyName: Boolean(user?.companyName),
+    finalResult: isEmailSetupComplete,
+    debugData: {
+      emailVerificationStatus: user?.emailVerificationStatus,
+      senderEmail: user?.senderEmail,
+      companyName: user?.companyName
+    }
   });
 
   const showEmailSetupModal = () => {
