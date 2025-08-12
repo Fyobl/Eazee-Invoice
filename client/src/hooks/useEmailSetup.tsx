@@ -28,10 +28,25 @@ export const useEmailSetup = () => {
   // Extract user from response
   const user = response?.user as User;
 
+  // Debug logging for email setup
+  console.log('🔍 useEmailSetup - User data:', {
+    companyName: user?.companyName,
+    companyAddress: user?.companyAddress,
+    isEmailVerified: user?.isEmailVerified,
+    senderEmail: user?.senderEmail,
+    emailVerificationStatus: user?.emailVerificationStatus
+  });
+
   // Check company details - require both companyName and companyAddress
   const hasCompanyDetails = Boolean(user?.companyName && user?.companyAddress);
   const hasEmailSetup = Boolean(user?.isEmailVerified && user?.senderEmail);
   const isEmailSetupComplete = hasCompanyDetails && hasEmailSetup;
+
+  console.log('🔍 useEmailSetup - Setup status:', {
+    hasCompanyDetails,
+    hasEmailSetup,
+    isEmailSetupComplete
+  });
 
   const showEmailSetupModal = () => {
     if (!isEmailSetupComplete) {
