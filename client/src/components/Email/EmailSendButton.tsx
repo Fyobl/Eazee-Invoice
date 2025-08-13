@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useEmailSetupDirect } from '@/hooks/useEmailSetupDirect';
+import { useSimpleEmailStatus } from '@/hooks/useSimpleEmailStatus';
 import { EmailSetupModal } from './EmailSetupModal';
 import { apiRequest } from '@/lib/queryClient';
 import { getEmailSettings, replaceVariables } from '@/lib/emailUtils';
@@ -43,7 +43,7 @@ export const EmailSendButton = ({
     showEmailSetupModal,
     closeEmailSetupModal,
     markEmailSetupComplete
-  } = useEmailSetupDirect();
+  } = useSimpleEmailStatus();
 
   const [isSending, setIsSending] = useState(false);
 

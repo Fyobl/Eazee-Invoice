@@ -30,7 +30,7 @@ export const useEmailSetupDirect = () => {
         setUserData(user);
         
         // Simple validation: if senderEmail exists, setup is complete
-        const isComplete = Boolean(user?.senderEmail);
+        const isComplete = Boolean(user?.senderEmail && user?.senderEmail.length > 0);
         
         console.log('✅ Email Setup Status:', {
           isComplete,
