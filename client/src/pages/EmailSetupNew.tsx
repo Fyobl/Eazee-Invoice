@@ -526,6 +526,85 @@ export const EmailSetupNew = () => {
                   </Button>
                 </form>
               </Form>
+              
+              {/* Available Variables Section */}
+              <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-800 rounded-lg border">
+                <h4 className="font-medium mb-4 flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Available Variables
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Use these variables in your email templates. They will be automatically replaced with actual values when sending emails.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Customer Information</h5>
+                    <div className="space-y-1">
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{customerName}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{customerEmail}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{customerPhone}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{customerAddress}`}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Company Information</h5>
+                    <div className="space-y-1">
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{companyName}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{companyAddress}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{companyPhone}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{companyEmail}`}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Document Details</h5>
+                    <div className="space-y-1">
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{invoiceNumber}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{quoteNumber}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{statementNumber}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{documentDate}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{dueDate}`}
+                      </div>
+                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                        {`{totalAmount}`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    <strong>Example:</strong> "Dear {`{customerName}`}, please find attached {`{invoiceNumber}`} for the amount of {`{totalAmount}`}."
+                  </p>
+                </div>
+              </div>
             </CardContent>
           )}
         </Card>
