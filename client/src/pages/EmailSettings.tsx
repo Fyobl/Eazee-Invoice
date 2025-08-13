@@ -59,7 +59,8 @@ export const EmailSettings = () => {
   console.log('📧 Email Settings Status:', { 
     senderEmail: user?.senderEmail,
     hasVerifiedEmail,
-    willShowVerified: hasVerifiedEmail
+    willShowVerified: hasVerifiedEmail,
+    user: user
   });
 
   const form = useForm<EmailSettingsForm>({
@@ -523,9 +524,9 @@ export const EmailSettings = () => {
           document.getElementById('otpSection').style.display = 'none';
           document.getElementById('successSection').style.display = 'block';
           
-          // Refresh parent window
+          // Force refresh parent window with cache clearing
           if (window.opener) {
-            window.opener.location.reload();
+            window.opener.location.reload(true);
           }
         } else {
           alert('Error: ' + data.message);
