@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 export const useSimpleEmailStatus = () => {
@@ -12,7 +12,7 @@ export const useSimpleEmailStatus = () => {
     gcTime: 0, // Don't cache
   });
 
-  const user = userData?.user;
+  const user = userData ? (userData as any).user : null;
   
   // Simple rule: if senderEmail exists and is not empty, email setup is complete
   const isEmailSetupComplete = Boolean(user?.senderEmail && user.senderEmail.trim().length > 0);
@@ -20,10 +20,17 @@ export const useSimpleEmailStatus = () => {
   console.log('📧 Simple Email Status Check:', {
     senderEmail: user?.senderEmail,
     isEmailSetupComplete,
-    userDataExists: !!user
+    userDataExists: !!user,
+    showEmailSetup,
+    modalWillShow: !isEmailSetupComplete
   });
 
   const showEmailSetupModal = () => {
+    console.log('🔍 showEmailSetupModal called:', {
+      isEmailSetupComplete,
+      willShowModal: !isEmailSetupComplete
+    });
+    
     if (!isEmailSetupComplete) {
       setShowEmailSetup(true);
       return false;
