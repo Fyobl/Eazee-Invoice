@@ -40,7 +40,7 @@ type EmailTemplatesForm = z.infer<typeof emailTemplatesSchema>;
 
 export const EmailSetupNew = () => {
   const [showOtpForm, setShowOtpForm] = useState(false);
-  const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
+  const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -442,7 +442,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={3} {...field} />
+                            <Textarea rows={6} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -475,7 +475,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={3} {...field} />
+                            <Textarea rows={6} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -508,7 +508,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={3} {...field} />
+                            <Textarea rows={6} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
