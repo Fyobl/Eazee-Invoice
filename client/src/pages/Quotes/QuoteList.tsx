@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { EmailSendButton } from '@/components/Email/EmailSendButton';
-import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
+import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'wouter';
 import { Quote, Customer, User } from '@shared/schema';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,8 @@ export const QuoteList = () => {
   const [customerFilter, setCustomerFilter] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [quoteToDelete, setQuoteToDelete] = useState<Quote | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const { data: quotes, isLoading: loading, remove: deleteDocument, update: updateQuote } = useDatabase('quotes');
   const { data: customers } = useDatabase('customers');
@@ -41,6 +43,18 @@ export const QuoteList = () => {
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
+
+  // Pagination logic
+  const totalItems = filteredQuotes?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedQuotes = filteredQuotes?.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, customerFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -316,7 +330,7 @@ export const QuoteList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredQuotes?.map((quote: Quote) => (
+                {paginatedQuotes?.map((quote: Quote) => (
                   <TableRow key={quote.id}>
                     <TableCell className="font-medium">{quote.number}</TableCell>
                     <TableCell>{quote.customerName}</TableCell>
@@ -390,6 +404,69 @@ export const QuoteList = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} quotes
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current page
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-8 w-8 p-0"
+                          >
+                            {page}
+                          </Button>
+                        );
+                      } else if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return <span key={page} className="px-1 text-slate-400">...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
