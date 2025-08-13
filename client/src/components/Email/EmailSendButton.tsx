@@ -99,6 +99,8 @@ export const EmailSendButton = ({
         documentType: documentType,
         documentNumber: documentNumber,
         companyName: currentUser?.companyName || 'Your Company',
+        companyPhone: currentUser?.companyPhone || '',
+        companyEmail: currentUser?.companyEmail || '',
         total: documentData.total ? `£${documentData.total}` : '',
         // Invoice-specific variables
         invoiceNumber: documentNumber,

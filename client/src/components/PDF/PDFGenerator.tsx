@@ -529,6 +529,9 @@ export const generatePDF = async (
       ` : ''}
       
       <div class="footer">
+        ${user.companyPhone ? `Phone: ${user.companyPhone}` : ''}
+        ${user.companyEmail ? `${user.companyPhone ? ' | ' : ''}Email: ${user.companyEmail}` : ''}
+        ${(user.companyPhone || user.companyEmail) && (user.companyVatNumber || user.companyRegistrationNumber) ? '<br>' : ''}
         ${user.companyVatNumber ? `VAT Number: ${user.companyVatNumber}` : ''}
         ${user.companyRegistrationNumber ? ` | Registration Number: ${user.companyRegistrationNumber}` : ''}
       </div>

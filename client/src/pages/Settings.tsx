@@ -25,6 +25,8 @@ const settingsSchema = z.object({
   town: z.string().min(1, 'Town is required'),
   county: z.string().optional(),
   postCode: z.string().min(1, 'Post code is required'),
+  companyPhone: z.string().optional(),
+  companyEmail: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
   companyVatNumber: z.string().optional(),
   companyRegistrationNumber: z.string().optional(),
   currency: z.string().min(1, 'Currency is required'),
@@ -58,6 +60,8 @@ export const Settings = () => {
       town: '',
       county: '',
       postCode: '',
+      companyPhone: '',
+      companyEmail: '',
       companyVatNumber: '',
       companyRegistrationNumber: '',
       currency: 'GBP',
@@ -94,6 +98,8 @@ export const Settings = () => {
         town: addressFields.town,
         county: addressFields.county,
         postCode: addressFields.postCode,
+        companyPhone: currentUser.companyPhone || '',
+        companyEmail: currentUser.companyEmail || '',
         companyVatNumber: currentUser.companyVatNumber || '',
         companyRegistrationNumber: currentUser.companyRegistrationNumber || '',
         currency: currentUser.currency || 'GBP',
@@ -240,6 +246,8 @@ export const Settings = () => {
       const response = await apiRequest('PUT', `/api/users/${currentUser.uid}`, {
         companyName: data.companyName,
         companyAddress: companyAddress,
+        companyPhone: data.companyPhone,
+        companyEmail: data.companyEmail,
         companyVatNumber: data.companyVatNumber,
         companyRegistrationNumber: data.companyRegistrationNumber,
         currency: data.currency,
@@ -462,6 +470,37 @@ export const Settings = () => {
                           <FormLabel>Post Code</FormLabel>
                           <FormControl>
                             <Input placeholder="Enter post code" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Contact Information */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
+                    <FormField
+                      control={form.control}
+                      name="companyPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Phone (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+44 20 1234 5678" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="companyEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Email (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="info@yourcompany.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

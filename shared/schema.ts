@@ -26,6 +26,8 @@ export const users = pgTable('users', {
   // Company branding fields
   companyLogo: text('company_logo'),
   companyAddress: text('company_address'),
+  companyPhone: text('company_phone'),
+  companyEmail: text('company_email'),
   companyVatNumber: text('company_vat_number'),
   companyRegistrationNumber: text('company_registration_number'),
   currency: text('currency').notNull().default('GBP'),
