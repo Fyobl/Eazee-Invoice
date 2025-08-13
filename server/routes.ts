@@ -1496,21 +1496,27 @@ export async function setupRoutes(app: Express) {
     try {
       const { email } = req.body;
       
+      console.log('📧 Test welcome email request:', { email });
+      
       if (!email) {
+        console.log('❌ No email provided');
         return res.status(400).json({ error: 'Email address is required' });
       }
 
       // Send test welcome email with sample data
+      console.log('📤 Sending welcome email to:', email);
       const success = await sendWelcomeEmail(email, 'Test User', 'Test Company');
+      
+      console.log('📬 Welcome email result:', success);
       
       if (success) {
         res.json({ success: true, message: `Test welcome email sent to ${email}` });
       } else {
         res.status(500).json({ error: 'Failed to send test welcome email' });
       }
-    } catch (error) {
-      console.error('Test welcome email error:', error);
-      res.status(500).json({ error: 'Failed to send test welcome email' });
+    } catch (error: any) {
+      console.error('❌ Test welcome email error:', error);
+      res.status(500).json({ error: `Failed to send test welcome email: ${error.message}` });
     }
   });
 

@@ -33,11 +33,22 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       sendSmtpEmail.textContent = params.textContent;
     }
 
+    console.log('📤 Sending email via Brevo:', {
+      to: params.to,
+      subject: params.subject,
+      from: sendSmtpEmail.sender
+    });
+
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log('Email sent successfully:', (response as any).messageId);
+    console.log('✅ Email sent successfully:', (response as any).messageId);
     return true;
   } catch (error) {
-    console.error('Brevo email error:', error);
+    console.error('❌ Brevo email error details:', {
+      error: error.message,
+      statusCode: error.response?.statusCode,
+      body: error.response?.body,
+      stack: error.stack
+    });
     return false;
   }
 }
