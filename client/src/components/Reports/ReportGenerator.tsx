@@ -256,7 +256,7 @@ export const generateBestSellersReport = async (data: ReportData, dateRange: { s
   const productSales: { [key: string]: { quantity: number; revenue: number; description: string } } = {};
   
   filteredInvoices.forEach(invoice => {
-    invoice.items.forEach((item: any) => {
+    (invoice.items as any[]).forEach((item: any) => {
       if (!productSales[item.description]) {
         productSales[item.description] = {
           quantity: 0,

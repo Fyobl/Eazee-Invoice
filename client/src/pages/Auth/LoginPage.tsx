@@ -35,7 +35,7 @@ export const LoginPage = () => {
   
 
 
-  const form = useForm<LoginForm>({
+  const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: rememberedEmail,

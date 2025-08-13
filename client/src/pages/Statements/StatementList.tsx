@@ -15,7 +15,7 @@ import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { EmailSendButton } from '@/components/Email/EmailSendButton';
 import { Plus, Eye, Download, Trash2, MoreHorizontal, FileText, Calendar, Mail } from 'lucide-react';
 import { Link } from 'wouter';
-import { Statement } from '@shared/schema';
+import { Statement, Customer, User } from '@shared/schema';
 
 export const StatementList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +33,8 @@ export const StatementList = () => {
   const filteredStatements = statements?.filter((statement: Statement) => {
     const matchesSearch = statement.number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          statement.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCustomer = customerFilter === 'all' || statement.customerId === customerFilter || statement.customerId === parseInt(customerFilter);
+    const matchesCustomer = customerFilter === 'all' || 
+                           statement.customerId.toString() === customerFilter;
     const matchesPeriod = periodFilter === 'all' || statement.period === periodFilter;
     
     return matchesSearch && matchesCustomer && matchesPeriod;
@@ -55,7 +56,7 @@ export const StatementList = () => {
 
   const handleDelete = async () => {
     if (statementToDelete) {
-      await deleteDocument(statementToDelete.id);
+      await deleteDocument(statementToDelete.id.toString());
       toast({
         title: "Statement Successfully Deleted",
         description: `Statement ${statementToDelete.number} has been deleted.`,
@@ -84,7 +85,7 @@ export const StatementList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId);
+    const customer = customers.find((c: Customer) => c.id === parseInt(statement.customerId.toString()) || c.id.toString() === statement.customerId.toString());
 
     if (!customer) {
       toast({
@@ -96,7 +97,7 @@ export const StatementList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
+      const pdfBlob = await generatePDF(statement, customer, currentUser as User, 'statement');
 
       const pdfUrl = URL.createObjectURL(pdfBlob);
       window.open(pdfUrl, '_blank');
@@ -129,7 +130,7 @@ export const StatementList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId);
+    const customer = customers.find((c: Customer) => c.id === parseInt(statement.customerId.toString()) || c.id.toString() === statement.customerId.toString());
 
     if (!customer) {
       toast({
@@ -141,7 +142,7 @@ export const StatementList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(statement, customer, currentUser, 'statement');
+      const pdfBlob = await generatePDF(statement, customer, currentUser as User, 'statement');
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -212,7 +213,7 @@ export const StatementList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Customers</SelectItem>
-                  {customers?.map((customer) => (
+                  {customers?.map((customer: Customer) => (
                     <SelectItem key={customer.id} value={customer.id.toString()}>
                       {customer.name}
                     </SelectItem>
@@ -288,11 +289,11 @@ export const StatementList = () => {
                             <DropdownMenuItem asChild>
                               <EmailSendButton
                                 documentType="statement"
-                                customerEmail={customers?.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId)?.email || ''}
+                                customerEmail={customers?.find((c: Customer) => c.id === parseInt(statement.customerId.toString()) || c.id.toString() === statement.customerId.toString())?.email || ''}
                                 customerName={statement.customerName}
                                 documentNumber={statement.number}
                                 documentData={statement}
-                                customer={customers?.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId)}
+                                customer={customers?.find((c: Customer) => c.id === parseInt(statement.customerId.toString()) || c.id.toString() === statement.customerId.toString())}
                                 currentUser={currentUser}
                                 variant="ghost"
                                 size="sm"

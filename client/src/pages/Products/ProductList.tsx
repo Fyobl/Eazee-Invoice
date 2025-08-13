@@ -35,7 +35,7 @@ export const ProductList = () => {
 
   const handleDelete = async () => {
     if (productToDelete) {
-      await deleteProduct(productToDelete.id);
+      await deleteProduct(productToDelete.id.toString());
       toast({
         title: "Product Successfully Deleted",
         description: `${productToDelete.name} has been deleted.`,

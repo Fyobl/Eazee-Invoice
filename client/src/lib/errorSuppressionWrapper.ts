@@ -46,7 +46,7 @@ export const withErrorSuppression = async <T>(operation: () => Promise<T>): Prom
     return result;
   } catch (error) {
     // Suppress any errors that match our patterns
-    const errorMessage = error?.message || error?.toString() || '';
+    const errorMessage = (error as any)?.message || error?.toString() || '';
     if (errorMessage.includes('WebFrameMain') || 
         errorMessage.includes('frame was disposed') ||
         errorMessage.includes('emitter.emit')) {

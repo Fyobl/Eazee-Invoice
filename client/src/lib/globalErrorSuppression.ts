@@ -65,7 +65,7 @@ class GlobalErrorSuppressor {
         return true; // Prevent error dialog
       }
       return this.originalHandlers.windowError 
-        ? this.originalHandlers.windowError.call(window, message, source, lineno, colno, error)
+        ? this.originalHandlers.windowError(message)
         : false;
     };
     
@@ -101,7 +101,7 @@ class GlobalErrorSuppressor {
     console.log('Deactivating global error suppression');
     
     // Restore original handlers
-    window.onerror = this.originalHandlers.windowError;
+    window.onerror = this.originalHandlers.windowError as OnErrorEventHandler;
     window.onunhandledrejection = this.originalHandlers.unhandledRejection;
     console.error = this.originalHandlers.consoleError;
     

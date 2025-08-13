@@ -37,7 +37,7 @@ export const CustomerList = () => {
 
   const handleDelete = async () => {
     if (customerToDelete) {
-      await deleteCustomer(customerToDelete.id);
+      await deleteCustomer(customerToDelete.id.toString());
       toast({
         title: "Customer Successfully Deleted",
         description: `${customerToDelete.name} has been moved to the recycle bin. You can restore it within 7 days.`,

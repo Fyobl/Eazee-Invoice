@@ -29,7 +29,7 @@ export class ErrorSuppressor {
         return true; // Prevent error dialog
       }
       return this.originalHandlers.windowError 
-        ? this.originalHandlers.windowError.call(window, message, source, lineno, colno, error)
+        ? this.originalHandlers.windowError(message)
         : false;
     };
     
@@ -64,7 +64,7 @@ export class ErrorSuppressor {
     console.log('Deactivating error suppression');
     
     // Restore original handlers
-    window.onerror = this.originalHandlers.windowError;
+    window.onerror = this.originalHandlers.windowError as OnErrorEventHandler;
     window.onunhandledrejection = this.originalHandlers.unhandledRejection;
     console.error = this.originalHandlers.consoleError;
     

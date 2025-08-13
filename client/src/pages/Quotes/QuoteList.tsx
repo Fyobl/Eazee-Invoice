@@ -15,7 +15,7 @@ import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { EmailSendButton } from '@/components/Email/EmailSendButton';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal, FileText, Mail } from 'lucide-react';
 import { Link } from 'wouter';
-import { Quote } from '@shared/schema';
+import { Quote, Customer, User } from '@shared/schema';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const QuoteList = () => {
@@ -36,7 +36,9 @@ export const QuoteList = () => {
     const matchesSearch = quote.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          quote.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-    const matchesCustomer = customerFilter === 'all' || quote.customerId === customerFilter || quote.customerId === parseInt(customerFilter);
+    const matchesCustomer = customerFilter === 'all' || 
+                           quote.customerId.toString() === customerFilter || 
+                           quote.customerId === parseInt(customerFilter);
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
@@ -58,7 +60,7 @@ export const QuoteList = () => {
 
   const handleDelete = async () => {
     if (quoteToDelete) {
-      await deleteDocument(quoteToDelete.id);
+      await deleteDocument(quoteToDelete.id.toString());
       toast({
         title: "Quote Successfully Deleted",
         description: `Quote ${quoteToDelete.number} has been moved to the recycle bin. You can restore it within 7 days.`,
@@ -87,7 +89,7 @@ export const QuoteList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
+    const customer = customers.find((c: Customer) => c.id === parseInt(quote.customerId.toString()) || c.id.toString() === quote.customerId.toString());
 
     if (!customer) {
       toast({
@@ -99,7 +101,7 @@ export const QuoteList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
+      const pdfBlob = await generatePDF(quote, customer, currentUser as User, 'quote');
       
       const url = URL.createObjectURL(pdfBlob);
       window.open(url, '_blank');
@@ -135,7 +137,7 @@ export const QuoteList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId);
+    const customer = customers.find((c: Customer) => c.id === parseInt(quote.customerId.toString()) || c.id.toString() === quote.customerId.toString());
 
     if (!customer) {
       toast({
@@ -147,7 +149,7 @@ export const QuoteList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(quote, customer, currentUser, 'quote');
+      const pdfBlob = await generatePDF(quote, customer, currentUser as User, 'quote');
       
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -285,7 +287,7 @@ export const QuoteList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Customers</SelectItem>
-                  {customers?.map((customer) => (
+                  {customers?.map((customer: Customer) => (
                     <SelectItem key={customer.id} value={customer.id.toString()}>
                       {customer.name}
                     </SelectItem>
@@ -354,11 +356,11 @@ export const QuoteList = () => {
                           <DropdownMenuItem asChild>
                             <EmailSendButton
                               documentType="quote"
-                              customerEmail={customers?.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId)?.email || ''}
+                              customerEmail={customers?.find((c: Customer) => c.id === parseInt(quote.customerId.toString()) || c.id.toString() === quote.customerId.toString())?.email || ''}
                               customerName={quote.customerName}
                               documentNumber={quote.number}
                               documentData={quote}
-                              customer={customers?.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId)}
+                              customer={customers?.find((c: Customer) => c.id === parseInt(quote.customerId.toString()) || c.id.toString() === quote.customerId.toString())}
                               currentUser={currentUser}
                               variant="ghost"
                               size="sm"

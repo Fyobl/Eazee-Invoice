@@ -15,7 +15,7 @@ import { generatePDF } from '@/components/PDF/PDFGenerator';
 import { EmailSendButton } from '@/components/Email/EmailSendButton';
 import { Plus, Eye, Edit, Download, Trash2, MoreHorizontal } from 'lucide-react';
 import { Link } from 'wouter';
-import { Invoice } from '@shared/schema';
+import { Invoice, Customer } from '@shared/schema';
 
 export const InvoiceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,7 +34,7 @@ export const InvoiceList = () => {
     const matchesSearch = invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    const matchesCustomer = customerFilter === 'all' || invoice.customerId === customerFilter || invoice.customerId === parseInt(customerFilter);
+    const matchesCustomer = customerFilter === 'all' || invoice.customerId.toString() === customerFilter;
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
@@ -55,7 +55,7 @@ export const InvoiceList = () => {
 
   const handleDelete = async () => {
     if (invoiceToDelete) {
-      await deleteDocument(invoiceToDelete.id);
+      await deleteDocument(invoiceToDelete.id.toString());
       toast({
         title: "Invoice Successfully Deleted",
         description: `Invoice ${invoiceToDelete.number} has been moved to the recycle bin. You can restore it within 7 days.`,
@@ -84,7 +84,7 @@ export const InvoiceList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
+    const customer = customers.find((c: Customer) => c.id.toString() === invoice.customerId.toString());
 
     if (!customer) {
       toast({
@@ -96,7 +96,7 @@ export const InvoiceList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
+      const pdfBlob = await generatePDF(invoice, customer, currentUser as any, 'invoice');
       
       const url = URL.createObjectURL(pdfBlob);
       window.open(url, '_blank');
@@ -131,7 +131,7 @@ export const InvoiceList = () => {
       return;
     }
 
-    const customer = customers.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId);
+    const customer = customers.find((c: Customer) => c.id.toString() === invoice.customerId.toString());
 
     if (!customer) {
       toast({
@@ -143,7 +143,7 @@ export const InvoiceList = () => {
     }
 
     try {
-      const pdfBlob = await generatePDF(invoice, customer, currentUser, 'invoice');
+      const pdfBlob = await generatePDF(invoice, customer, currentUser as any, 'invoice');
       
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
@@ -238,7 +238,7 @@ export const InvoiceList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Customers</SelectItem>
-                  {customers?.map((customer) => (
+                  {customers?.map((customer: Customer) => (
                     <SelectItem key={customer.id} value={customer.id.toString()}>
                       {customer.name}
                     </SelectItem>
@@ -327,11 +327,11 @@ export const InvoiceList = () => {
                           </DropdownMenuItem>
                           <EmailSendButton
                             documentType="invoice"
-                            customerEmail={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)?.email || ''}
+                            customerEmail={customers?.find((c: Customer) => c.id.toString() === invoice.customerId.toString())?.email || ''}
                             customerName={invoice.customerName}
                             documentNumber={invoice.number}
                             documentData={invoice}
-                            customer={customers?.find(c => c.id === parseInt(invoice.customerId) || c.id.toString() === invoice.customerId)}
+                            customer={customers?.find((c: Customer) => c.id.toString() === invoice.customerId.toString())}
                             currentUser={currentUser}
                             variant="ghost"
                             size="sm"

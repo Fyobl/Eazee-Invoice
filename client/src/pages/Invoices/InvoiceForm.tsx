@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { Plus, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { Invoice, InvoiceItem, Product } from '@shared/schema';
+import { Invoice, InvoiceItem, Product, Customer } from '@shared/schema';
 import { formatCurrency } from '@/lib/currency';
 import { SearchableCustomerSelect } from '@/components/SearchableCustomerSelect';
 import { SearchableProductSelect } from '@/components/SearchableProductSelect';
@@ -123,7 +123,7 @@ export const InvoiceForm = () => {
     setSuccess(null);
 
     try {
-      const selectedCustomer = customers?.find(c => c.id.toString() === data.customerId);
+      const selectedCustomer = customers?.find((c: Customer) => c.id.toString() === data.customerId);
       if (!selectedCustomer) {
         setError('Selected customer not found');
         return;

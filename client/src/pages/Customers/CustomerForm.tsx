@@ -126,7 +126,7 @@ export const CustomerForm = () => {
           postCode: data.postCode,
         };
         
-        updateCustomer({ id: customerId, data: updateData });
+        updateCustomer({ id: customerId.toString(), data: updateData });
         setSuccess('Customer updated successfully!');
       } else {
         // Add new customer

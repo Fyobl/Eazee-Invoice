@@ -28,7 +28,7 @@ export const EmailSetupModal = ({ isOpen, onClose, onComplete }: EmailSetupModal
   });
 
   // Check if company details are missing
-  const hasCompanyDetails = Boolean(user?.companyName && user?.companyAddress);
+  const hasCompanyDetails = Boolean((user as any)?.user?.companyName && (user as any)?.user?.companyAddress);
 
   // Setup email mutation
   const setupEmailMutation = useMutation({

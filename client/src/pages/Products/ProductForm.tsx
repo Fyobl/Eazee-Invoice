@@ -71,11 +71,11 @@ export const ProductForm = () => {
         const updateData: Partial<Product> = {
           name: data.name,
           description: data.description,
-          unitPrice: data.unitPrice,
-          taxRate: data.taxRate,
+          unitPrice: data.unitPrice.toString(),
+          taxRate: data.taxRate.toString(),
         };
         
-        updateProduct({ id: productId, data: updateData });
+        updateProduct({ id: productId.toString(), data: updateData });
         setSuccess('Product updated successfully!');
       } else {
         // Add new product
@@ -83,8 +83,8 @@ export const ProductForm = () => {
           uid: currentUser.uid,
           name: data.name,
           description: data.description,
-          unitPrice: data.unitPrice,
-          taxRate: data.taxRate,
+          unitPrice: data.unitPrice.toString(),
+          taxRate: data.taxRate.toString(),
           isDeleted: false
         };
 

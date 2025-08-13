@@ -14,12 +14,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Banner } from '@/components/ui/banner';
 import { FileText, Calendar } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { Statement } from '@shared/schema';
+import { Statement, Customer } from '@shared/schema';
 
 const statementSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
   date: z.string().min(1, 'Date is required'),
-  period: z.enum(['7', '30', 'custom'], { required_error: 'Period is required' }),
+  period: z.enum(['7', '30', 'custom']).default('30'),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   notes: z.string().optional()
@@ -87,7 +87,7 @@ export const StatementForm = () => {
     setSuccess(null);
 
     try {
-      const selectedCustomer = customers?.find(c => c.id.toString() === data.customerId);
+      const selectedCustomer = customers?.find((c: Customer) => c.id.toString() === data.customerId);
       if (!selectedCustomer) {
         setError('Selected customer not found');
         return;
@@ -109,9 +109,9 @@ export const StatementForm = () => {
         // Server will generate the statement number automatically
         customerId: data.customerId,
         customerName: selectedCustomer.name,
-        date: data.date,
-        startDate: data.period === 'custom' ? data.startDate! : calculateDates(data.period).startDate,
-        endDate: data.period === 'custom' ? data.endDate! : calculateDates(data.period).endDate,
+        date: new Date(data.date),
+        startDate: new Date(data.period === 'custom' ? data.startDate! : calculateDates(data.period).startDate),
+        endDate: new Date(data.period === 'custom' ? data.endDate! : calculateDates(data.period).endDate),
         period: data.period,
         notes: data.notes || '',
         isDeleted: false
@@ -167,7 +167,7 @@ export const StatementForm = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {customers?.map((customer) => (
+                            {customers?.map((customer: Customer) => (
                               <SelectItem key={customer.id} value={customer.id.toString()}>
                                 {customer.name}
                               </SelectItem>
