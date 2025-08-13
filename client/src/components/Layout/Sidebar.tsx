@@ -94,7 +94,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex items-center justify-between h-16 px-4 bg-slate-900 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <img 
               src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
@@ -103,7 +103,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             />
           </div>
           <button onClick={onClose}>
-            <X className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+            <X className="h-5 w-5 text-slate-400 hover:text-white" />
           </button>
         </div>
         
