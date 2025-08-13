@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useEmailSetupContext } from '@/contexts/EmailSetupContext';
+import { useEmailSetupDirect } from '@/hooks/useEmailSetupDirect';
 import { EmailSetupModal } from './EmailSetupModal';
 import { apiRequest } from '@/lib/queryClient';
 import { getEmailSettings, replaceVariables } from '@/lib/emailUtils';
@@ -40,27 +40,16 @@ export const EmailSendButton = ({
   const {
     isEmailSetupComplete,
     showEmailSetup,
-    setShowEmailSetup,
+    showEmailSetupModal,
+    closeEmailSetupModal,
     markEmailSetupComplete
-  } = useEmailSetupContext();
+  } = useEmailSetupDirect();
 
-  const showEmailSetupModal = () => {
-    if (!isEmailSetupComplete) {
-      setShowEmailSetup(true);
-      return false;
-    }
-    return true;
-  };
-
-  const closeEmailSetupModal = () => {
-    setShowEmailSetup(false);
-  };
+  const [isSending, setIsSending] = useState(false);
 
   const onEmailSetupComplete = () => {
     markEmailSetupComplete();
   };
-
-  const [isSending, setIsSending] = useState(false);
 
   // Email sending mutation
   const sendEmailMutation = useMutation({
@@ -101,17 +90,14 @@ export const EmailSendButton = ({
     setIsSending(true);
 
     try {
-      // Get email templates from local storage
+      // Get email settings and prepare variables
       const emailSettings = getEmailSettings();
       
-      // Prepare variables for template replacement
       const variables = {
         customerName: customerName,
-        companyName: documentData.companyName || 'Your Company',
-        [`${documentType}Number`]: documentNumber,
-        issueDate: documentData.date ? new Date(documentData.date).toLocaleDateString() : '',
-        dueDate: documentData.dueDate ? new Date(documentData.dueDate).toLocaleDateString() : '',
-        validUntil: documentData.validUntil ? new Date(documentData.validUntil).toLocaleDateString() : '',
+        documentType: documentType,
+        documentNumber: documentNumber,
+        companyName: currentUser?.companyName || 'Your Company',
         total: documentData.total ? `£${documentData.total}` : ''
       };
 
