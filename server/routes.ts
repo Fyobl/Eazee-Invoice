@@ -2677,6 +2677,24 @@ export async function setupRoutes(app: Express) {
   });
 
   // Send email route with PDF attachment
+  // Check email usage limits endpoint
+  app.get('/api/email-usage', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const usageInfo = await storage.canSendEmail(user.uid);
+      
+      res.json({
+        canSend: usageInfo.canSend,
+        dailyLimit: usageInfo.dailyLimit,
+        used: usageInfo.used,
+        isUnlimited: usageInfo.dailyLimit === -1
+      });
+    } catch (error) {
+      console.error('Error checking email usage:', error);
+      res.status(500).json({ error: 'Failed to check email usage' });
+    }
+  });
+
   app.post('/api/send-email', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user!;

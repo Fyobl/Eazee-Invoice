@@ -74,6 +74,15 @@ export const onboardingProgress = pgTable('onboarding_progress', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const emailUsage = pgTable('email_usage', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull(),
+  emailDate: text('email_date').notNull(), // Format: YYYY-MM-DD
+  emailCount: serial('email_count').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 
 
 export const customers = pgTable('customers', {
@@ -228,6 +237,10 @@ export const onboardingProgressRelations = relations(onboardingProgress, ({ one 
   user: one(users, { fields: [onboardingProgress.uid], references: [users.uid] }),
 }));
 
+export const emailUsageRelations = relations(emailUsage, ({ one }) => ({
+  user: one(users, { fields: [emailUsage.uid], references: [users.uid] }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertCustomerSchema = createInsertSchema(customers);
@@ -240,6 +253,7 @@ export const insertRecycleBinSchema = createInsertSchema(recycleBin);
 export const insertSessionSchema = createInsertSchema(sessions);
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
 export const insertOnboardingProgressSchema = createInsertSchema(onboardingProgress);
+export const insertEmailUsageSchema = createInsertSchema(emailUsage);
 
 // Select schemas
 export const selectUserSchema = createSelectSchema(users);
@@ -253,6 +267,7 @@ export const selectRecycleBinSchema = createSelectSchema(recycleBin);
 export const selectSessionSchema = createSelectSchema(sessions);
 export const selectPasswordResetTokenSchema = createSelectSchema(passwordResetTokens);
 export const selectOnboardingProgressSchema = createSelectSchema(onboardingProgress);
+export const selectEmailUsageSchema = createSelectSchema(emailUsage);
 export const insertSystemSettingSchema = createInsertSchema(systemSettings);
 export const selectSystemSettingSchema = createSelectSchema(systemSettings);
 
@@ -279,6 +294,8 @@ export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
 export type InsertOnboardingProgress = typeof onboardingProgress.$inferInsert;
+export type EmailUsage = typeof emailUsage.$inferSelect;
+export type InsertEmailUsage = typeof emailUsage.$inferInsert;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = typeof systemSettings.$inferInsert;
 

@@ -26,6 +26,20 @@ export const sendEmailWithBrevo = async (
     throw new Error('User email not verified for sending');
   }
 
+  // Import storage here to avoid circular imports
+  const { storage } = await import('./storage');
+  
+  // Check email sending limits
+  const { canSend, dailyLimit, used } = await storage.canSendEmail(user.uid);
+  
+  if (!canSend) {
+    if (dailyLimit === -1) {
+      throw new Error('Unable to send email. Please try again later.');
+    } else {
+      throw new Error(`Daily email limit reached (${used}/${dailyLimit}). Upgrade to Pro for unlimited emails.`);
+    }
+  }
+
   try {
     const emailData = {
       sender: {
@@ -68,6 +82,11 @@ export const sendEmailWithBrevo = async (
 
     const result = await response.json();
     console.log('Email sent successfully:', result.messageId);
+    
+    // Increment email usage count after successful send
+    const { storage } = await import('./storage');
+    await storage.incrementEmailUsage(user.uid);
+    
     return true;
 
   } catch (error) {

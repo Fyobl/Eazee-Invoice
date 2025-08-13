@@ -1,6 +1,6 @@
-import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, systemSettings, onboardingProgress, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken, type SystemSetting, type InsertSystemSetting, type OnboardingProgress, type InsertOnboardingProgress } from "@shared/schema";
+import { users, customers, products, invoices, quotes, statements, recycleBin, passwordResetTokens, systemSettings, onboardingProgress, emailUsage, type User, type InsertUser, type PasswordResetToken, type InsertPasswordResetToken, type SystemSetting, type InsertSystemSetting, type OnboardingProgress, type InsertOnboardingProgress, type EmailUsage, type InsertEmailUsage } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
@@ -38,6 +38,10 @@ export interface IStorage {
   updateUserEmailSettings(uid: string, senderEmail: string, verificationStatus: string): Promise<User>;
   updateEmailVerificationStatus(uid: string, isVerified: boolean, status: string): Promise<User>;
   clearSenderData(uid: string): Promise<User>;
+  // Email usage tracking methods
+  getTodayEmailUsage(uid: string): Promise<number>;
+  incrementEmailUsage(uid: string): Promise<void>;
+  canSendEmail(uid: string): Promise<{ canSend: boolean; dailyLimit: number; used: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -434,6 +438,85 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.uid, uid))
       .returning();
     return user;
+  }
+
+  // Email usage tracking methods
+  async getTodayEmailUsage(uid: string): Promise<number> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const [usage] = await db
+      .select()
+      .from(emailUsage)
+      .where(and(
+        eq(emailUsage.uid, uid),
+        eq(emailUsage.emailDate, today)
+      ));
+    
+    return usage?.emailCount || 0;
+  }
+
+  async incrementEmailUsage(uid: string): Promise<void> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    try {
+      // First try to update existing record
+      const result = await db
+        .update(emailUsage)
+        .set({ 
+          emailCount: sql`email_count + 1`,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(emailUsage.uid, uid),
+          eq(emailUsage.emailDate, today)
+        ));
+
+      // If no rows were updated, create a new record
+      if (result.rowCount === 0) {
+        await db
+          .insert(emailUsage)
+          .values({
+            uid,
+            emailDate: today,
+            emailCount: 1
+          });
+      }
+    } catch (error) {
+      // If insert fails due to unique constraint, try update again
+      await db
+        .update(emailUsage)
+        .set({ 
+          emailCount: sql`email_count + 1`,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(emailUsage.uid, uid),
+          eq(emailUsage.emailDate, today)
+        ));
+    }
+  }
+
+  async canSendEmail(uid: string): Promise<{ canSend: boolean; dailyLimit: number; used: number }> {
+    // Get user to check subscription status
+    const user = await this.getUser(uid);
+    if (!user) {
+      return { canSend: false, dailyLimit: 0, used: 0 };
+    }
+
+    // Check if user is subscribed or admin
+    const isProUser = user.isSubscriber || user.isAdmin || user.isAdminGrantedSubscription;
+    
+    // Pro users have unlimited emails
+    if (isProUser) {
+      return { canSend: true, dailyLimit: -1, used: 0 }; // -1 indicates unlimited
+    }
+
+    // Trial users have a daily limit of 5 emails
+    const dailyLimit = 5;
+    const used = await this.getTodayEmailUsage(uid);
+    const canSend = used < dailyLimit;
+
+    return { canSend, dailyLimit, used };
   }
 }
 

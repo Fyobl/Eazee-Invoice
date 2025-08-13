@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSimpleEmailStatus } from '@/hooks/useSimpleEmailStatus';
 import { EmailSetupModal } from './EmailSetupModal';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { getEmailSettings, replaceVariables } from '@/lib/emailUtils';
 import { generatePDF } from '@/components/PDF/PDFGenerator';
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2, Crown } from 'lucide-react';
 
 interface EmailSendButtonProps {
   documentType: 'invoice' | 'quote' | 'statement';
@@ -47,6 +47,13 @@ export const EmailSendButton = ({
 
   const [isSending, setIsSending] = useState(false);
 
+  // Query to check email usage limits
+  const { data: emailUsage } = useQuery({
+    queryKey: ['/api/email-usage'],
+    enabled: isEmailSetupComplete,
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
   const onEmailSetupComplete = () => {
     markEmailSetupComplete();
   };
@@ -70,6 +77,8 @@ export const EmailSendButton = ({
         description: `${documentType.charAt(0).toUpperCase() + documentType.slice(1)} sent successfully to ${customerEmail}`,
       });
       setIsSending(false);
+      // Refresh email usage data
+      queryClient.invalidateQueries({ queryKey: ['/api/email-usage'] });
     },
     onError: (error: any) => {
       toast({
@@ -85,6 +94,18 @@ export const EmailSendButton = ({
     // Check if email setup is complete
     if (!showEmailSetupModal()) {
       return; // Modal will be shown by the hook
+    }
+
+    // Check email usage limits before sending
+    if (emailUsage && !emailUsage.canSend) {
+      toast({
+        title: "Email Limit Reached",
+        description: emailUsage.isUnlimited 
+          ? "Unable to send email at this time. Please try again later."
+          : `Daily email limit reached (${emailUsage.used}/${emailUsage.dailyLimit}). Upgrade to Pro for unlimited emails.`,
+        variant: "destructive",
+      });
+      return;
     }
 
     setIsSending(true);
@@ -194,22 +215,38 @@ export const EmailSendButton = ({
 
   return (
     <>
-      <Button
-        variant={variant}
-        size={size}
-        onClick={handleSendEmail}
-        disabled={isSending || sendEmailMutation.isPending}
-        className={className}
-      >
-        {(isSending || sendEmailMutation.isPending) ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Mail className="h-4 w-4" />
+      <div className="flex flex-col items-center">
+        <Button
+          variant={variant}
+          size={size}
+          onClick={handleSendEmail}
+          disabled={isSending || sendEmailMutation.isPending || (emailUsage && !emailUsage.canSend)}
+          className={className}
+        >
+          {(isSending || sendEmailMutation.isPending) ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : emailUsage?.isUnlimited ? (
+            <Crown className="h-4 w-4 text-yellow-500" />
+          ) : (
+            <Mail className="h-4 w-4" />
+          )}
+          <span className="ml-2">
+            {(isSending || sendEmailMutation.isPending) ? 'Sending...' : 'Send via Email'}
+          </span>
+        </Button>
+        
+        {/* Show usage information for trial users */}
+        {emailUsage && !emailUsage.isUnlimited && (
+          <div className="text-xs text-gray-500 mt-1 text-center">
+            {emailUsage.used}/{emailUsage.dailyLimit} emails used today
+            {!emailUsage.canSend && (
+              <div className="text-orange-600 font-medium">
+                Upgrade to Pro for unlimited emails
+              </div>
+            )}
+          </div>
         )}
-        <span className="ml-2">
-          {(isSending || sendEmailMutation.isPending) ? 'Sending...' : 'Send via Email'}
-        </span>
-      </Button>
+      </div>
 
       <EmailSetupModal 
         isOpen={showEmailSetup}
