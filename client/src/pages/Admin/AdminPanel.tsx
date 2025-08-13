@@ -251,11 +251,12 @@ export const AdminPanel = () => {
 
   const totalUsers = users?.length || 0;
   const activeTrials = users?.filter((user: any) => !user.isSubscriber && !user.isSuspended).length || 0;
-  const subscribers = users?.filter((user: any) => user.isSubscriber).length || 0;
   const suspendedUsers = users?.filter((user: any) => user.isSuspended).length || 0;
   
-  // Calculate paying subscribers (exclude admin-granted free subscriptions)
+  // Separate paying subscribers from admin-granted subscriptions
   const payingSubscribers = users?.filter((user: any) => user.isSubscriber && !user.isAdminGrantedSubscription).length || 0;
+  const adminGrantedSubscribers = users?.filter((user: any) => user.isSubscriber && user.isAdminGrantedSubscription).length || 0;
+  const totalSubscribers = payingSubscribers + adminGrantedSubscribers;
   
   // Calculate revenue estimates based on current pricing for paying subscribers only
   // Monthly: £5.99/month, Annual: £64.69/year (£5.39/month equivalent)
@@ -535,7 +536,8 @@ export const AdminPanel = () => {
   const stats = [
     { title: 'Total Users', value: totalUsers.toString(), icon: Users, color: 'text-blue-600 dark:text-blue-400' },
     { title: 'Active Trials', value: activeTrials.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
-    { title: 'Subscribers', value: subscribers.toString(), icon: Crown, color: 'text-green-600 dark:text-green-400' },
+    { title: 'Paying Subscribers', value: payingSubscribers.toString(), icon: Crown, color: 'text-green-600 dark:text-green-400' },
+    { title: 'Admin Subscriptions', value: adminGrantedSubscribers.toString(), icon: Shield, color: 'text-purple-600 dark:text-purple-400' },
     { title: 'Monthly Revenue (Est.)', value: `£${averageRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 dark:text-green-400' }
   ];
 
@@ -698,7 +700,7 @@ export const AdminPanel = () => {
         </Card>
 
         {/* Platform Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
