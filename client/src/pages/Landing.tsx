@@ -214,11 +214,21 @@ export const Landing = () => {
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="border-2 border-primary/20">
-              <CardContent className="p-8 text-center">
+              <CardContent className="p-8 text-center flex flex-col h-full">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Free Trial</h3>
                 <div className="text-4xl font-bold text-primary mb-4">7 Days</div>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">Try all features with limitations</p>
-                <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
+                
+                {/* Add spacing to match Pro Plan billing toggle */}
+                <div className="mb-6 h-[52px] flex items-center justify-center">
+                  <p className="text-slate-600 dark:text-slate-300">Try all features with limitations</p>
+                </div>
+                
+                {/* Add spacing to match Pro Plan pricing */}
+                <div className="mb-6 h-[88px] flex items-center justify-center">
+                  <p className="text-slate-600 dark:text-slate-300">Get started for free today</p>
+                </div>
+                
+                <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2 flex-grow">
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Create invoices & quotes</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer & product management</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics & reports</li>
@@ -226,7 +236,7 @@ export const Landing = () => {
                   <li className="flex items-center text-orange-600 dark:text-orange-400"><AlertCircle className="h-4 w-4 mr-2" />Email sending limited to 5 per day</li>
                 </ul>
                 <Link href="/register">
-                  <Button className="w-full">
+                  <Button className="w-full mt-auto">
                     Start Free Trial
                   </Button>
                 </Link>
@@ -237,7 +247,7 @@ export const Landing = () => {
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">Most Popular</span>
               </div>
-              <CardContent className="p-8 text-center">
+              <CardContent className="p-8 text-center flex flex-col h-full">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Pro Plan</h3>
                 
                 {/* Billing Toggle inside Pro Plan box */}
@@ -292,7 +302,7 @@ export const Landing = () => {
                   </div>
                 )}
                 <p className="text-slate-600 dark:text-slate-300 mb-6">Unlock the full power of professional invoicing</p>
-                <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2">
+                <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2 flex-grow">
                   <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Clean, professional PDFs</strong> - No watermarks</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices, quotes & customers</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced business analytics & VAT reports</li>
@@ -302,7 +312,7 @@ export const Landing = () => {
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Cancel anytime - No contracts</li>
                 </ul>
                 <Link href="/register">
-                  <Button className="w-full">Start with Trial</Button>
+                  <Button className="w-full mt-auto">Start with Trial</Button>
                 </Link>
               </CardContent>
             </Card>
