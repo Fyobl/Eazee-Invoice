@@ -93,13 +93,26 @@ export const EmailSendButton = ({
       // Get email settings and prepare variables
       const emailSettings = getEmailSettings();
       
+      // Create comprehensive variables object for template replacement
       const variables = {
         customerName: customerName,
         documentType: documentType,
         documentNumber: documentNumber,
         companyName: currentUser?.companyName || 'Your Company',
-        total: documentData.total ? `£${documentData.total}` : ''
+        total: documentData.total ? `£${documentData.total}` : '',
+        // Invoice-specific variables
+        invoiceNumber: documentNumber,
+        issueDate: documentData.date ? new Date(documentData.date).toLocaleDateString('en-GB') : '',
+        dueDate: documentData.dueDate ? new Date(documentData.dueDate).toLocaleDateString('en-GB') : '',
+        // Quote-specific variables  
+        quoteNumber: documentNumber,
+        validUntil: documentData.validUntil ? new Date(documentData.validUntil).toLocaleDateString('en-GB') : '',
+        // Statement-specific variables
+        statementNumber: documentNumber,
       };
+
+      console.log('📧 Email variables for template replacement:', variables);
+      console.log('📄 Document data:', documentData);
 
       // Get the appropriate template
       let subject = '';
