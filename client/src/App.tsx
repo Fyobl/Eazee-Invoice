@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { EmailSetupProvider } from "@/contexts/EmailSetupContext";
 import { ProtectedRoute } from "@/components/Layout/ProtectedRoute";
 import { useEffect } from "react";
 
@@ -250,10 +251,12 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <AuthProvider>
-            <StripeProvider>
-              <Toaster />
-              <Router />
-            </StripeProvider>
+            <EmailSetupProvider>
+              <StripeProvider>
+                <Toaster />
+                <Router />
+              </StripeProvider>
+            </EmailSetupProvider>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
