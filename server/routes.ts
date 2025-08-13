@@ -1491,6 +1491,29 @@ export async function setupRoutes(app: Express) {
     }
   });
 
+  // Test welcome email endpoint for admin
+  app.post('/api/test-welcome-email', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: 'Email address is required' });
+      }
+
+      // Send test welcome email with sample data
+      const success = await sendWelcomeEmail(email, 'Test User', 'Test Company');
+      
+      if (success) {
+        res.json({ success: true, message: `Test welcome email sent to ${email}` });
+      } else {
+        res.status(500).json({ error: 'Failed to send test welcome email' });
+      }
+    } catch (error) {
+      console.error('Test welcome email error:', error);
+      res.status(500).json({ error: 'Failed to send test welcome email' });
+    }
+  });
+
   // Get user statistics endpoint for admin
   app.get('/api/users/:uid/stats', requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {

@@ -62,6 +62,7 @@ export const AdminPanel = () => {
   const [isTestingNotification, setIsTestingNotification] = useState(false);
   const [userStatsDialog, setUserStatsDialog] = useState(false);
   const [selectedUserForStats, setSelectedUserForStats] = useState<any>(null);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -210,6 +211,24 @@ export const AdminPanel = () => {
     },
     onError: (error: any) => {
       toast({ title: 'Error updating Stripe mode', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Test welcome email mutation
+  const testWelcomeEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await apiRequest('POST', '/api/test-welcome-email', { email });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ 
+        title: 'Test Welcome Email Sent', 
+        description: `Welcome email sent successfully to ${testEmailAddress}` 
+      });
+      setTestEmailAddress('');
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error sending test email', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -422,6 +441,11 @@ export const AdminPanel = () => {
     setIsTestingNotification(true);
     testNotificationMutation.mutate(billingFrequency);
     setTimeout(() => setIsTestingNotification(false), 2000);
+  };
+
+  const handleTestWelcomeEmail = () => {
+    if (!testEmailAddress) return;
+    testWelcomeEmailMutation.mutate(testEmailAddress);
   };
 
   const handleShowUserStats = (user: any) => {
@@ -644,6 +668,30 @@ export const AdminPanel = () => {
                     Manage Meta Data
                   </Button>
                 </Link>
+              </div>
+              <div>
+                <p className="font-medium text-slate-900 dark:text-slate-100">Test Welcome Email</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                  Send a test welcome email to verify formatting
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="test@example.com"
+                    type="email"
+                    value={testEmailAddress}
+                    onChange={(e) => setTestEmailAddress(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={handleTestWelcomeEmail}
+                    disabled={testWelcomeEmailMutation.isPending || !testEmailAddress}
+                    size="sm" 
+                    className="flex items-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {testWelcomeEmailMutation.isPending ? 'Sending...' : 'Send Test'}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
