@@ -367,14 +367,14 @@ export const EmailSettings = () => {
 
                   <Button 
                     type="submit" 
-                    disabled={setupAutoEmailMutation.isPending || shouldShowVerified}
+                    disabled={setupAutoEmailMutation.isPending || hasVerifiedEmail}
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
                     {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up auto email'}
                   </Button>
                   
-                  {shouldShowVerified && (
+                  {hasVerifiedEmail && (
                     <p className="text-sm text-gray-500 mt-2">
                       Email already verified. Use "Change Email" button above to set up a different email address.
                     </p>
