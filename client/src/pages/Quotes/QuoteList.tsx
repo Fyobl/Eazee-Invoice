@@ -37,8 +37,7 @@ export const QuoteList = () => {
                          quote.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
     const matchesCustomer = customerFilter === 'all' || 
-                           quote.customerId.toString() === customerFilter || 
-                           quote.customerId === parseInt(customerFilter);
+                           quote.customerId.toString() === customerFilter;
     
     return matchesSearch && matchesStatus && matchesCustomer;
   });
@@ -185,9 +184,9 @@ export const QuoteList = () => {
         date: new Date(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         items: quote.items,
-        subtotal: typeof quote.subtotal === 'string' ? quote.subtotal : quote.subtotal.toString(),
-        taxAmount: typeof quote.taxAmount === 'string' ? quote.taxAmount : quote.taxAmount.toString(),
-        total: typeof quote.total === 'string' ? quote.total : quote.total.toString(),
+        subtotal: typeof quote.subtotal === 'string' ? quote.subtotal : String(quote.subtotal),
+        taxAmount: typeof quote.taxAmount === 'string' ? quote.taxAmount : String(quote.taxAmount),
+        total: typeof quote.total === 'string' ? quote.total : String(quote.total),
         status: 'unpaid' as const,
         notes: quote.notes || '',
         quoteId: quote.id // Include quote ID so server can mark it as converted

@@ -51,7 +51,7 @@ export const Settings = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const form = useForm<SettingsForm>({
+  const form = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       companyName: '',
@@ -98,8 +98,8 @@ export const Settings = () => {
         town: addressFields.town,
         county: addressFields.county,
         postCode: addressFields.postCode,
-        companyPhone: currentUser.companyPhone || '',
-        companyEmail: currentUser.companyEmail || '',
+        companyPhone: (currentUser as any).companyPhone || '',
+        companyEmail: (currentUser as any).companyEmail || '',
         companyVatNumber: currentUser.companyVatNumber || '',
         companyRegistrationNumber: currentUser.companyRegistrationNumber || '',
         currency: currentUser.currency || 'GBP',

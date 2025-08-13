@@ -44,7 +44,7 @@ export const StatementForm = () => {
   const { data: customers } = useDatabase('customers');
   const { add: addStatement, loading } = useDatabase('statements');
 
-  const form = useForm<StatementForm>({
+  const form = useForm({
     resolver: zodResolver(statementSchema),
     defaultValues: {
       customerId: '',

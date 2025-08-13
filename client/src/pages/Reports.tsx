@@ -8,7 +8,7 @@ import { useDatabase } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Quote, FileBarChart, Users, TrendingUp, DollarSign, Download, Receipt, Star, Crown, Calendar } from 'lucide-react';
-import { Invoice, Quote as QuoteType, Statement, Customer, Product } from '@shared/schema';
+import { Invoice, Quote as QuoteType, Statement, Customer, Product, User } from '@shared/schema';
 import { generateVATReport, generateTopCustomersReport, generateBestSellersReport, generatePeriodTakingsReport } from '@/components/Reports/ReportGenerator';
 import { format, subDays, subMonths, subWeeks, startOfYear, endOfYear } from 'date-fns';
 import { useState } from 'react';
@@ -98,7 +98,7 @@ export const Reports = () => {
         quotes: quotes as QuoteType[] || [],
         customers: customers as Customer[],
         products: products as Product[] || [],
-        user: currentUser
+        user: currentUser as User
       };
       
       switch (reportType) {
@@ -140,7 +140,7 @@ export const Reports = () => {
       invoiceCount: customerInvoices.length,
       revenue: customerRevenue
     };
-  }).sort((a, b) => b.revenue - a.revenue).slice(0, 5) || [];
+  }).sort((a: any, b: any) => b.revenue - a.revenue).slice(0, 5) || [];
 
   return (
     <Layout title="Reports">
@@ -338,7 +338,7 @@ export const Reports = () => {
             <CardContent>
               {topCustomers.length > 0 ? (
                 <div className="space-y-4">
-                  {topCustomers.map((customer, index) => (
+                  {topCustomers.map((customer: any, index: number) => (
                     <div key={index} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-slate-900 dark:text-slate-100">{customer.name}</p>

@@ -29,7 +29,7 @@ export class ErrorSuppressor {
         return true; // Prevent error dialog
       }
       return this.originalHandlers.windowError 
-        ? this.originalHandlers.windowError(message)
+        ? this.originalHandlers.windowError.call(window, message as any)
         : false;
     };
     
