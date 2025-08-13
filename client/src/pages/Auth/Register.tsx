@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { registerUser } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,6 +24,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export const Register = () => {
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
@@ -43,11 +45,20 @@ export const Register = () => {
     try {
       await registerUser(data.email, data.password, data.firstName, data.lastName, data.companyName);
       await refreshUser();
+      
+      // Show redirecting state
+      setRedirecting(true);
+      
       toast({
         title: 'Registration successful',
         description: 'Welcome to Eazee Invoice! You have a 7-day free trial.',
       });
-      navigate('/dashboard');
+      
+      // Use window.location instead of navigate to force a clean navigation
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 500); // Small delay to show the redirecting message
+      
     } catch (error) {
       toast({
         title: 'Registration failed',
@@ -55,9 +66,16 @@ export const Register = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
+
+  // Show loading screen while redirecting
+  if (redirecting) {
+    return <LoadingScreen message="Redirecting to dashboard..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -148,8 +166,8 @@ export const Register = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create account'}
+              <Button type="submit" className="w-full" disabled={loading || redirecting}>
+                {loading ? 'Creating account...' : redirecting ? 'Redirecting...' : 'Create account'}
               </Button>
             </form>
           </Form>
