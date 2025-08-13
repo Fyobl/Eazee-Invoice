@@ -442,7 +442,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={6} {...field} />
+                            <Textarea rows={15} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -475,7 +475,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={6} {...field} />
+                            <Textarea rows={15} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -508,7 +508,7 @@ export const EmailSetupNew = () => {
                         <FormItem>
                           <FormLabel>Email Body</FormLabel>
                           <FormControl>
-                            <Textarea rows={6} {...field} />
+                            <Textarea rows={15} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
