@@ -223,6 +223,7 @@ export const Landing = () => {
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer & product management</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics & reports</li>
                   <li className="flex items-center text-orange-600 dark:text-orange-400"><AlertCircle className="h-4 w-4 mr-2" />PDFs include "TRIAL VERSION" watermark</li>
+                  <li className="flex items-center text-orange-600 dark:text-orange-400"><AlertCircle className="h-4 w-4 mr-2" />Email sending limited to 5 per day</li>
                 </ul>
                 <Link href="/register">
                   <Button className="w-full">
@@ -295,7 +296,7 @@ export const Landing = () => {
                   <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Clean, professional PDFs</strong> - No watermarks</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices, quotes & customers</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced business analytics & VAT reports</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Email integration with PDF attachments</li>
+                  <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Unlimited email sending</strong> with PDF attachments</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />CSV import/export for bulk operations</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority customer support</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Cancel anytime - No contracts</li>

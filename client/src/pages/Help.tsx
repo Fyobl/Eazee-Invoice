@@ -339,17 +339,31 @@ export const Help = () => {
           tip: "💡 PDFs maintain professional formatting for client communications"
         },
         {
-          title: "Email Integration",
-          description: "Send documents directly to customers",
+          title: "Email Integration Setup",
+          description: "Set up professional email sending with Brevo integration",
           details: [
-            "Click 'Send via Email' from the document menu",
-            "PDF is automatically generated and downloaded",
-            "Your default email client opens with pre-filled content",
-            "Email includes professional subject line and message",
-            "Manually attach the downloaded PDF to the email",
-            "Send the email to complete the process"
+            "Complete email setup during onboarding or from Settings",
+            "Enter your business email address for verification",
+            "Check your email for the 6-digit verification code",
+            "Enter the code to verify your email with Brevo",
+            "Once verified, you can send documents directly from the platform",
+            "Email setup is required for sending invoices, quotes, and statements"
           ],
-          tip: "💡 Customize email templates in Settings > Email Settings"
+          tip: "💡 Email setup is part of the onboarding checklist for new users"
+        },
+        {
+          title: "Sending Documents via Email",
+          description: "Send professional documents with PDF attachments",
+          details: [
+            "Click 'Send via Email' from any invoice, quote, or statement",
+            "PDF is automatically generated and attached",
+            "Email appears to be sent from your business email address",
+            "Professional templates include company branding",
+            "Track email usage in your account dashboard",
+            "Trial users: Limited to 5 emails per day",
+            "Pro users: Unlimited email sending with crown icon"
+          ],
+          tip: "💡 Upgrade to Pro for unlimited email sending and clean PDFs"
         }
       ]
     },
@@ -405,17 +419,18 @@ export const Help = () => {
           tip: "💡 Complete company information improves document professionalism"
         },
         {
-          title: "Email Templates",
-          description: "Customize email communications",
+          title: "Email Setup & Verification",
+          description: "Configure professional email sending",
           details: [
-            "Go to Account > Email Settings",
-            "Customize invoice email subject and body",
-            "Set up quote email templates",
-            "Configure statement email content",
-            "Use variables like {customerName} for personalization",
-            "Test templates before sending to customers"
+            "Navigate to Settings > Email Setup",
+            "Enter your business email address",
+            "Click 'Send Verification Code' to receive a 6-digit code",
+            "Check your email inbox for the verification code",
+            "Enter the code to complete Brevo integration setup",
+            "Once verified, email setup shows as 'Complete'",
+            "You can now send documents directly from the platform"
           ],
-          tip: "💡 Professional email templates improve customer communication"
+          tip: "💡 Use your actual business email for professional appearance"
         }
       ]
     },
@@ -615,6 +630,23 @@ export const Help = () => {
                   Yes! Use the CSV import feature for customers and products. 
                   Download the template first to ensure proper formatting, 
                   then upload your data file for bulk import.
+                </p>
+              </div>
+              
+              <div className="border-l-4 border-red-500 pl-4">
+                <h4 className="font-semibold">Q: Are there email sending limits?</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <strong>Trial users:</strong> Limited to 5 emails per day maximum. Track your usage in the email send button.
+                  <br />
+                  <strong>Pro users:</strong> Unlimited email sending with crown icon indicator. Upgrade for no restrictions on professional email communications.
+                </p>
+              </div>
+              
+              <div className="border-l-4 border-indigo-500 pl-4">
+                <h4 className="font-semibold">Q: How do I set up email sending?</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Navigate to Settings → Email Setup, enter your business email, and verify with the 6-digit code sent to your inbox. 
+                  Email setup is also part of the onboarding checklist for new users. Once verified, you can send documents directly from the platform.
                 </p>
               </div>
             </div>
