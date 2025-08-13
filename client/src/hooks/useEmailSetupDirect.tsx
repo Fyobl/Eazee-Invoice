@@ -29,20 +29,13 @@ export const useEmailSetupDirect = () => {
         const user = data.user as User;
         setUserData(user);
         
-        // Direct validation based on database fields
-        const isComplete = Boolean(
-          user?.emailVerificationStatus === 'verified' && 
-          user?.senderEmail && 
-          user?.companyName
-        );
+        // Simple validation: if senderEmail exists, setup is complete
+        const isComplete = Boolean(user?.senderEmail);
         
-        console.log('🔍 Direct Email Setup Check:', {
+        console.log('✅ Email Setup Status:', {
           isComplete,
-          emailVerificationStatus: user?.emailVerificationStatus,
           senderEmail: user?.senderEmail,
-          companyName: user?.companyName,
-          isEmailVerified: user?.isEmailVerified,
-          fullUserData: user
+          rule: 'senderEmail exists = setup complete'
         });
         
         setIsEmailSetupComplete(isComplete);
