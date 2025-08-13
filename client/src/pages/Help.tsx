@@ -449,7 +449,7 @@ export const Help = () => {
             "CSV import/export functionality",
             "Professional templates and branding",
             "Priority customer support",
-            "Monthly billing at £5.99/month or £59.99/year (2 months free)"
+            "Monthly billing at £5.99/month or £64.69/year (10% discount)"
           ],
           tip: "💡 Pro subscription unlocks all business features"
         },

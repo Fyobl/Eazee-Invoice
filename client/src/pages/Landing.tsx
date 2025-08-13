@@ -277,7 +277,7 @@ export const Landing = () => {
                   {billingFrequency === 'yearly' && (
                     <div className="ml-2 text-xs">
                       <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200 px-2 py-1 rounded-full font-medium">
-                        2 months free
+                        Save 10%
                       </span>
                     </div>
                   )}
@@ -285,7 +285,7 @@ export const Landing = () => {
                 
                 <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
                   <span>
-                    {billingFrequency === 'monthly' ? '£5.99' : '£59.99'}
+                    {billingFrequency === 'monthly' ? '£5.99' : '£64.69'}
                   </span>
                   <span className="text-lg text-slate-600 dark:text-slate-400">
                     /{billingFrequency === 'monthly' ? 'month' : 'year'}
@@ -293,12 +293,12 @@ export const Landing = () => {
                 </div>
                 {billingFrequency === 'yearly' && (
                   <div className="text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
-                    Save £11.89 per year (2 months free)
+                    Save £7.19 per year (10% off)
                   </div>
                 )}
                 {billingFrequency === 'monthly' && (
                   <div className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                    or £59.99/year (2 months free)
+                    or £64.69/year (save 10%)
                   </div>
                 )}
                 <p className="text-slate-600 dark:text-slate-300 mb-6">Unlock the full power of professional invoicing</p>
