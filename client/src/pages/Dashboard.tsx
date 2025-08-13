@@ -26,7 +26,7 @@ export const Dashboard = () => {
       try {
         console.log('Starting weather fetch...');
         
-        // Check if geolocation is available
+        // Check if geolocation is available and permissions policy allows it
         if (!navigator.geolocation) {
           console.log('Geolocation not supported');
           // Fallback to London weather
@@ -34,12 +34,24 @@ export const Dashboard = () => {
           return;
         }
 
+        // Check permissions policy first
+        try {
+          const permissionStatus = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+          if (permissionStatus.state === 'denied') {
+            console.log('Geolocation permission denied, using fallback');
+            await fetchWeatherForLocation(51.5074, -0.1278, 'London');
+            return;
+          }
+        } catch (permissionError) {
+          console.log('Permissions API not supported or blocked, trying direct geolocation');
+        }
+
         // Get user's location with timeout
         const getPosition = () => {
           return new Promise<GeolocationPosition>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
               reject(new Error('Geolocation timeout'));
-            }, 10000); // 10 second timeout
+            }, 5000); // Reduced to 5 second timeout
 
             navigator.geolocation.getCurrentPosition(
               (position) => {
@@ -48,12 +60,21 @@ export const Dashboard = () => {
               },
               (error) => {
                 clearTimeout(timeoutId);
-                reject(error);
+                // Handle specific geolocation errors
+                if (error.code === error.PERMISSION_DENIED) {
+                  reject(new Error('Geolocation permission denied'));
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                  reject(new Error('Position unavailable'));
+                } else if (error.code === error.TIMEOUT) {
+                  reject(new Error('Geolocation timeout'));
+                } else {
+                  reject(error);
+                }
               },
               {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 300000 // 5 minutes
+                enableHighAccuracy: false, // Reduced accuracy for faster response
+                timeout: 5000,
+                maximumAge: 600000 // 10 minutes cache
               }
             );
           });
