@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEmailSetupSimple } from '@/hooks/useEmailSetupSimple';
 
 interface EmailSetupContextType {
   isEmailSetupComplete: boolean;
@@ -21,53 +21,35 @@ export const EmailSetupProvider = ({ children }: { children: ReactNode }) => {
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
 
-  // Get user data from API
-  const { data: response, refetch } = useQuery({
-    queryKey: ['/api/me'],
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
-  });
-
-  const user = (response as any)?.user as User;
+  // Get user data using simple hook
+  const { isEmailSetupComplete: hookResult, user, refetch } = useEmailSetupSimple();
 
   // Check email setup status and update local state
   useEffect(() => {
-    const checkSetupStatus = () => {
-      // Primary validation from server data
-      const serverValidation = Boolean(
-        user?.emailVerificationStatus === 'verified' && 
-        user?.senderEmail && 
-        user?.companyName
-      );
-
-      // localStorage backup
-      const localStorageComplete = localStorage.getItem('emailSetupComplete') === 'true';
-      
-      // Use server data if available, otherwise fall back to localStorage
-      const finalStatus = serverValidation || localStorageComplete;
-      
-      console.log('🔍 EmailSetupContext - Status Check:', {
-        serverValidation,
-        localStorageComplete,
-        finalStatus,
-        userData: {
-          emailVerificationStatus: user?.emailVerificationStatus,
-          senderEmail: user?.senderEmail,
-          companyName: user?.companyName
-        }
-      });
-
-      setIsSetupComplete(finalStatus);
-
-      // Sync localStorage with server state if server has valid data
-      if (serverValidation) {
-        localStorage.setItem('emailSetupComplete', 'true');
+    // localStorage backup for immediate response
+    const localStorageComplete = localStorage.getItem('emailSetupComplete') === 'true';
+    
+    // Use hook result if available, otherwise fall back to localStorage
+    const finalStatus = hookResult || localStorageComplete;
+    
+    console.log('🔍 EmailSetupContext - Status Check:', {
+      hookResult,
+      localStorageComplete,
+      finalStatus,
+      userData: {
+        emailVerificationStatus: user?.emailVerificationStatus,
+        senderEmail: user?.senderEmail,
+        companyName: user?.companyName
       }
-    };
+    });
 
-    checkSetupStatus();
-  }, [user?.emailVerificationStatus, user?.senderEmail, user?.companyName]);
+    setIsSetupComplete(finalStatus);
+
+    // Sync localStorage with server state if server has valid data
+    if (hookResult) {
+      localStorage.setItem('emailSetupComplete', 'true');
+    }
+  }, [hookResult, user?.emailVerificationStatus, user?.senderEmail, user?.companyName]);
 
   const refreshEmailSetupStatus = async () => {
     await refetch();
