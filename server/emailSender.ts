@@ -224,7 +224,7 @@ export const generateEmailHTML = (
         <p><strong>Best regards,</strong></p>
         <p>${user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company'}</p>
       </div>
-      <p>This email was sent from your professional invoicing system.</p>
+      <p>This email was sent to you from <a href="https://www.eazeeinvoice.com" style="color: #3b82f6; text-decoration: none;">Eazee Invoice</a></p>
       <p>© ${new Date().getFullYear()} ${user.companyName || user.displayName || user.firstName + ' ' + user.lastName || 'Your Company'}. All rights reserved.</p>
     </div>
   </div>
