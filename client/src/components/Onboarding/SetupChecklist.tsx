@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Circle, X, Settings, Upload, Users, Package, FileText, Quote, ArrowRight, ExternalLink } from 'lucide-react';
+import { CheckCircle, Circle, X, Settings, Upload, Users, Package, FileText, Quote, ArrowRight, ExternalLink, Mail } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
@@ -12,6 +12,7 @@ interface OnboardingProgress {
   uid: string;
   companyBrandingComplete: boolean;
   logoUploaded: boolean;
+  emailSetupComplete: boolean;
   firstCustomerAdded: boolean;
   firstProductAdded: boolean;
   firstQuoteCreated: boolean;
@@ -73,6 +74,15 @@ export function SetupChecklist({ isOpen, onOpenChange }: SetupChecklistProps) {
       icon: Upload,
       link: '/settings',
       linkText: 'Upload Logo'
+    },
+    {
+      id: 'email',
+      title: 'Set up email sending',
+      description: 'Configure email to send invoices and quotes directly',
+      completed: progress.emailSetupComplete,
+      icon: Mail,
+      link: '/settings',
+      linkText: 'Setup Email'
     },
     {
       id: 'customers',

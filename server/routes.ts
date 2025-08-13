@@ -169,6 +169,9 @@ async function updateOnboardingCompletionStatus(uid: string) {
     // Check if company branding is complete
     const companyBrandingComplete = !!(user.companyName && user.companyAddress);
     const logoUploaded = !!user.companyLogo;
+    
+    // Check if email setup is complete
+    const emailSetupComplete = !!(user.isEmailVerified && user.senderEmail);
 
     // Check if user has added customers
     const customerCount = await db.select({ count: sql<number>`count(*)` })
@@ -208,6 +211,7 @@ async function updateOnboardingCompletionStatus(uid: string) {
     const updates = {
       companyBrandingComplete,
       logoUploaded,
+      emailSetupComplete,
       firstCustomerAdded,
       firstProductAdded,
       firstQuoteCreated,

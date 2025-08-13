@@ -64,6 +64,7 @@ export const onboardingProgress = pgTable('onboarding_progress', {
   uid: text('uid').notNull().unique(),
   companyBrandingComplete: boolean('company_branding_complete').default(false),
   logoUploaded: boolean('logo_uploaded').default(false),
+  emailSetupComplete: boolean('email_setup_complete').default(false),
   firstCustomerAdded: boolean('first_customer_added').default(false),
   firstProductAdded: boolean('first_product_added').default(false),
   firstQuoteCreated: boolean('first_quote_created').default(false),

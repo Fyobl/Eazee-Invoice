@@ -10,6 +10,7 @@ interface OnboardingProgress {
   uid: string;
   companyBrandingComplete: boolean;
   logoUploaded: boolean;
+  emailSetupComplete: boolean;
   firstCustomerAdded: boolean;
   firstProductAdded: boolean;
   firstQuoteCreated: boolean;
@@ -48,6 +49,7 @@ export function OnboardingTrigger() {
   const tasks = [
     progress.companyBrandingComplete,
     progress.logoUploaded,
+    progress.emailSetupComplete,
     progress.firstCustomerAdded,
     progress.firstProductAdded,
     progress.firstQuoteCreated,

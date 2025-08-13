@@ -363,6 +363,7 @@ export class DatabaseStorage implements IStorage {
       uid,
       companyBrandingComplete: false,
       logoUploaded: false,
+      emailSetupComplete: false,
       firstCustomerAdded: false,
       firstProductAdded: false,
       firstQuoteCreated: false,
