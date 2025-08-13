@@ -55,15 +55,13 @@ export const EmailSettings = () => {
     gcTime: 0, // Don't cache the result (formerly cacheTime)
   });
 
-  // Simple rule: if senderEmail exists in database, setup is complete
-  const isEmailSetupComplete = Boolean(user?.senderEmail && user?.senderEmail.trim().length > 0);
-  const shouldShowVerified = isEmailVerifiedLocal || isEmailSetupComplete;
+  // Database rule: if senderEmail exists, show verified status
+  const hasVerifiedEmail = Boolean(user?.senderEmail);
   
-  console.log('📧 Email Settings Page Status:', { 
-    senderEmail: user?.senderEmail, 
-    isEmailSetupComplete,
-    shouldShowVerified,
-    rule: 'senderEmail exists = setup complete'
+  console.log('📧 Email Settings Status:', { 
+    senderEmail: user?.senderEmail,
+    hasVerifiedEmail,
+    willShowVerified: hasVerifiedEmail
   });
 
   const form = useForm<EmailSettingsForm>({
@@ -266,7 +264,7 @@ export const EmailSettings = () => {
                 <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
                 <span className="ml-2">Loading...</span>
               </div>
-            ) : shouldShowVerified ? (
+            ) : hasVerifiedEmail ? (
               <div className="space-y-4">
                 <Alert>
                   <CheckCircle className="h-4 w-4 text-green-600" />
@@ -275,7 +273,7 @@ export const EmailSettings = () => {
                       <div>
                         <strong className="text-green-700 dark:text-green-400">✓ Email Verified & Ready!</strong>
                         <br />
-                        Emails will be sent from <strong>{verifiedEmailLocal || user.senderEmail || 'fyobl_ben@hotmail.com'}</strong> with replies going directly to your email address.
+                        Emails will be sent from <strong>{user?.senderEmail}</strong> with replies going directly to your email address.
                       </div>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -301,8 +299,6 @@ export const EmailSettings = () => {
                             <AlertDialogAction
                               onClick={() => {
                                 deleteSenderMutation.mutate();
-                                setIsEmailVerifiedLocal(false);
-                                setVerifiedEmailLocal('');
                               }}
                               className="bg-red-600 hover:bg-red-700"
                             >
