@@ -80,15 +80,6 @@ export const EmailSetupNew = () => {
   // Check if email is verified
   const isEmailSetup = Boolean(user?.senderEmail);
   const isEmailVerified = user?.isEmailVerified === true;
-  
-  // Debug logging
-  console.log('🔍 EmailSetupNew Debug:', {
-    user,
-    isEmailSetup,
-    isEmailVerified,
-    senderEmail: user?.senderEmail,
-    userIsEmailVerified: user?.isEmailVerified
-  });
 
   // Setup email mutation
   const setupEmailMutation = useMutation({
