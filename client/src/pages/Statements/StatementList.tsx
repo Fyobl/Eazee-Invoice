@@ -285,7 +285,7 @@ export const StatementList = () => {
                               <Download className="h-4 w-4 mr-2" />
                               Download PDF
                             </DropdownMenuItem>
-                            <div className="px-2 py-1.5">
+                            <DropdownMenuItem asChild>
                               <EmailSendButton
                                 documentType="statement"
                                 customerEmail={customers?.find(c => c.id === parseInt(statement.customerId) || c.id.toString() === statement.customerId)?.email || ''}
@@ -296,9 +296,9 @@ export const StatementList = () => {
                                 currentUser={currentUser}
                                 variant="ghost"
                                 size="sm"
-                                className="w-full justify-start h-auto px-2 py-1 font-normal"
+                                className="w-full justify-start h-auto px-2 py-1.5 font-normal"
                               />
-                            </div>
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteClick(statement)}
                               className="text-red-600 dark:text-red-400"

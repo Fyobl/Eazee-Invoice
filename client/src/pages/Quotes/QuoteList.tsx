@@ -351,7 +351,7 @@ export const QuoteList = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </DropdownMenuItem>
-                          <div className="px-2 py-1.5">
+                          <DropdownMenuItem asChild>
                             <EmailSendButton
                               documentType="quote"
                               customerEmail={customers?.find(c => c.id === parseInt(quote.customerId) || c.id.toString() === quote.customerId)?.email || ''}
@@ -362,9 +362,9 @@ export const QuoteList = () => {
                               currentUser={currentUser}
                               variant="ghost"
                               size="sm"
-                              className="w-full justify-start h-auto px-2 py-1 font-normal"
+                              className="w-full justify-start h-auto px-2 py-1.5 font-normal"
                             />
-                          </div>
+                          </DropdownMenuItem>
                           {quote.status !== 'converted' && (
                             <DropdownMenuItem onClick={() => handleConvertToInvoice(quote)}>
                               <FileText className="h-4 w-4 mr-2" />
