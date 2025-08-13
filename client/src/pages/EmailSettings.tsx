@@ -41,9 +41,7 @@ type OtpVerificationForm = z.infer<typeof otpVerificationSchema>;
 
 export const EmailSettings = () => {
   const [isResetting, setIsResetting] = useState(false);
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [isEmailVerifiedLocal, setIsEmailVerifiedLocal] = useState(false);
-  const [verifiedEmailLocal, setVerifiedEmailLocal] = useState<string>('');
+  // Removed unused local state variables
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -328,63 +326,243 @@ export const EmailSettings = () => {
                 </div>
               </div>
             ) : (
-              <Form {...autoEmailForm}>
-                <form onSubmit={autoEmailForm.handleSubmit(onAutoEmailSubmit)} className="space-y-4">
-                  <FormField
-                    control={autoEmailForm.control}
-                    name="senderEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sender Email Address</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email"
-                            placeholder="your.email@company.com" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This email address will be used to send invoices, quotes, and statements. You will receive a verification email to confirm this address.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>How it works:</strong>
-                      <ol className="list-decimal list-inside mt-2 space-y-1">
-                        <li>Enter your business email address above</li>
-                        <li>Click "Set up auto email" to begin verification</li>
-                        <li>Check your email for a 6-digit verification code from Brevo</li>
-                        <li>Enter the verification code when prompted</li>
-                        <li>Once verified, you can send professional emails with PDFs attached</li>
-                      </ol>
-                    </AlertDescription>
-                  </Alert>
-
-                  <Button 
-                    type="submit" 
-                    disabled={setupAutoEmailMutation.isPending || hasVerifiedEmail}
-                    className="flex items-center gap-2"
-                  >
-                    <Send className="h-4 w-4" />
-                    {setupAutoEmailMutation.isPending ? 'Setting up...' : 'Set up auto email'}
-                  </Button>
-                  
-                  {hasVerifiedEmail && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Email already verified. Use "Change Email" button above to set up a different email address.
-                    </p>
-                  )}
-                </form>
-              </Form>
+              <div className="space-y-4">
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Email Setup Required</strong>
+                    <br />
+                    Set up automatic email sending to send invoices, quotes, and statements directly to customers with PDFs attached.
+                  </AlertDescription>
+                </Alert>
+                
+                <Button 
+                  onClick={() => {
+                    const popup = window.open('', 'EmailSetup', 'width=600,height=700,scrollbars=yes,resizable=yes');
+                    if (popup) {
+                      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Setup - Eazee Invoice</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      background: #0f172a; 
+      color: white; 
+      padding: 20px; 
+      margin: 0;
+    }
+    .container { max-width: 500px; margin: 0 auto; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid #374151; 
+      border-radius: 6px; 
+      background: #1f2937;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input::placeholder { color: #9ca3af; }
+    button { 
+      background: #3b82f6; 
+      color: white; 
+      border: none; 
+      padding: 12px 24px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 14px;
+      font-weight: 500;
+    }
+    button:hover { background: #2563eb; }
+    button:disabled { 
+      background: #6b7280; 
+      cursor: not-allowed; 
+    }
+    .steps { 
+      background: #1f2937; 
+      padding: 16px; 
+      border-radius: 6px; 
+      margin-bottom: 20px; 
+    }
+    .steps ol { margin: 10px 0 0 0; padding-left: 20px; }
+    .steps li { margin-bottom: 8px; }
+    .otp-section { 
+      background: #1e3a8a; 
+      padding: 16px; 
+      border-radius: 6px; 
+      margin-top: 20px; 
+      display: none; 
+    }
+    .success { 
+      background: #166534; 
+      color: #dcfce7; 
+      padding: 16px; 
+      border-radius: 6px; 
+      text-align: center; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Email Setup - Eazee Invoice</h2>
+    <p>Set up automatic email sending through our secure email service.</p>
+    
+    <div class="steps">
+      <strong>How it works:</strong>
+      <ol>
+        <li>Enter your business email address</li>
+        <li>Click "Set up auto email" to begin verification</li>
+        <li>Check your email for a 6-digit verification code from Brevo</li>
+        <li>Enter the verification code when prompted</li>
+        <li>Once verified, you can send professional emails with PDFs attached</li>
+      </ol>
+    </div>
+    
+    <div id="setupForm">
+      <div class="form-group">
+        <label for="email">Sender Email Address</label>
+        <input type="email" id="email" placeholder="your.email@company.com" required>
+        <small style="color: #9ca3af; font-size: 12px;">
+          This email address will be used to send invoices, quotes, and statements.
+        </small>
+      </div>
+      
+      <button onclick="setupEmail()" id="setupBtn">
+        Set up auto email
+      </button>
+    </div>
+    
+    <div id="otpSection" class="otp-section">
+      <h4>Email Verification Required</h4>
+      <p>Enter the 6-digit verification code sent to <strong id="sentTo"></strong>:</p>
+      <div class="form-group">
+        <label for="otp">Verification Code</label>
+        <input type="text" id="otp" placeholder="123456" maxlength="6" pattern="[0-9]{6}">
+      </div>
+      <button onclick="verifyOtp()" id="verifyBtn">
+        Verify Code
+      </button>
+    </div>
+    
+    <div id="successSection" style="display: none;">
+      <div class="success">
+        <h3>Email Verified & Ready!</h3>
+        <p>Your automatic email sending is now configured.</p>
+        <button onclick="window.close()" style="margin-top: 10px;">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    async function setupEmail() {
+      const email = document.getElementById('email').value;
+      if (!email) {
+        alert('Please enter an email address');
+        return;
+      }
+      
+      const btn = document.getElementById('setupBtn');
+      btn.disabled = true;
+      btn.textContent = 'Setting up...';
+      
+      try {
+        const response = await fetch('/api/setup-auto-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ senderEmail: email }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('setupForm').style.display = 'none';
+          document.getElementById('otpSection').style.display = 'block';
+          document.getElementById('sentTo').textContent = email;
+        } else {
+          alert('Error: ' + data.message);
+          btn.disabled = false;
+          btn.textContent = 'Set up auto email';
+        }
+      } catch (error) {
+        alert('Network error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Set up auto email';
+      }
+    }
+    
+    async function verifyOtp() {
+      const otp = document.getElementById('otp').value;
+      if (!otp) {
+        alert('Please enter the verification code');
+        return;
+      }
+      
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      
+      try {
+        const response = await fetch('/api/verify-sender-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ otp: otp }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('otpSection').style.display = 'none';
+          document.getElementById('successSection').style.display = 'block';
+          
+          // Refresh parent window
+          if (window.opener) {
+            window.opener.location.reload();
+          }
+        } else {
+          alert('Error: ' + data.message);
+          btn.disabled = false;
+          btn.textContent = 'Verify Code';
+        }
+      } catch (error) {
+        alert('Network error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Verify Code';
+      }
+    }
+    
+    // Enter key support
+    document.getElementById('email').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') setupEmail();
+    });
+    document.getElementById('otp').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') verifyOtp();
+    });
+  </script>
+</body>
+</html>`;
+                      popup.document.write(htmlContent);
+                      popup.document.close();
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  Set up Automated Email Sending
+                </Button>
+              </div>
             )}
             
-            {/* OTP Verification Form */}
-            {(showOtpVerification || (user?.senderEmail && !user?.isEmailVerified)) && (
+            {/* Remove OTP section since it's now in popup */}
+            {false && (
               <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
                 <h4 className="font-medium mb-3 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
