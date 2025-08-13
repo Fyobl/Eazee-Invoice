@@ -39,6 +39,7 @@ import { ProductForm } from "@/pages/Products/ProductForm";
 import { Settings } from "@/pages/Settings";
 import { Account } from "@/pages/Account";
 import { EmailSettings } from "@/pages/EmailSettings";
+import { EmailSetupNew } from "@/pages/EmailSetupNew";
 import { Reports } from "@/pages/Reports";
 import { RecycleBin } from "@/pages/RecycleBin";
 import { AdminPanel } from "@/pages/Admin/AdminPanel";
@@ -193,6 +194,12 @@ function Router() {
       <Route path="/email-settings">
         <ProtectedRoute>
           <EmailSettings />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/email-setup-new">
+        <ProtectedRoute>
+          <EmailSetupNew />
         </ProtectedRoute>
       </Route>
       
