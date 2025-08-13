@@ -55,17 +55,15 @@ export const EmailSettings = () => {
     gcTime: 0, // Don't cache the result (formerly cacheTime)
   });
 
-  // Check if email is verified using local state (immediate) or server state (persistent)
-  const isEmailSetupComplete = Boolean(user?.isEmailVerified && user?.senderEmail);
+  // Simple rule: if senderEmail exists in database, setup is complete
+  const isEmailSetupComplete = Boolean(user?.senderEmail && user?.senderEmail.trim().length > 0);
   const shouldShowVerified = isEmailVerifiedLocal || isEmailSetupComplete;
   
-  console.log('📧 Email setup status:', { 
-    isEmailVerified: user?.isEmailVerified, 
+  console.log('📧 Email Settings Page Status:', { 
     senderEmail: user?.senderEmail, 
-    isComplete: isEmailSetupComplete,
+    isEmailSetupComplete,
     shouldShowVerified,
-    userEmail: user?.email,
-    fullUser: user
+    rule: 'senderEmail exists = setup complete'
   });
 
   const form = useForm<EmailSettingsForm>({
