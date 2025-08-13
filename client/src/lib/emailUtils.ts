@@ -294,20 +294,20 @@ export const openMailApp = async (
         }
         
         // Create download link with better error handling
-        const link = document.createElement('a');
+        const link = window.document.createElement('a');
         link.href = url;
         link.download = filename;
         link.style.display = 'none';
         
         // Add to DOM, click, then remove with timeout for cleanup
-        document.body.appendChild(link);
+        window.document.body.appendChild(link);
         link.click();
         
         // Clean up after a short delay to prevent frame disposal issues
         setTimeout(() => {
           try {
-            if (document.body.contains(link)) {
-              document.body.removeChild(link);
+            if (window.document.body.contains(link)) {
+              window.document.body.removeChild(link);
             }
             URL.revokeObjectURL(url);
           } catch (cleanupError) {
@@ -355,13 +355,13 @@ export const openMailApp = async (
           // Try creating a clickable link as last resort
           try {
             console.log('Creating downloadable link as fallback');
-            const link = document.createElement('a');
+            const link = window.document.createElement('a');
             link.href = mailtoUrl;
             link.textContent = 'Click to open email';
             link.style.display = 'none';
-            document.body.appendChild(link);
+            window.document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+            window.document.body.removeChild(link);
             console.log('Fallback link method attempted');
           } catch (fallbackError) {
             console.error('All methods failed:', fallbackError);

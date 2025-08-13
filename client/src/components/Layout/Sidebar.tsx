@@ -58,8 +58,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const accountNavItems = [
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/account', label: 'Account', icon: User },
-    { href: '/email-settings', label: 'Email Settings', icon: Mail },
-    { href: '/email-setup-new', label: 'Email Setup (New)', icon: Mail },
+    { href: '/email-setup', label: 'Email Setup', icon: Mail },
   ];
 
   // Add subscription management for all users
