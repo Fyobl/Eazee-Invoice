@@ -38,23 +38,25 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
   };
 
   return (
-    <header className="bg-slate-900 shadow-sm border-b border-slate-700">
+    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-slate-200 dark:border-gray-700">
       <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 bg-slate-900 px-3 py-2 rounded-lg">
           <Button
             variant="ghost"
             size="sm"
             onClick={onMenuClick}
+            className="text-white hover:bg-slate-800"
           >
-            <Menu className="h-5 w-5 text-white" />
+            <Menu className="h-5 w-5" />
           </Button>
           <img 
             src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
             alt="Eazee Invoice" 
             className="h-8 w-auto"
           />
-          <h1 className="text-2xl font-semibold text-white">{title}</h1>
         </div>
+        
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
         
         <div className="flex items-center space-x-4">
           {userData && !userData.isSubscriber && trialDaysLeft > 0 && (
@@ -72,7 +74,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                 {getInitials(getDisplayName())}
               </AvatarFallback>
             </Avatar>
-            <span className="hidden sm:block text-sm font-medium text-slate-200">
+            <span className="hidden sm:block text-sm font-medium text-slate-700 dark:text-slate-200">
               Hi {userData?.firstName || userData?.displayName || userData?.email}
             </span>
           </div>
@@ -81,7 +83,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="text-slate-300 hover:text-red-400"
+            className="text-slate-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
           >
             <LogOut className="h-4 w-4" />
           </Button>
