@@ -44,11 +44,16 @@ export const EmailSetupNew = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get user data
-  const { data: user, refetch: refetchUser } = useQuery<any>({
+  // Get user data - force fresh data every time
+  const { data: response, refetch: refetchUser } = useQuery<any>({
     queryKey: ['/api/me'],
     staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
+  
+  const user = response?.user;
 
   // Email setup form
   const emailForm = useForm<EmailSetupForm>({
@@ -75,6 +80,15 @@ export const EmailSetupNew = () => {
   // Check if email is verified
   const isEmailSetup = Boolean(user?.senderEmail);
   const isEmailVerified = user?.isEmailVerified === true;
+  
+  // Debug logging
+  console.log('🔍 EmailSetupNew Debug:', {
+    user,
+    isEmailSetup,
+    isEmailVerified,
+    senderEmail: user?.senderEmail,
+    userIsEmailVerified: user?.isEmailVerified
+  });
 
   // Setup email mutation
   const setupEmailMutation = useMutation({
