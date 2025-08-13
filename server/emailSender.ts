@@ -212,6 +212,8 @@ export const generateEmailHTML = (
       <div class="company-details">
         <h3>${user.companyName || 'Your Company'}</h3>
         ${user.companyAddress ? `<p>${user.companyAddress.replace(/\n/g, '<br>')}</p>` : ''}
+        ${user.companyPhone ? `<p><strong>Phone:</strong> ${user.companyPhone}</p>` : ''}
+        ${user.companyEmail ? `<p><strong>Email:</strong> ${user.companyEmail}</p>` : ''}
         ${user.companyVatNumber ? `<p><strong>VAT Number:</strong> ${user.companyVatNumber}</p>` : ''}
         ${user.companyRegistrationNumber ? `<p><strong>Company Registration:</strong> ${user.companyRegistrationNumber}</p>` : ''}
       </div>
