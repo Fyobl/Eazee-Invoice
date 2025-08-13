@@ -540,60 +540,102 @@ export const EmailSetupNew = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Customer Information</h5>
-                    <div className="space-y-1">
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{customerName}`}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{customerName}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Customer's full name</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{customerEmail}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{customerEmail}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Customer's email address</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{customerPhone}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{customerPhone}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Customer's phone number</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{customerAddress}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{customerAddress}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Customer's full address</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Company Information</h5>
-                    <div className="space-y-1">
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{companyName}`}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{companyName}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Your business name</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{companyAddress}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{companyAddress}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Your business address</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{companyPhone}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{companyPhone}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Your business phone</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{companyEmail}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{companyEmail}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Your business email</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <h5 className="font-medium text-sm text-slate-700 dark:text-slate-300">Document Details</h5>
-                    <div className="space-y-1">
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{invoiceNumber}`}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{invoiceNumber}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Invoice number (e.g. INV-001)</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{quoteNumber}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{quoteNumber}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Quote number (e.g. QUO-001)</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{statementNumber}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{statementNumber}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Statement number (e.g. STM-001)</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{documentDate}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{documentDate}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Document creation date</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{dueDate}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{dueDate}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Payment due date</span>
                       </div>
-                      <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
-                        {`{totalAmount}`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-mono bg-white dark:bg-slate-700 px-2 py-1 rounded border">
+                          {`{totalAmount}`}
+                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">Total amount (e.g. £150.00)</span>
                       </div>
                     </div>
                   </div>
