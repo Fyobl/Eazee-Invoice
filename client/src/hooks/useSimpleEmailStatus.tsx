@@ -5,7 +5,7 @@ export const useSimpleEmailStatus = () => {
   const [showEmailSetup, setShowEmailSetup] = useState(false);
 
   // Get user data using TanStack Query
-  const { data: userData } = useQuery({
+  const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['/api/me'],
     retry: 1,
     staleTime: 0, // Always fetch fresh data
@@ -15,21 +15,31 @@ export const useSimpleEmailStatus = () => {
   const user = userData ? (userData as any).user : null;
   
   // Simple rule: if senderEmail exists and is not empty, email setup is complete
-  const isEmailSetupComplete = Boolean(user?.senderEmail && user.senderEmail.trim().length > 0);
+  // BUT only check after data is loaded
+  const isEmailSetupComplete = userLoading ? false : Boolean(user?.senderEmail && user.senderEmail.trim().length > 0);
 
   console.log('📧 Simple Email Status Check:', {
     senderEmail: user?.senderEmail,
     isEmailSetupComplete,
     userDataExists: !!user,
+    userLoading,
     showEmailSetup,
-    modalWillShow: !isEmailSetupComplete
+    modalWillShow: !isEmailSetupComplete,
+    rawUserData: user
   });
 
   const showEmailSetupModal = () => {
     console.log('🔍 showEmailSetupModal called:', {
       isEmailSetupComplete,
-      willShowModal: !isEmailSetupComplete
+      userLoading,
+      willShowModal: !isEmailSetupComplete,
+      senderEmail: user?.senderEmail
     });
+    
+    // If still loading, don't show modal yet
+    if (userLoading) {
+      return false;
+    }
     
     if (!isEmailSetupComplete) {
       setShowEmailSetup(true);
