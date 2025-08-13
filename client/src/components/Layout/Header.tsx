@@ -40,23 +40,16 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-slate-200 dark:border-gray-700">
       <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center space-x-4 bg-slate-900 px-3 py-2 rounded-lg">
+        <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={onMenuClick}
-            className="text-white hover:bg-slate-800"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <img 
-            src="/attached_assets/Eazee Invoice Logo Transparent Small_1754663909119.png" 
-            alt="Eazee Invoice" 
-            className="h-8 w-auto"
-          />
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
         </div>
-        
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
         
         <div className="flex items-center space-x-4">
           {userData && !userData.isSubscriber && trialDaysLeft > 0 && (
