@@ -229,7 +229,7 @@ export const Landing = () => {
                 </div>
                 
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2 flex-grow">
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Create invoices & quotes</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Create invoices, quotes & statements</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Customer & product management</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Business analytics & reports</li>
                   <li className="flex items-center text-orange-600 dark:text-orange-400"><AlertCircle className="h-4 w-4 mr-2" />PDFs include "TRIAL VERSION" watermark</li>
@@ -304,7 +304,7 @@ export const Landing = () => {
                 <p className="text-slate-600 dark:text-slate-300 mb-6">Unlock the full power of professional invoicing</p>
                 <ul className="text-left text-slate-600 dark:text-slate-300 mb-6 space-y-2 flex-grow">
                   <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Clean, professional PDFs</strong> - No watermarks</li>
-                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices, quotes & customers</li>
+                  <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited invoices, quotes, statements & customers</li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced business analytics & VAT reports</li>
                   <li className="flex items-center"><Star className="h-4 w-4 text-yellow-500 mr-2" />✨ <strong>Unlimited emails - With PDFs Attached</strong></li>
                   <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />CSV import/export for bulk operations</li>
