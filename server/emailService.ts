@@ -147,146 +147,245 @@ export async function sendWelcomeEmail(email: string, firstName: string, company
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Welcome to Eazee Invoice - Professional Invoicing Made Simple</title>
+      <!--[if mso]>
+        <style>
+          table { border-collapse: collapse; }
+          .outlook-spacer { font-size: 1px; line-height: 1px; }
+        </style>
+      <![endif]-->
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
-        .email-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; padding: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
-        .header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
-        .content { padding: 40px; }
-        .welcome-message { background: #f0f9ff; border: 1px solid #0ea5e9; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .feature-list { margin: 30px 0; }
-        .feature-item { display: flex; align-items: flex-start; margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6; }
-        .feature-icon { font-size: 24px; margin-right: 15px; color: #3b82f6; }
-        .feature-content h3 { margin: 0 0 8px 0; color: #1e293b; font-size: 16px; }
-        .feature-content p { margin: 0; color: #64748b; font-size: 14px; }
-        .button { display: inline-block; background: #3b82f6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; text-align: center; font-size: 16px; }
-        .button:hover { background: #2563eb; }
-        .trial-info { background: #ecfdf5; border: 1px solid #10b981; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .trial-info h3 { color: #065f46; margin: 0 0 10px 0; }
-        .pricing-info { background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .pricing-info h3 { color: #92400e; margin: 0 0 10px 0; }
-        .support-section { background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .footer { background: #1e293b; color: #94a3b8; padding: 30px; text-align: center; font-size: 14px; }
-        .footer a { color: #60a5fa; text-decoration: none; }
-        .footer .social-links { margin: 20px 0; }
-        .footer .social-links a { color: #60a5fa; margin: 0 10px; text-decoration: none; }
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; }
+        table { border-collapse: collapse !important; }
+        img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+        
+        .email-wrapper { background-color: #f8fafc; padding: 20px; font-family: Arial, Helvetica, sans-serif; }
+        .email-container { background-color: #ffffff; max-width: 600px; margin: 0 auto; }
+        .header-table { background-color: #3b82f6; }
+        .content-table { padding: 20px; }
+        .feature-table { margin: 15px 0; background-color: #f8fafc; border-left: 4px solid #3b82f6; }
+        .button-table { margin: 20px 0; }
+        .button-link { background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 15px 30px; font-weight: bold; display: inline-block; text-align: center; }
+        .info-box { padding: 20px; margin: 20px 0; border: 1px solid #e2e8f0; }
+        .trial-box { background-color: #ecfdf5; border-color: #10b981; }
+        .pricing-box { background-color: #fef3c7; border-color: #f59e0b; }
+        .support-box { background-color: #f1f5f9; border-color: #e2e8f0; }
+        .footer-table { background-color: #1e293b; color: #94a3b8; }
+        
+        h1, h2, h3 { margin: 0; padding: 10px 0; }
+        p { margin: 10px 0; line-height: 1.6; }
+        li { margin: 5px 0; line-height: 1.8; }
+        
+        @media only screen and (max-width: 600px) {
+          .email-wrapper { padding: 10px !important; }
+          .content-table { padding: 15px !important; }
+          .button-link { padding: 12px 25px !important; }
+        }
       </style>
     </head>
     <body>
-      <div class="email-container">
-        <div class="header">
-          <h1>🧾 Welcome to Eazee Invoice!</h1>
-          <p>Professional invoicing made simple for ${companyName}</p>
-        </div>
-        
-        <div class="content">
-          <div class="welcome-message">
-            <h2>Hi ${firstName}! 👋</h2>
-            <p>Welcome to Eazee Invoice - the complete business management solution designed specifically for freelancers and small businesses like <strong>${companyName}</strong>.</p>
-            <p>You're now ready to streamline your invoicing process and take control of your business finances!</p>
-          </div>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" class="button">🚀 Start Using Eazee Invoice</a>
-          </div>
-
-          <div class="trial-info">
-            <h3>🎉 Your 7-Day Free Trial is Active!</h3>
-            <p>You have full access to all premium features for the next 7 days. No credit card required - start creating professional invoices right away!</p>
-          </div>
-
-          <h2>🌟 What You Can Do With Eazee Invoice:</h2>
-          <div class="feature-list">
-            <div class="feature-item">
-              <div class="feature-icon">📄</div>
-              <div class="feature-content">
-                <h3>Professional Invoicing & Quotes</h3>
-                <p>Create, track, and manage unlimited invoices and quotes with professional PDF generation. Convert quotes to invoices instantly.</p>
-              </div>
-            </div>
-
-            <div class="feature-item">
-              <div class="feature-icon">👥</div>
-              <div class="feature-content">
-                <h3>Complete Customer Management</h3>
-                <p>Manage unlimited customers and products with CSV import/export, comprehensive profiles, and searchable databases.</p>
-              </div>
-            </div>
-
-            <div class="feature-item">
-              <div class="feature-icon">📊</div>
-              <div class="feature-content">
-                <h3>Business Analytics & Reports</h3>
-                <p>Track revenue, analyze customer insights, and generate detailed business reports including VAT reports and profit analysis.</p>
-              </div>
-            </div>
-
-            <div class="feature-item">
-              <div class="feature-icon">📧</div>
-              <div class="feature-content">
-                <h3>Email Integration</h3>
-                <p>Email invoices and quotes directly to customers with customizable templates and professional PDF attachments.</p>
-              </div>
-            </div>
-
-            <div class="feature-item">
-              <div class="feature-icon">🎨</div>
-              <div class="feature-content">
-                <h3>Company Branding</h3>
-                <p>Add your company logo, customize colors, and include your business details on all documents for a professional appearance.</p>
-              </div>
-            </div>
-
-            <div class="feature-item">
-              <div class="feature-icon">📱</div>
-              <div class="feature-content">
-                <h3>Mobile-Friendly Design</h3>
-                <p>Access your business anywhere with our responsive design that works perfectly on desktop, tablet, and mobile devices.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="pricing-info">
-            <h3>💰 Simple, Affordable Pricing</h3>
-            <p><strong>Monthly:</strong> £5.99/month - Full access to all features</p>
-            <p><strong>Annual:</strong> £64.69/year - Save 10% with annual billing</p>
-            <p>No setup fees, no hidden costs. Cancel anytime.</p>
-          </div>
-
-          <h2>🚀 Getting Started is Easy:</h2>
-          <ol style="font-size: 16px; line-height: 1.8;">
-            <li><strong>Set up your company profile</strong> - Add your logo and business details</li>
-            <li><strong>Add your first customer</strong> - Import from CSV or add manually</li>
-            <li><strong>Create your products/services</strong> - Essential for building invoices and quotes</li>
-            <li><strong>Create your first invoice</strong> - Use our intuitive invoice builder</li>
-            <li><strong>Get paid faster</strong> - Email professional invoices to customers</li>
-          </ol>
-
-          <div class="support-section">
-            <h3>💬 Need Help? We're Here for You!</h3>
-            <p>Our comprehensive help section includes step-by-step guides, video tutorials, and feature demonstrations to get you started quickly.</p>
-            <p>Have questions? Our support team is ready to help you succeed with Eazee Invoice.</p>
-          </div>
-
-          <div style="text-align: center; margin: 40px 0;">
-            <a href="${loginUrl}" class="button">🎯 Access Your Dashboard Now</a>
-          </div>
-
-          <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b;">
-            Thanks for choosing Eazee Invoice to power your business!<br>
-            <strong>The Eazee Invoice Team</strong>
-          </p>
-        </div>
-
-        <div class="footer">
-          <p><strong>Eazee Invoice</strong> - Professional invoicing made simple</p>
-          <div class="social-links">
-            <a href="https://www.facebook.com/profile.php?id=61578914895610">Facebook</a>
-          </div>
-          <p>© 2024 Eazee Invoice. All rights reserved.</p>
-          <p><a href="${loginUrl.replace('/login', '/privacy-policy')}">Privacy Policy</a> | <a href="${loginUrl.replace('/login', '/terms-of-service')}">Terms of Service</a></p>
-        </div>
+      <div class="email-wrapper">
+        <table class="email-container" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <!-- Header -->
+          <tr>
+            <td>
+              <table class="header-table" width="100%" cellpadding="30" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="color: #ffffff;">
+                    <h1 style="font-size: 28px; margin: 0; color: #ffffff;">🧾 Welcome to Eazee Invoice!</h1>
+                    <p style="font-size: 16px; margin: 10px 0 0 0; color: #ffffff;">Professional invoicing made simple for ${companyName}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td>
+              <table class="content-table" width="100%" cellpadding="20" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <!-- Welcome Message -->
+                    <table class="info-box" width="100%" cellpadding="20" cellspacing="0" border="0" style="background-color: #f0f9ff; border-color: #0ea5e9;">
+                      <tr>
+                        <td>
+                          <h2 style="color: #1e293b; font-size: 20px;">Hi ${firstName}! 👋</h2>
+                          <p style="color: #333333;">Welcome to Eazee Invoice - the complete business management solution designed specifically for freelancers and small businesses like <strong>${companyName}</strong>.</p>
+                          <p style="color: #333333;">You're now ready to streamline your invoicing process and take control of your business finances!</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- CTA Button -->
+                    <table class="button-table" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center">
+                          <a href="${loginUrl}" class="button-link" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 15px 30px; font-weight: bold; display: inline-block;">🚀 Start Using Eazee Invoice</a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Trial Info -->
+                    <table class="info-box trial-box" width="100%" cellpadding="20" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <h3 style="color: #065f46; font-size: 18px;">🎉 Your 7-Day Free Trial is Active!</h3>
+                          <p style="color: #333333;">You have full access to all premium features for the next 7 days. No credit card required - start creating professional invoices right away!</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Features Header -->
+                    <h2 style="color: #1e293b; font-size: 20px;">🌟 What You Can Do With Eazee Invoice:</h2>
+                    
+                    <!-- Feature Items -->
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">📄</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Professional Invoicing & Quotes</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Create, track, and manage unlimited invoices and quotes with professional PDF generation. Convert quotes to invoices instantly.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">👥</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Complete Customer Management</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Manage unlimited customers and products with CSV import/export, comprehensive profiles, and searchable databases.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">📊</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Business Analytics & Reports</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Track revenue, analyze customer insights, and generate detailed business reports including VAT reports and profit analysis.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">📧</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Email Integration</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Email invoices and quotes directly to customers with customizable templates and professional PDF attachments.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">🎨</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Company Branding</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Add your company logo, customize colors, and include your business details on all documents for a professional appearance.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <table class="feature-table" width="100%" cellpadding="15" cellspacing="0" border="0">
+                      <tr>
+                        <td width="40" style="color: #3b82f6; font-size: 24px; vertical-align: top;">📱</td>
+                        <td style="vertical-align: top;">
+                          <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 8px 0;">Mobile-Friendly Design</h3>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Access your business anywhere with our responsive design that works perfectly on desktop, tablet, and mobile devices.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Pricing Info -->
+                    <table class="info-box pricing-box" width="100%" cellpadding="20" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <h3 style="color: #92400e; font-size: 18px;">💰 Simple, Affordable Pricing</h3>
+                          <p style="color: #333333;"><strong>Monthly:</strong> £5.99/month - Full access to all features</p>
+                          <p style="color: #333333;"><strong>Annual:</strong> £64.69/year - Save 10% with annual billing</p>
+                          <p style="color: #333333;">No setup fees, no hidden costs. Cancel anytime.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Getting Started -->
+                    <h2 style="color: #1e293b; font-size: 20px;">🚀 Getting Started is Easy:</h2>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <ol style="font-size: 16px; line-height: 1.8; color: #333333;">
+                            <li><strong>Set up your company profile</strong> - Add your logo and business details</li>
+                            <li><strong>Add your first customer</strong> - Import from CSV or add manually</li>
+                            <li><strong>Create your products/services</strong> - Essential for building invoices and quotes</li>
+                            <li><strong>Create your first invoice</strong> - Use our intuitive invoice builder</li>
+                            <li><strong>Get paid faster</strong> - Email professional invoices to customers</li>
+                          </ol>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Support Section -->
+                    <table class="info-box support-box" width="100%" cellpadding="20" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <h3 style="color: #1e293b; font-size: 18px;">💬 Need Help? We're Here for You!</h3>
+                          <p style="color: #333333;">Our comprehensive help section includes step-by-step guides, video tutorials, and feature demonstrations to get you started quickly.</p>
+                          <p style="color: #333333;">Have questions? Our support team is ready to help you succeed with Eazee Invoice.</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Final CTA Button -->
+                    <table class="button-table" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center">
+                          <a href="${loginUrl}" class="button-link" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 15px 30px; font-weight: bold; display: inline-block;">🎯 Access Your Dashboard Now</a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Closing -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                      <tr>
+                        <td>
+                          <p style="color: #64748b;">
+                            Thanks for choosing Eazee Invoice to power your business!<br>
+                            <strong>The Eazee Invoice Team</strong>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td>
+              <table class="footer-table" width="100%" cellpadding="30" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <p style="color: #94a3b8; margin: 0;"><strong>Eazee Invoice</strong> - Professional invoicing made simple</p>
+                    <p style="color: #94a3b8; margin: 20px 0;">
+                      <a href="https://www.facebook.com/profile.php?id=61578914895610" style="color: #60a5fa; text-decoration: none;">Facebook</a>
+                    </p>
+                    <p style="color: #94a3b8; margin: 0;">© 2024 Eazee Invoice. All rights reserved.</p>
+                    <p style="color: #94a3b8; margin: 10px 0 0 0;">
+                      <a href="${loginUrl.replace('/login', '/privacy-policy')}" style="color: #60a5fa; text-decoration: none;">Privacy Policy</a> | 
+                      <a href="${loginUrl.replace('/login', '/terms-of-service')}" style="color: #60a5fa; text-decoration: none;">Terms of Service</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </div>
     </body>
     </html>
