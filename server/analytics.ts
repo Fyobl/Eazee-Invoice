@@ -1,4 +1,7 @@
 import geoip from 'geoip-lite';
+import { db } from './db';
+import { analyticsSessions, analyticsPageViews } from '@shared/schema';
+import { eq, desc, sql, and, gte } from 'drizzle-orm';
 
 // Interface definitions
 interface VisitorSession {
@@ -72,15 +75,8 @@ interface AnalyticsData {
   }[];
 }
 
-// Live analytics storage - tracks real visitor data only
-const sessions = new Map<string, VisitorSession>();
-const pageViews: PageView[] = [];
-const visitors = new Set<string>();
-
-// Clear any existing sample data and start fresh
-sessions.clear();
-pageViews.length = 0;
-visitors.clear();
+// Database-backed analytics storage - persistent across server restarts
+// No more in-memory storage that gets cleared on restart
 
 // Helper functions
 function getDeviceType(userAgent: string): string {
@@ -150,72 +146,100 @@ function getCountryFlag(countryCode: string): string {
 }
 
 // Analytics tracking functions
-export function trackPageView(
+export async function trackPageView(
   ip: string,
   userAgent: string,
   page: string,
   referrer?: string
-): void {
+): Promise<void> {
   const sessionId = `${ip}-${new Date().toDateString()}`;
   const now = new Date();
   
-  // Add to visitors set
-  visitors.add(ip);
+  console.log(`📊 Analytics: Tracking page view - IP: ${ip}, Page: ${page}, UA: ${userAgent.substring(0, 50)}...`);
   
-  // Get or create session
-  let session = sessions.get(sessionId);
-  if (!session) {
-    const geo = geoip.lookup(ip);
-    session = {
-      id: sessionId,
-      ip,
-      userAgent,
-      startTime: now,
-      lastSeen: now,
-      pageViews: 0,
-      pages: [],
+  try {
+    // Get real IP (first IP from forwarded header)
+    const realIP = ip.split(',')[0].trim();
+    const geo = geoip.lookup(realIP);
+    
+    // Check if session exists in database
+    const existingSession = await db.select()
+      .from(analyticsSessions)
+      .where(eq(analyticsSessions.sessionId, sessionId))
+      .limit(1);
+    
+    if (existingSession.length === 0) {
+      // Create new session
+      await db.insert(analyticsSessions).values({
+        sessionId,
+        ip: realIP,
+        userAgent,
+        startTime: now,
+        lastSeen: now,
+        pageViews: 1,
+        pages: [page],
+        referrer,
+        country: geo?.country || 'Unknown',
+        device: getDeviceType(userAgent),
+        browser: getBrowserName(userAgent)
+      });
+      console.log(`🆕 Analytics: New session created for IP ${realIP}, Country: ${geo?.country || 'Unknown'}, Device: ${getDeviceType(userAgent)}`);
+    } else {
+      // Update existing session
+      const session = existingSession[0];
+      const updatedPages = session.pages || [];
+      if (!updatedPages.includes(page)) {
+        updatedPages.push(page);
+      }
+      
+      await db.update(analyticsSessions)
+        .set({
+          lastSeen: now,
+          pageViews: session.pageViews + 1,
+          pages: updatedPages
+        })
+        .where(eq(analyticsSessions.sessionId, sessionId));
+    }
+    
+    // Insert page view record
+    await db.insert(analyticsPageViews).values({
+      sessionId,
+      ip: realIP,
+      page,
+      timestamp: now,
       referrer,
-      country: geo?.country || 'Unknown',
-      device: getDeviceType(userAgent),
-      browser: getBrowserName(userAgent)
-    };
-    sessions.set(sessionId, session);
+      userAgent
+    });
+    
+    // Clean up old data (older than 90 days)
+    const cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
+    await db.delete(analyticsPageViews).where(sql`timestamp < ${cutoff}`);
+    await db.delete(analyticsSessions).where(sql`start_time < ${cutoff}`);
+    
+  } catch (error) {
+    console.error('📊 Analytics: Error tracking page view:', error);
   }
-  
-  // Update session
-  session.lastSeen = now;
-  session.pageViews++;
-  if (!session.pages.includes(page)) {
-    session.pages.push(page);
-  }
-  
-  // Create page view record
-  const pageView: PageView = {
-    id: `${sessionId}-${now.getTime()}`,
-    sessionId,
-    ip,
-    page,
-    timestamp: now,
-    referrer,
-    userAgent
-  };
-  
-  pageViews.push(pageView);
-  
-  // Keep only last 90 days of data
-  const cutoff = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-  const filteredPageViews = pageViews.filter(pv => pv.timestamp > cutoff);
-  pageViews.length = 0;
-  pageViews.push(...filteredPageViews);
 }
 
-export function getAnalyticsData(rangeDays: number = 30): AnalyticsData {
+export async function getAnalyticsData(rangeDays: number = 30): Promise<AnalyticsData> {
   const now = new Date();
   const startDate = new Date(now.getTime() - (rangeDays * 24 * 60 * 60 * 1000));
   
-  // Filter data for the specified range
-  const rangePageViews = pageViews.filter(pv => pv.timestamp >= startDate);
-  const rangeSessions = Array.from(sessions.values()).filter(s => s.startTime >= startDate);
+  console.log(`📈 Analytics: Getting data for ${rangeDays} days (from ${startDate.toISOString()})`);
+  
+  try {
+    // Get page views and sessions from database for the specified range
+    const rangePageViews = await db.select()
+      .from(analyticsPageViews)
+      .where(gte(analyticsPageViews.timestamp, startDate))
+      .orderBy(desc(analyticsPageViews.timestamp));
+      
+    const rangeSessions = await db.select()
+      .from(analyticsSessions)
+      .where(gte(analyticsSessions.startTime, startDate))
+      .orderBy(desc(analyticsSessions.startTime));
+  
+    console.log(`📊 Analytics: Found ${rangePageViews.length} page views and ${rangeSessions.length} sessions in range`);
   
   // Calculate overview metrics
   const uniqueVisitors = new Set(rangePageViews.map(pv => pv.ip)).size;
@@ -232,11 +256,8 @@ export function getAnalyticsData(rangeDays: number = 30): AnalyticsData {
   }, 0);
   const avgDuration = totalSessions > 0 ? totalDuration / totalSessions : 0;
   
-  // Count new visitors (first time seeing this IP in our data)
-  const newVisitors = rangeSessions.filter(session => {
-    const allSessionsForIP = Array.from(sessions.values()).filter(s => s.ip === session.ip);
-    return allSessionsForIP.length === 1;
-  }).length;
+  // Count new visitors (approximate - sessions that started in this range)
+  const newVisitors = rangeSessions.length;
   
   // Generate time series data
   const timeRange = [];
@@ -290,7 +311,7 @@ export function getAnalyticsData(rangeDays: number = 30): AnalyticsData {
   // Traffic sources
   const sourceStats = new Map<string, number>();
   rangeSessions.forEach(session => {
-    const source = getTrafficSource(session.referrer);
+    const source = getTrafficSource(session.referrer || undefined);
     sourceStats.set(source, (sourceStats.get(source) || 0) + 1);
   });
   
@@ -385,6 +406,27 @@ export function getAnalyticsData(rangeDays: number = 30): AnalyticsData {
     countries,
     browserData
   };
+  
+  } catch (error) {
+    console.error('📊 Analytics: Error getting analytics data:', error);
+    // Return empty analytics data on error
+    return {
+      overview: {
+        uniqueVisitors: 0,
+        pageViews: 0,
+        sessions: 0,
+        avgSessionDuration: '0s',
+        bounceRate: 0,
+        newVisitors: 0
+      },
+      timeRange: [],
+      topPages: [],
+      trafficSources: [],
+      deviceTypes: [],
+      countries: [],
+      browserData: []
+    };
+  }
 }
 
 // Middleware to track page views automatically
@@ -410,9 +452,17 @@ export function analyticsMiddleware(req: any, res: any, next: any) {
   const page = req.path;
   const referrer = req.get('Referer');
   
+  console.log(`🌐 Analytics Middleware: ${req.method} ${page} - IP: ${ip}, UA: ${userAgent.substring(0, 50)}...`);
+  
   // Only track if we have meaningful visitor data
   if (userAgent && !userAgent.includes('bot') && !userAgent.includes('crawler')) {
-    trackPageView(ip, userAgent, page, referrer);
+    console.log(`✅ Analytics: Tracking allowed for ${page}`);
+    // Don't await - track asynchronously to avoid blocking requests
+    trackPageView(ip, userAgent, page, referrer).catch(err => {
+      console.error('Analytics tracking error:', err);
+    });
+  } else {
+    console.log(`❌ Analytics: Skipped tracking for ${page} (bot or no UA)`);
   }
   
   next();

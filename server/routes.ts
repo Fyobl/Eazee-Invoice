@@ -2585,7 +2585,7 @@ export async function setupRoutes(app: Express) {
       const rangeDays = range === '7d' ? 7 : range === '90d' ? 90 : range === '1y' ? 365 : 30;
       
       const { getAnalyticsData } = await import('./analytics');
-      const analyticsData = getAnalyticsData(rangeDays);
+      const analyticsData = await getAnalyticsData(rangeDays);
       
       res.json(analyticsData);
     } catch (error) {

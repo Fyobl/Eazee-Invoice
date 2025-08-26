@@ -84,6 +84,35 @@ export const emailUsage = pgTable('email_usage', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Analytics tables for persistent visitor tracking
+export const analyticsSessions = pgTable('analytics_sessions', {
+  id: serial('id').primaryKey(),
+  sessionId: text('session_id').notNull().unique(),
+  ip: text('ip').notNull(),
+  userAgent: text('user_agent'),
+  startTime: timestamp('start_time').notNull(),
+  lastSeen: timestamp('last_seen').notNull(),
+  pageViews: serial('page_views').notNull().default(0),
+  pages: text('pages').array(),
+  referrer: text('referrer'),
+  country: text('country'),
+  device: text('device'),
+  browser: text('browser'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const analyticsPageViews = pgTable('analytics_page_views', {
+  id: serial('id').primaryKey(),
+  sessionId: text('session_id').notNull(),
+  ip: text('ip').notNull(),
+  page: text('page').notNull(),
+  timestamp: timestamp('timestamp').notNull(),
+  referrer: text('referrer'),
+  userAgent: text('user_agent'),
+  timeOnPage: serial('time_on_page'), // in seconds
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 
 
 export const customers = pgTable('customers', {
